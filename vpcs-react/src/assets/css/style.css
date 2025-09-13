@@ -1,0 +1,166 @@
+:root {
+    --primary-color: #3f51b5;
+    /* Indigo */
+    --secondary-color: #f44336;
+    /* Red */
+    --accent-color: #ffeb3b;
+    /* Yellow */
+    --text-dark: #333;
+    --text-light: #fff;
+    --background-light: #f5f5f5;
+    --border-color: #ddd;
+    --header-bg: #4a64c7;
+    /* Darker Indigo */
+    --highlight-bg: #e8eaf6;
+    /* Light Indigo for highlights */
+}
+
+/* This is a comment for testing */
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: var(--background-light);
+    color: var(--text-dark);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+}
+
+.container {
+    background-color: var(--text-light);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    width: 100%;
+    max-width: 900px;
+    box-sizing: border-box;
+}
+
+h1 {
+    color: var(--primary-color);
+    text-align: center;
+    margin-bottom: 30px;
+    font-weight: 600;
+}
+
+.input-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 30px;
+    padding: 15px;
+    background-color: var(--highlight-bg);
+    border-radius: 6px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.input-section label {
+    font-weight: 600;
+    margin-right: 15px;
+    font-size: 1.1em;
+    color: var(--primary-color);
+}
+
+.input-section input[type="number"] {
+    padding: 10px 15px;
+    border: 1px solid var(--primary-color);
+    border-radius: 5px;
+    font-size: 1.1em;
+    width: 150px;
+    text-align: right;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.input-section input[type="number"]:focus {
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 0 3px rgba(63, 81, 181, 0.2);
+}
+
+.results-table {
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.table-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 2fr;
+    /* Adjust column widths as needed */
+    border-bottom: 1px solid var(--border-color);
+}
+
+.table-row:last-child {
+    border-bottom: none;
+}
+
+.table-row>div {
+    padding: 12px 15px;
+    /* border-right: 1px solid var(--border-color); */
+    /* Optional: if you want vertical lines */
+    display: flex;
+    align-items: center;
+}
+
+.table-row>div:last-child {
+    border-right: none;
+}
+
+.table-row.header {
+    background-color: var(--header-bg);
+    color: #fff;
+    /* Changed font color to white for headings */
+    font-weight: 600;
+    font-size: 1.05em;
+}
+
+.table-row.header .component,
+.table-row.header .value,
+.table-row.header .comments {
+    color: #fff;
+    font-weight: 600;
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+}
+
+.table-row.header .value {
+    text-align: center;
+}
+
+.table-row.highlight {
+    background-color: var(--highlight-bg);
+    font-weight: 500;
+}
+
+.table-row .component {
+    font-weight: 500;
+}
+
+.table-row .value {
+    text-align: right;
+    font-family: 'Roboto Mono', monospace;
+    /* Monospaced font for values */
+    font-size: 1em;
+    color: #333;
+    /* Changed font color to black for values */
+}
+
+.table-row .comments {
+    font-size: 0.9em;
+    color: #333;
+    /* Changed font color to black for comments */
+}
+
+/* Specific styling for the 'Value' column to ensure right alignment */
+.results-table .value {
+    justify-content: flex-end;
+    /* Align content to the right */
+}
+
+/* Remove default border from header cells */
+.table-row.header>div {
+    border-right: none;
+}

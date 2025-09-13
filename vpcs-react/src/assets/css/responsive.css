@@ -1,0 +1,50 @@
+/* === Custom Mobile resonsive Styles for Material Calculator === */
+
+.input-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+/* === Highlighted Rows for Key Results === */
+/* === Subtle Highlight Style for Key Table Rows === */
+.highlight {
+  background-color: transparent;
+  border-left: 2px solid #ccc;
+  padding-left: 6px;
+  font-weight: normal;
+  color: inherit;
+}
+
+/* @keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+} */
+/* === Table Header Styling === */
+
+@media (max-width: 600px) {
+    .container {
+        padding: 10px;
+    }
+
+    .highlight {
+        font-size: 1rem;
+        padding: 6px;
+    }
+
+    .input-section label,
+    .input-section input,
+    .input-section select {
+        font-size: 1rem;
+        width: 100%;
+    }
+
+    .results-table {
+        font-size: 0.9rem;
+    }
+
+    /* Add this near your table styles */
+
+
+}
