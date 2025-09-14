@@ -1,8 +1,10 @@
+import React from "react";
+import Header from "./components/Header";
+
 function App() {
   return (
     <div>
-      <h1>Welcome to VPCS Digital 🚀</h1>
-      <p>This is my first React app.</p>
+      <Header />
     </div>
   );
 }

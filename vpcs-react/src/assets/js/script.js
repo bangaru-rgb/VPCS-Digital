@@ -1,3 +1,6 @@
+import './assets/css/style.css';
+import './assets/css/responsive.css';
+
 document.addEventListener('DOMContentLoaded', () => {
     const modeSelector = document.getElementById('mode-selector');
     const weightInput = document.getElementById('weight');
