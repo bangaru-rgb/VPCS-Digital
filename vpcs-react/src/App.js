@@ -5,8 +5,7 @@ import MaterialCalculator from "./components/MaterialCalculator";
 function App() {
   return (
     <div>
-      <Header />
-       <MaterialCalculator /> 
+      <MaterialCalculator />
     </div>
   );
 }
