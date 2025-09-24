@@ -7,7 +7,7 @@ const MaterialCalculator = () => {
 
   const GST = 0.18;
   const TCS = 0.01;
-  const APEMCL = 0.07;
+ // const APEMCL = 0.07;
 
   const formatNumber = (num) => Number(num).toFixed(2);
 
@@ -16,8 +16,32 @@ const MaterialCalculator = () => {
     let heteroRate = 0;
     let customsTax = 0;
     let pcbCharges = 0;
-
+    let APEMCL = 0;
     if (vendor === "genetique") {
+      if (mode === "etp") {
+        heteroRate = 18.0;
+        customsTax = heteroRate * 0.11;
+        pcbCharges = 2.0;
+        APEMCL = 0.07;
+      } else if (mode === "stripper") {
+        heteroRate = 4.0;
+        customsTax = 0.0;
+        pcbCharges = 1.0;
+        APEMCL = 0.07;
+      }
+    } else if (vendor === "godavari") {
+      if (mode === "etp") {
+        heteroRate = 18.0;
+        customsTax = heteroRate * 0.11;
+        pcbCharges = 2.0;
+        APEMCL = 0;
+      } else if (mode === "stripper") {
+        heteroRate = 4.0;
+        customsTax = 0.0;
+        pcbCharges = 1.5;
+         APEMCL = 0;
+      }
+    } else if (vendor === "balaji") {
       if (mode === "etp") {
         heteroRate = 18.0;
         customsTax = heteroRate * 0.11;
@@ -25,27 +49,7 @@ const MaterialCalculator = () => {
       } else if (mode === "stripper") {
         heteroRate = 4.0;
         customsTax = 0.0;
-        pcbCharges = 1.0;
-      }
-    } else if (vendor === "godavari") {
-      if (mode === "etp") {
-        heteroRate = 17.5;
-        customsTax = heteroRate * 0.10;
         pcbCharges = 1.5;
-      } else if (mode === "stripper") {
-        heteroRate = 3.8;
-        customsTax = 0.0;
-        pcbCharges = 0.8;
-      }
-    } else if (vendor === "balaji") {
-      if (mode === "etp") {
-        heteroRate = 16.0;
-        customsTax = heteroRate * 0.09;
-        pcbCharges = 1.8;
-      } else if (mode === "stripper") {
-        heteroRate = 3.5;
-        customsTax = 0.0;
-        pcbCharges = 0.7;
       }
     }
 
