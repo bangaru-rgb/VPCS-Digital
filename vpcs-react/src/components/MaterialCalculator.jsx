@@ -46,10 +46,12 @@ const MaterialCalculator = () => {
         heteroRate = 18.0;
         customsTax = heteroRate * 0.11;
         pcbCharges = 2.0;
+        APEMCL = 0;
       } else if (mode === "stripper") {
         heteroRate = 4.0;
         customsTax = 0.0;
         pcbCharges = 1.5;
+        APEMCL = 0;
       }
     }
 
