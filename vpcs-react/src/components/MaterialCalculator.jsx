@@ -7,7 +7,7 @@ const MaterialCalculator = () => {
 
   const GST = 0.18;
   const TCS = 0.01;
- // const APEMCL = 0.07;
+  // const APEMCL = 0.07;
 
   const formatNumber = (num) => Number(num).toFixed(2);
 
@@ -38,8 +38,14 @@ const MaterialCalculator = () => {
       } else if (mode === "stripper") {
         heteroRate = 4.0;
         customsTax = 0.0;
-        pcbCharges = 1.5;
-         APEMCL = 0;
+        //pcbCharges = 1.5;
+        APEMCL = 0;
+        // update PCB Charges based on heteroRate
+        if (heteroRate < 15.0) {
+          pcbCharges = 1.5;
+        } else {
+          pcbCharges = 2.0;
+        }
       }
     } else if (vendor === "balaji") {
       if (mode === "etp") {
