@@ -7,9 +7,11 @@ const MaterialCalculator = () => {
 
   const GST = 0.18;
   const TCS = 0.01;
+  // const APEMCL = 0.07;
 
   const formatNumber = (num) => Number(num).toFixed(2);
 
+  // ⬇️ move calculateValues BEFORE return
   const calculateValues = (vendor, mode, weight) => {
     let heteroRate = 0;
     let customsTax = 0;
@@ -36,12 +38,14 @@ const MaterialCalculator = () => {
       } else if (mode === "stripper") {
         heteroRate = 4.0;
         customsTax = 0.0;
+        //pcbCharges = 1.5;
+        APEMCL = 0;
+        // update PCB Charges based on heteroRate
         if (heteroRate < 15.0) {
           pcbCharges = 1.5;
         } else {
           pcbCharges = 2.0;
         }
-        APEMCL = 0;
       }
     } else if (vendor === "balaji") {
       if (mode === "etp") {
@@ -104,126 +108,9 @@ const MaterialCalculator = () => {
     apemclCharges,
   } = calculateValues(vendor, mode, weight);
 
+  // ✅ only ONE return
   return (
     <div className="container">
-      <style jsx>{`
-        .container {
-          max-width: 800px;
-          margin: 0 auto;
-          padding: 15px;
-          font-family: Arial, sans-serif;
-        }
-        
-        h1 {
-          text-align: center;
-          margin-bottom: 20px;
-          font-size: 1.8rem;
-        }
-        
-        .input-section {
-          display: flex;
-          flex-direction: column;
-          gap: 15px;
-          margin-bottom: 25px;
-        }
-        
-        label {
-          font-weight: bold;
-          margin-bottom: 5px;
-          display: block;
-        }
-        
-        select, input {
-          width: 100%;
-          padding: 10px;
-          font-size: 1rem;
-          border: 1px solid #ccc;
-          border-radius: 4px;
-          box-sizing: border-box;
-        }
-        
-        .results-table {
-          border: 1px solid #ddd;
-          border-radius: 4px;
-          overflow: hidden;
-        }
-        
-        .table-row {
-          display: flex;
-          border-bottom: 1px solid #eee;
-        }
-        
-        .table-row:last-child {
-          border-bottom: none;
-        }
-        
-        .table-row.header {
-          background-color: #f5f5f5;
-          font-weight: bold;
-        }
-        
-        .table-row.highlight {
-          background-color: #f9f9f9;
-        }
-        
-        .component, .value, .comments {
-          padding: 12px;
-        }
-        
-        .component {
-          flex: 1;
-          font-weight: bold;
-        }
-        
-        .value {
-          flex: 1;
-          text-align: right;
-          min-width: 100px;
-        }
-        
-        .comments {
-          flex: 2;
-          font-size: 0.9rem;
-          color: #666;
-        }
-        
-        @media (max-width: 768px) {
-          .container {
-            padding: 10px;
-          }
-          
-          h1 {
-            font-size: 1.5rem;
-          }
-          
-          .table-row {
-            flex-direction: column;
-          }
-          
-          .component, .value, .comments {
-            padding: 8px 12px;
-          }
-          
-          .component {
-            font-weight: bold;
-            border-bottom: 1px solid #eee;
-          }
-          
-          .value {
-            text-align: left;
-            border-bottom: 1px solid #eee;
-          }
-          
-          .comments {
-            font-size: 0.85rem;
-          }
-          
-          .table-row.highlight {
-            background-color: #f0f7ff;
-          }
-        }
-      `}</style>
-
       <h1>Material Cost Calculation</h1>
 
       <div className="input-section">
@@ -231,6 +118,7 @@ const MaterialCalculator = () => {
         <select
           value={vendor}
           onChange={(e) => setVendor(e.target.value)}
+          style={{ width: "100%", padding: "8px", fontSize: "1rem" }}
         >
           <option value="select">Select Vendor</option>
           <option value="genetique">Genetique Pro</option>
@@ -242,6 +130,7 @@ const MaterialCalculator = () => {
         <select
           value={mode}
           onChange={(e) => setMode(e.target.value)}
+          style={{ width: "100%", padding: "8px", fontSize: "1rem" }}
         >
           <option value="select">Select Material</option>
           <option value="etp">ETP</option>
@@ -256,9 +145,18 @@ const MaterialCalculator = () => {
           step="1"
           placeholder="Enter material weight"
           onChange={(e) => setWeight(parseFloat(e.target.value) || 0)}
+          style={{
+            width: "100%",
+            padding: "8px",
+            fontSize: "1rem",
+            textAlign: "left",
+          }}
         />
       </div>
 
+      {/* Results table continues here... */}
+
+      {/* ✅ Results Table */}
       <div className="results-table">
         <div className="table-row header">
           <div className="component">Component</div>
