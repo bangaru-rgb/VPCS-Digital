@@ -1,289 +1,297 @@
 .calculator-container {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 15px;
-  font-family: Arial, sans-serif;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 15px;
+    font-family: Arial, sans-serif;
 }
 
 .calculator-title {
-  text-align: center;
-  margin-bottom: 20px;
-  font-size: 1.8rem;
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 1.8rem;
 }
 
 .input-section {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  margin-bottom: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 25px;
 }
 
 .input-label {
-  font-weight: bold;
-  margin-bottom: 5px;
-  display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: block;
 }
 
 .input-field {
-  width: 100%;
-  padding: 10px;
-  font-size: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box;
+    width: 100%;
+    padding: 10px;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
 }
 
 .results-table {
-  /* border: 1px solid #ddd;
+    /* border: 1px solid #ddd;
   border-radius: 4px;
   overflow: hidden; */
-  margin-top: 2rem;
-  border-collapse: collapse;
-  width: 100%;
-  font-family: 'Segoe UI', sans-serif;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin-top: 2rem;
+    border-collapse: collapse;
+    width: 100%;
+    font-family: 'Segoe UI', sans-serif;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .table-row {
-  /* display: flex;
+    /* display: flex;
   border-bottom: 1px solid #eee; */
-  display: flex;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid #e0e0e0;
-  background-color: #fff;
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid #e0e0e0;
+    background-color: #fff;
 }
 
 .table-row:last-child {
-  border-bottom: none;
+    border-bottom: none;
 }
 
 .table-row.header {
-  /* background-color: #f5f5f5;
+    /* background-color: #f5f5f5;
   font-weight: bold; */
-  font-weight: bold;
-  background-color: #f5f5f5;
-  border-bottom: 2px solid #ccc;
+    font-weight: bold;
+    background-color: #f5f5f5;
+    border-bottom: 2px solid #ccc;
 }
 
 .table-row.highlight {
-  /* background-color: #f9f9f9; */
-  background-color: #e8f5e9;
-  font-weight: bold;
-  border-left: 4px solid #4caf50;
+    /* background-color: #f9f9f9; */
+    background-color: #e8f5e9;
+    font-weight: bold;
+    border-left: 4px solid #4caf50;
 }
 
-.component, .value, .comments {
-  /* padding: 12px; */
-   flex: 1;
-  padding: 4px 8px;
-  text-align: left;
+.component,
+.value,
+.comments {
+    /* padding: 12px; */
+    flex: 1;
+    padding: 4px 8px;
+    text-align: left;
 }
 
 .component {
-  flex: 1;
-  font-weight: bold;
+    flex: 1;
+    font-weight: bold;
 }
 
 .value {
-  /* flex: 1;
+    /* flex: 1;
   text-align: right;
   min-width: 100px; */
     text-align: right;
-  font-weight: 500;
-  color: #333;
+    font-weight: 500;
+    color: #333;
 }
 
 .comments {
-  /* flex: 2;
+    /* flex: 2;
   font-size: 0.9rem;
   color: #666; */
-  font-size: 0.9rem;
-  color: #666;
+    font-size: 0.9rem;
+    color: #666;
 }
 
 .results-cards {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 1.5rem;
 }
 
 .result-card {
-  background-color: #fff;
-  border-radius: 8px;
-  padding: 12px 16px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  font-family: 'Segoe UI', sans-serif;
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 12px 16px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    font-family: 'Segoe UI', sans-serif;
 }
 
 .result-card.highlight {
-  background-color: #fffbe6;
-  border-left: 4px solid #faad14;
+    background-color: #fffbe6;
+    border-left: 4px solid #faad14;
 }
 
 .card-label {
-  font-weight: 600;
-  font-size: 1rem;
-  color: #333;
+    font-weight: 600;
+    font-size: 1rem;
+    color: #333;
 }
 
 .card-value {
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: #007bff;
-  margin-top: 4px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #007bff;
+    margin-top: 4px;
 }
 
 .card-comment {
-  font-size: 0.85rem;
-  color: #666;
-  margin-top: 6px;
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 6px;
 }
 
 /* Responsive tweaks */
 @media (max-width: 768px) {
-  .result-card {
-    padding: 14px;
-  }
+    .result-card {
+        padding: 14px;
+    }
 
-  .card-label {
-    font-size: 1.1rem;
-  }
+    .card-label {
+        font-size: 1.1rem;
+    }
 
-  .card-value {
-    font-size: 1.3rem;
-  }
+    .card-value {
+        font-size: 1.3rem;
+    }
 
-  .card-comment {
-    font-size: 0.9rem;
-  }
+    .card-comment {
+        font-size: 0.9rem;
+    }
 }
 
 .summary-card {
-  background-color: #f9f9f9;
-  border-radius: 10px;
-  padding: 16px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  font-family: 'Segoe UI', sans-serif;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    font-family: 'Segoe UI', sans-serif;
 }
 
 .summary-card h2 {
-  margin-bottom: 12px;
-  font-size: 1.2rem;
-  color: #333;
+    margin-bottom: 12px;
+    font-size: 1.2rem;
+    color: #333;
 }
 
 .summary-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 6px 0;
-  font-size: 1rem;
-  font-weight: 500;
-  color: #444;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #444;
 }
 
 .summary-item .value {
-  font-weight: bold;
-  color: #007bff;
+    font-weight: bold;
+    color: #007bff;
 }
 
 /* Mobile tweaks */
 @media (max-width: 768px) {
-  .summary-card {
-    padding: 14px;
-  }
+    .summary-card {
+        padding: 14px;
+    }
 
-  .summary-card h2 {
-    font-size: 1.1rem;
-  }
+    .summary-card h2 {
+        font-size: 1.1rem;
+    }
 
-  .summary-item {
-    font-size: 1.05rem;
-  }
+    .summary-item {
+        font-size: 1.05rem;
+    }
 
-  .summary-item .value {
-    font-size: 1.2rem;
-  }
+    .summary-item .value {
+        font-size: 1.2rem;
+    }
 }
 
 .input-section {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    /* margin-top: 1rem; */
 }
 
 .input-group {
-  display: flex;
-  flex-direction: column;
+    display: flex;
+    flex-direction: column;
 }
 
 .input-group label {
-  font-size: 1rem;
-  font-weight: 500;
-  color: #333;
-  margin-bottom: 6px;
-  text-align: left;
+    text-align: left;
+    display: block;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 6px;
+    text-align: left;
 }
 
 .input-group select,
 .input-group input {
-  padding: 10px;
-  font-size: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  background-color: #fff;
-  color: #333;
+    font-size: 1rem;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    color: #333;
 }
+
 
 /* Mobile tweaks */
 @media (max-width: 768px) {
-  .input-group label {
-    font-size: 1.05rem;
-  }
+    .input-group label {
+        font-size: 1.05rem;
+    }
 
-  .input-group select,
-  .input-group input {
-    font-size: 1.1rem;
-    padding: 12px;
-  }
+    .input-group select,
+    .input-group input {
+        font-size: 1.1rem;
+        padding: 12px;
+    }
 }
 
 
 @media (max-width: 768px) {
-  .calculator-container {
-    padding: 10px;
-  }
-  
-  .calculator-title {
-    font-size: 1.5rem;
-  }
-  
-  .table-row {
-    flex-direction: column;
-  }
-  
-  .component, .value, .comments {
-    padding: 8px 12px;
-  }
-  
-  .component {
-    font-weight: bold;
-    border-bottom: 1px solid #eee;
-  }
-  
-  .value {
-    text-align: left;
-    border-bottom: 1px solid #eee;
-  }
-  
-  .comments {
-    font-size: 0.85rem;
-  }
-  
-  .table-row.highlight {
-    background-color: #f0f7ff;
-  }
+    .calculator-container {
+        padding: 10px;
+    }
+
+    .calculator-title {
+        font-size: 1.5rem;
+    }
+
+    .table-row {
+        flex-direction: column;
+    }
+
+    .component,
+    .value,
+    .comments {
+        padding: 8px 12px;
+    }
+
+    .component {
+        font-weight: bold;
+        border-bottom: 1px solid #eee;
+    }
+
+    .value {
+        text-align: left;
+        border-bottom: 1px solid #eee;
+    }
+
+    .comments {
+        font-size: 0.85rem;
+    }
+
+    .table-row.highlight {
+        background-color: #f0f7ff;
+    }
 }
