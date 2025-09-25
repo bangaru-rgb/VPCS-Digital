@@ -1,40 +1,63 @@
 import React, { useState } from "react";
 import "./MaterialCalculator.css";
 
+
+
 const MaterialCalculator = () => {
   const [vendor, setVendor] = useState("select");
-  const [mode, setMode] = useState("select");
+  const [material, setmaterial] = useState("select");
   const [weight, setWeight] = useState("");
+
 
   const GST = 0.18;
   const TCS = 0.01;
 
   const formatNumber = (num) => Number(num).toFixed(2);
 
-  const calculateValues = (vendor, mode, weight) => {
+  
+const vendorLabels = {
+  genetique: {
+    toHetero: "Genetique to Hetero",
+    toVendor: "VPCS to Genetique",
+  },
+  godavari: {
+    toHetero: "Godavari to Hetero",
+    toVendor: "VPCS to Godavari",
+  },
+  balaji: {
+    toHetero: "Balaji Industries to Hetero",
+    toVendor: "VPCS to Balaji",
+  },
+};
+
+ const selectedLabels = vendorLabels[vendor] || {
+    toHetero: "Vendor to Hetero",
+    toVendor: "VPCS to Vendor",
+  };
+  const calculateValues = (vendor, material, weight) => {
     let heteroRate = 0;
     let customsTax = 0;
     let pcbCharges = 0;
     let APEMCL = 0;
     if (vendor === "genetique") {
-      if (mode === "etp") {
+      if (material === "etp") {
         heteroRate = 18.0;
         customsTax = heteroRate * 0.11;
         pcbCharges = 2.0;
         APEMCL = 0.07;
-      } else if (mode === "stripper") {
+      } else if (material === "stripper") {
         heteroRate = 4.0;
         customsTax = 0.0;
         pcbCharges = 1.0;
         APEMCL = 0.07;
       }
     } else if (vendor === "godavari") {
-      if (mode === "etp") {
+      if (material === "etp") {
         heteroRate = 18.0;
         customsTax = heteroRate * 0.11;
         pcbCharges = 2.0;
         APEMCL = 0;
-      } else if (mode === "stripper") {
+      } else if (material === "stripper") {
         heteroRate = 4.0;
         customsTax = 0.0;
         if (heteroRate < 15.0) {
@@ -45,12 +68,12 @@ const MaterialCalculator = () => {
         APEMCL = 0;
       }
     } else if (vendor === "balaji") {
-      if (mode === "etp") {
+      if (material === "etp") {
         heteroRate = 18.0;
         customsTax = heteroRate * 0.11;
         pcbCharges = 2.0;
         APEMCL = 0;
-      } else if (mode === "stripper") {
+      } else if (material === "stripper") {
         heteroRate = 4.0;
         customsTax = 0.0;
         pcbCharges = 1.5;
@@ -103,49 +126,57 @@ const MaterialCalculator = () => {
     gstGenetique,
     vpcsToGenetique,
     apemclCharges,
-  } = calculateValues(vendor, mode, weight);
+  } = calculateValues(vendor, material, weight);
 
   return (
     <div className="calculator-container">
       <h1 className="calculator-title">Material Cost Calculation</h1>
 
-      <div className="input-section">
-        <label className="input-label">Vendor:</label>
-        <select
-          className="input-field"
-          value={vendor}
-          onChange={(e) => setVendor(e.target.value)}
-        >
-          <option value="select">Select Vendor</option>
-          <option value="genetique">Genetique Pro</option>
-          <option value="godavari">Godavari Fine Chem</option>
-          <option value="balaji">Sri Balaji Industries</option>
-        </select>
+  <div className="input-section">
+  <div className="input-group">
+    <label htmlFor="vendor">Vendor</label>
+    <select
+      id="vendor"
+      value={vendor}
+      onChange={(e) => setVendor(e.target.value)}
 
-        <label className="input-label">Material:</label>
-        <select
-          className="input-field"
-          value={mode}
-          onChange={(e) => setMode(e.target.value)}
-        >
-          <option value="select">Select Material</option>
-          <option value="etp">ETP</option>
-          <option value="stripper">Stripper</option>
-        </select>
+    >
+      <option value="select">Select Vendor</option>
+      <option value="genetique">Genetique Pro</option>
+      <option value="godavari">Godavari Fine Chem</option>
+      <option value="balaji">Sri Balaji Industries</option>
+    </select>
+  </div>
 
-        <label className="input-label">Weight:</label>
-        <input
-          className="input-field"
-          type="number"
-          value={weight}
-          min="0"
-          step="1"
-          placeholder="Enter material weight"
-          onChange={(e) => setWeight(parseFloat(e.target.value) || 0)}
-        />
-      </div>
+  <div className="input-group">
+    <label htmlFor="material">Material</label>
+    <select
+      id="material"
+      value={material}
+      onChange={(e) => setmaterial(e.target.value)}
+    >
+      <option value="select">Select Material</option>
+      <option value="etp">ETP</option>
+      <option value="stripper">Stripper</option>
+    </select>
+  </div>
 
-      <div className="results-table">
+  <div className="input-group">
+    <label htmlFor="weight">Weight</label>
+    <input
+      id="weight"
+      type="number"
+      value={weight}
+      min="0"
+      step="1"
+      placeholder="Enter weight"
+      onChange={(e) => setWeight(parseFloat(e.target.value) || 0)}
+    />
+  </div>
+</div>
+
+
+      {/* <div className="results-table">
         <div className="table-row header">
           <div className="component">Component</div>
           <div className="value">Value</div>
@@ -241,7 +272,47 @@ const MaterialCalculator = () => {
           <div className="value">{formatNumber(vpcsToGenetique)}</div>
           <div className="comments">Material price @ Genetique + GST.</div>
         </div>
+      </div> */}
+
+      <div className="summary-card">
+        <h2>Summary</h2>
+        <div className="summary-item">
+          <span className="label">{selectedLabels.toHetero}:</span>
+          <span className="value">₹ {formatNumber(genetiqueToHetero)}</span>
+        </div>
+        <div className="summary-item">
+          <span className="label">{selectedLabels.toVendor}:</span>
+          <span className="value">₹ {formatNumber(vpcsToGenetique)}</span>
+        </div>
       </div>
+
+
+      <div className="results-cards">
+        {[
+          { label: "Material Weight", value: formatNumber(weight), comment: "Total weight of the material." },
+          { label: "Hetero material Rate", value: formatNumber(heteroRate), comment: "Rate per unit for Hetero material." },
+          { label: "Customs Tax", value: formatNumber(customsTax), comment: "Vendor-specific customs tax." },
+          { label: "Material cost", value: formatNumber(materialCost), comment: "Hetero rate + Customs tax." },
+          { label: "Material Price @Hetero", value: formatNumber(materialPriceHetero), comment: "Material cost * Weight." },
+          { label: "GST", value: formatNumber(gstHetero), comment: "18% of Material Price @ Hetero." },
+          { label: "Material price + GST", value: formatNumber(materialPriceGst), comment: "Sum of Material Price @ Hetero and GST." },
+          { label: "TCS", value: formatNumber(tcs), comment: "1% of (Material price + GST)." },
+          { label: "Genetique to Hetero", value: formatNumber(genetiqueToHetero), comment: "Material price + GST + TCS.", highlight: true },
+          { label: "PCB Charges", value: formatNumber(pcbCharges), comment: "Vendor-specific PCB Charges." },
+          { label: "APEMCL charges", value: formatNumber(apemclCharges), comment: "Fixed APEMCL charge." },
+          { label: "Genetique material cost", value: formatNumber(genetiqueMaterialCost), comment: "Hetero rate + Customs tax + PCB + APEMCL." },
+          { label: "Material Price @ Genetique", value: formatNumber(materialPriceGenetique), comment: "Genetique material cost * Weight." },
+          { label: "GST @ Genetique", value: formatNumber(gstGenetique), comment: "18% of Material Price @ Genetique." },
+          { label: "VPCS to Genetique", value: formatNumber(vpcsToGenetique), comment: "Material price @ Genetique + GST.", highlight: true },
+        ].map((item, index) => (
+          <div className={`result-card ${item.highlight ? "highlight" : ""}`} key={index}>
+            <div className="card-label">{item.label}</div>
+            <div className="card-value">{item.value}</div>
+            <div className="card-comment">{item.comment}</div>
+          </div>
+        ))}
+      </div>
+
     </div>
   );
 };

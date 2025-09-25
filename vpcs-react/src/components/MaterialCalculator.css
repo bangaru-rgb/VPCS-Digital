@@ -5,12 +5,6 @@
   font-family: Arial, sans-serif;
 }
 
-.test-css {
-  color: red;
-  font-weight: bold;
-  margin: 20px;
-}
-
 .calculator-title {
   text-align: center;
   margin-bottom: 20px;
@@ -107,6 +101,156 @@
   font-size: 0.9rem;
   color: #666;
 }
+
+.results-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 1.5rem;
+}
+
+.result-card {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 12px 16px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.result-card.highlight {
+  background-color: #fffbe6;
+  border-left: 4px solid #faad14;
+}
+
+.card-label {
+  font-weight: 600;
+  font-size: 1rem;
+  color: #333;
+}
+
+.card-value {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #007bff;
+  margin-top: 4px;
+}
+
+.card-comment {
+  font-size: 0.85rem;
+  color: #666;
+  margin-top: 6px;
+}
+
+/* Responsive tweaks */
+@media (max-width: 768px) {
+  .result-card {
+    padding: 14px;
+  }
+
+  .card-label {
+    font-size: 1.1rem;
+  }
+
+  .card-value {
+    font-size: 1.3rem;
+  }
+
+  .card-comment {
+    font-size: 0.9rem;
+  }
+}
+
+.summary-card {
+  background-color: #f9f9f9;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.summary-card h2 {
+  margin-bottom: 12px;
+  font-size: 1.2rem;
+  color: #333;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #444;
+}
+
+.summary-item .value {
+  font-weight: bold;
+  color: #007bff;
+}
+
+/* Mobile tweaks */
+@media (max-width: 768px) {
+  .summary-card {
+    padding: 14px;
+  }
+
+  .summary-card h2 {
+    font-size: 1.1rem;
+  }
+
+  .summary-item {
+    font-size: 1.05rem;
+  }
+
+  .summary-item .value {
+    font-size: 1.2rem;
+  }
+}
+
+.input-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 1rem;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.input-group label {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 6px;
+  text-align: left;
+}
+
+.input-group select,
+.input-group input {
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background-color: #fff;
+  color: #333;
+}
+
+/* Mobile tweaks */
+@media (max-width: 768px) {
+  .input-group label {
+    font-size: 1.05rem;
+  }
+
+  .input-group select,
+  .input-group input {
+    font-size: 1.1rem;
+    padding: 12px;
+  }
+}
+
 
 @media (max-width: 768px) {
   .calculator-container {
