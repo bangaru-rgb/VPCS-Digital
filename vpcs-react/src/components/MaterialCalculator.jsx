@@ -5,7 +5,7 @@ import "./MaterialCalculator.css";
 
 const MaterialCalculator = () => {
   const [vendor, setVendor] = useState("select");
-  const [material, setmaterial] = useState("select");
+  const [material, setMaterial] = useState("select");
   const [weight, setWeight] = useState("");
 
 
@@ -152,7 +152,7 @@ const vendorLabels = {
     <select
       id="material"
       value={material}
-      onChange={(e) => setmaterial(e.target.value)}
+      onChange={(e) => setMaterial(e.target.value)}
     >
       <option value="select">Select Material</option>
       <option value="etp">ETP</option>

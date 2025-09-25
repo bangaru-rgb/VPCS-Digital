@@ -250,8 +250,9 @@
   border-radius: 6px;
   background-color: #fff;
   color: #333;
+  line-height: 1.4;
+  vertical-align: middle;
 }
-
 
 /* Mobile tweaks */
 @media (max-width: 768px) {
