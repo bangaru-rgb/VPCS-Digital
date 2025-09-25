@@ -139,7 +139,6 @@ const vendorLabels = {
       id="vendor"
       value={vendor}
       onChange={(e) => setVendor(e.target.value)}
-
     >
       <option value="select">Select Vendor</option>
       <option value="genetique">Genetique Pro</option>
@@ -149,7 +148,7 @@ const vendorLabels = {
   </div>
 
   <div className="input-group">
-    <label htmlFor="material">Material</label>
+    <label htmlFor="material">Material Type</label>
     <select
       id="material"
       value={material}
@@ -162,7 +161,7 @@ const vendorLabels = {
   </div>
 
   <div className="input-group">
-    <label htmlFor="weight">Weight</label>
+    <label htmlFor="weight">Total Weight</label>
     <input
       id="weight"
       type="number"
@@ -174,6 +173,7 @@ const vendorLabels = {
     />
   </div>
 </div>
+
 
 
       {/* <div className="results-table">

@@ -192,6 +192,16 @@
     color: #007bff;
 }
 
+.summary-item .label {
+  flex: 1;
+}
+
+.summary-item .value {
+  font-weight: bold;
+  color: #007bff;
+  text-align: right;
+}
+
 /* Mobile tweaks */
 @media (max-width: 768px) {
     .summary-card {
@@ -212,49 +222,48 @@
 }
 
 .input-section {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    /* margin-top: 1rem; */
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 1.5rem;
+  padding: 0 12px;
 }
 
 .input-group {
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
 }
 
 .input-group label {
-    text-align: left;
-    display: block;
-    font-size: 1rem;
-    font-weight: 500;
-    color: #333;
-    margin-bottom: 6px;
-    text-align: left;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 6px;
+  text-align: left;
 }
 
 .input-group select,
 .input-group input {
-    font-size: 1rem;
-    padding: 10px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    background-color: #fff;
-    color: #333;
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background-color: #fff;
+  color: #333;
 }
 
 
 /* Mobile tweaks */
 @media (max-width: 768px) {
-    .input-group label {
-        font-size: 1.05rem;
-    }
+  .input-group label {
+    font-size: 1.05rem;
+  }
 
-    .input-group select,
-    .input-group input {
-        font-size: 1.1rem;
-        padding: 12px;
-    }
+  .input-group select,
+  .input-group input {
+    font-size: 1.1rem;
+    padding: 12px;
+  }
 }
 
 
