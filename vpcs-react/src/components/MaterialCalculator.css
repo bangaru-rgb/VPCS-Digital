@@ -1,3 +1,5 @@
+/* --- START OF FILE MaterialCalculator.css --- */
+
 .calculator-container {
     max-width: 800px;
     margin: 0 auto;
@@ -8,13 +10,11 @@
 .calculator-title {
   text-align: center;
   margin-bottom: 24px;
-  font-size: 2rem;         /* ⬆️ Increased from 1.8rem */
-  font-weight: 700;        /* ⬆️ Bolder than default */
-  color: #222;             /* Slightly darker for emphasis */
-  letter-spacing: 0.5px;   /* Optional: adds subtle polish */
+  font-size: 2rem;
+  font-weight: 700;
+  color: #222;
+  letter-spacing: 0.5px;
 }
-
-
 
 /* 🔹 Input Section */
 .input-section {
@@ -23,16 +23,19 @@
   padding: 16px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
   margin-bottom: 24px;
+  display: flex; /* Added flexbox for overall input section */
+  flex-wrap: wrap; /* Allows items to wrap on smaller screens */
+  gap: 16px; /* Spacing between input groups within the section */
 }
 
 
 .input-group {
   display: flex;
   flex-direction: column;
- 
   gap: 6px; /* spacing between label and input */
+  flex: 1 1 calc(33.333% - 16px); /* Default to 3 items per row on larger screens, accounting for gap */
+  min-width: 250px; /* Ensures inputs don't get too small before wrapping */
 }
-
 
 .input-group label {
     font-size: 1rem;
@@ -46,11 +49,11 @@
 .input-group input {
   display: block;
   width: 100%;
-  height: 48px;               /* ✅ Uniform height */
-  padding: 10px 14px;         /* ✅ Balanced padding */
+  height: 48px;
+  padding: 10px 14px;
   font-size: 1rem;
   font-weight: 500;
-  line-height: normal;        /* ✅ Let browser calculate based on font */
+  line-height: normal;
   border: 1px solid #ccc;
   border-radius: 6px;
   background-color: #fff;
@@ -59,6 +62,14 @@
   appearance: none;
 }
 
+/* Add custom arrow for selects to ensure consistency */
+.input-group select {
+    background-image: url("data:image/svg+xml;utf8,<svg fill='gray' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 36px; /* Make space for the arrow */
+}
 
 
 /* 🔹 Summary Section */
@@ -192,6 +203,17 @@
         font-size: 1.5rem;
     }
 
+    /* Important: Make input groups stack vertically on mobile */
+    .input-section {
+        flex-direction: column; /* Stacks items vertically */
+        gap: 16px; /* Spacing between stacked inputs */
+    }
+
+    .input-group {
+        flex: 1 1 100%; /* Each input group takes full width */
+        min-width: unset; /* Remove min-width constraint on mobile */
+    }
+
     .input-group label {
         font-size: 1rem;
         font-weight: 600;
@@ -207,11 +229,7 @@
         display: block;
         width: 100%;
         height: 48px;
-        /* ✅ Ensures consistent height */
-        line-height: 48px;
-        /* ✅ Vertically centers text */
-        /* padding: 0 14px; */
-        /* ✅ Horizontal padding only */
+        line-height: normal; /* Reset line-height, padding handles vertical alignment */
         font-size: 1rem;
         font-weight: 500;
         border: 1px solid #ccc;
@@ -220,7 +238,7 @@
         color: #333;
         box-sizing: border-box;
         appearance: none;
-        padding: 0 14px;
+        padding: 10px 14px; /* Consistent padding */
     }
 
     .input-group select {
@@ -228,10 +246,8 @@
         background-repeat: no-repeat;
         background-position: right 12px center;
         background-size: 16px;
+        padding-right: 36px; /* Make space for the arrow */
     }
- .input-group {
-    flex-direction: column;
-  }
 
     .summary-card {
         padding: 14px;
