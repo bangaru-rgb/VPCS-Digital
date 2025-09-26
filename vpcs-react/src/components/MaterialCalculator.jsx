@@ -13,12 +13,12 @@ const MaterialCalculator = () => {
 
   const vendorLabels = {
     genetique: {
-      toHetero: "Genetique to Hetero",
-      toVendor: "VPCS to Genetique",
+      toHetero: "Genetique Proto Hetero",
+      toVendor: "VPCS to Genetique Pro",
     },
     godavari: {
       toHetero: "Godavari to Hetero",
-      toVendor: "VPCS to Godavari",
+      toVendor: "VPCS to Godavari Fine Chem",
     },
     balaji: {
       toHetero: "Balaji Industries to Hetero",
@@ -26,11 +26,20 @@ const MaterialCalculator = () => {
     },
   };
 
-  // MOVED THIS SECTION ABOVE calculateValues
   const selectedLabels = vendorLabels[vendor] || {
     toHetero: "Vendor to Hetero",
     toVendor: "VPCS to Vendor",
   };
+
+  // Mapping for vendor display names
+  const vendorDisplayNames = {
+    genetique: "Genetique Pro",
+    godavari: "Godavari Fine Chem",
+    balaji: "Sri Balaji Industries",
+  };
+
+  // Get the current vendor display name
+  const currentVendorName = vendorDisplayNames[vendor] || "Vendor";
 
   const calculateValues = (vendor, material, weight) => {
     let heteroRate = 0;
@@ -126,6 +135,25 @@ const MaterialCalculator = () => {
     apemclCharges,
   } = calculateValues(vendor, material, weight);
 
+  // Create the result items array dynamically based on current state
+  const resultItems = [
+    { label: "Material Weight", value: formatNumber(weight || 0), comment: "Weight of the material." },
+    { label: "Hetero material Rate", value: formatNumber(heteroRate), comment: "Rate per unit for Hetero material." },
+    { label: "Customs Tax", value: formatNumber(customsTax), comment: "Vendor-specific customs tax." },
+    { label: "Material cost", value: formatNumber(materialCost), comment: "Hetero rate + Customs tax." },
+    { label: "Material Price @Hetero", value: formatNumber(materialPriceHetero), comment: "Material cost * Weight." },
+    { label: "GST", value: formatNumber(gstHetero), comment: "18% of Material Price @ Hetero." },
+    { label: "Material price + GST", value: formatNumber(materialPriceGst), comment: "Sum of Material Price @ Hetero and GST." },
+    { label: "TCS", value: formatNumber(tcs), comment: "1% of (Material price + GST)." },
+    { label: selectedLabels.toHetero, value: formatNumber(genetiqueToHetero), comment: "Material price + GST + TCS.", highlight: true },
+    { label: "PCB Charges", value: formatNumber(pcbCharges), comment: "Vendor-specific PCB Charges." },
+    { label: "APEMCL charges", value: formatNumber(apemclCharges), comment: "Fixed APEMCL charge." },
+    { label: `${currentVendorName} material cost`, value: formatNumber(genetiqueMaterialCost), comment: `Hetero rate + Customs tax + PCB + APEMCL.` },
+    { label: `Material Price @ ${currentVendorName}`, value: formatNumber(materialPriceGenetique), comment: `${currentVendorName} material cost * Weight.` },
+    { label: `GST @ ${currentVendorName}`, value: formatNumber(gstGenetique), comment: `18% of Material Price @ ${currentVendorName}.` },
+    { label: selectedLabels.toVendor, value: formatNumber(vpcsToGenetique), comment: `Material price @ ${currentVendorName} + GST.`, highlight: true },
+  ];
+
   return (
     <div className="calculator-container">
       <h1 className="calculator-title">Material Cost Calculation</h1>
@@ -167,8 +195,14 @@ const MaterialCalculator = () => {
             min="0"
             step="1"
             placeholder="Enter weight"
-            onChange={(e) => setWeight(parseFloat(e.target.value) || 0)}
+            //onChange={(e) => setWeight(parseFloat(e.target.value) || 0)}
+            onChange={(e) => {
+              const value = e.target.value;
+              // Only set to number if value is not empty
+              setWeight(value === "" ? "" : parseFloat(value) || 0);
+            }}
           />
+        
         </div>
       </div>
 
@@ -185,24 +219,8 @@ const MaterialCalculator = () => {
       </div>
 
       <div className="results-cards">
-        {[
-          { label: "Material Weight", value: formatNumber(weight), comment: "Total weight of the material." },
-          { label: "Hetero material Rate", value: formatNumber(heteroRate), comment: "Rate per unit for Hetero material." },
-          { label: "Customs Tax", value: formatNumber(customsTax), comment: "Vendor-specific customs tax." },
-          { label: "Material cost", value: formatNumber(materialCost), comment: "Hetero rate + Customs tax." },
-          { label: "Material Price @Hetero", value: formatNumber(materialPriceHetero), comment: "Material cost * Weight." },
-          { label: "GST", value: formatNumber(gstHetero), comment: "18% of Material Price @ Hetero." },
-          { label: "Material price + GST", value: formatNumber(materialPriceGst), comment: "Sum of Material Price @ Hetero and GST." },
-          { label: "TCS", value: formatNumber(tcs), comment: "1% of (Material price + GST)." },
-          { label: selectedLabels.toHetero, value: formatNumber(genetiqueToHetero), comment: "Material price + GST + TCS.", highlight: true },
-          { label: "PCB Charges", value: formatNumber(pcbCharges), comment: "Vendor-specific PCB Charges." },
-          { label: "APEMCL charges", value: formatNumber(apemclCharges), comment: "Fixed APEMCL charge." },
-          { label: "Genetique material cost", value: formatNumber(genetiqueMaterialCost), comment: "Hetero rate + Customs tax + PCB + APEMCL." },
-          { label: "Material Price @ Genetique", value: formatNumber(materialPriceGenetique), comment: "Genetique material cost * Weight." },
-          { label: "GST @ Genetique", value: formatNumber(gstGenetique), comment: "18% of Material Price @ Genetique." },
-          { label: selectedLabels.toVendor, value: formatNumber(vpcsToGenetique), comment: "Material price @ Genetique + GST.", highlight: true },
-        ].map((item, index) => (
-          <div className={`result-card ${item.highlight ? "highlight" : ""}`} key={index}>
+        {resultItems.map((item, index) => (
+          <div className={`result-card ${item.highlight ? "highlight" : ""}`} key={`${item.label}-${index}`}>
             <div className="card-label">{item.label}</div>
             <div className="card-value">{item.value}</div>
             <div className="card-comment">{item.comment}</div>
