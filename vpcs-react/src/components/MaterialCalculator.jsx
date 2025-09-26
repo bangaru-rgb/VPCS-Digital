@@ -13,16 +13,16 @@ const MaterialCalculator = () => {
 
   const vendorLabels = {
     genetique: {
-      toHetero: "Genetique Pro to Hetero",
+      toHetero: "Genetique to Hetero",
       toVendor: "VPCS to Genetique Pro",
     },
     godavari: {
-      toHetero: "Godavari Fine Chem to Hetero",
-      toVendor: "VPCS to Godavari Fine Chem",
+      toHetero: "Godavari to Hetero",
+      toVendor: "VPCS to Godavari",
     },
     balaji: {
-      toHetero: "Balaji Industries to Hetero",
-      toVendor: "VPCS to Balaji Industries",
+      toHetero: "Balaji to Hetero",
+      toVendor: "VPCS to Balaji",
     },
   };
 
