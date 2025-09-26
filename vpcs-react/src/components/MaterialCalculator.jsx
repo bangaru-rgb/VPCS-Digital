@@ -3,7 +3,7 @@ import "./MaterialCalculator.css";
 
 const MaterialCalculator = () => {
   const [vendor, setVendor] = useState("select");
-  const [material, setMaterial] = useState("select");
+  const [material, setMaterial] = useState("select"); // Changed from mode to material
   const [weight, setWeight] = useState("");
 
   const GST = 0.18;
@@ -13,16 +13,16 @@ const MaterialCalculator = () => {
 
   const vendorLabels = {
     genetique: {
-      toHetero: "Genetique Proto Hetero",
-      toVendor: "VPCS to Genetique Pro",
+      toHetero: "Genetique to Hetero",
+      toVendor: "VPCS to Genetique",
     },
     godavari: {
       toHetero: "Godavari to Hetero",
-      toVendor: "VPCS to Godavari Fine Chem",
+      toVendor: "VPCS to Godavari",
     },
     balaji: {
       toHetero: "Balaji Industries to Hetero",
-      toVendor: "VPCS to Balaji Industries",
+      toVendor: "VPCS to Balaji",
     },
   };
 
@@ -31,14 +31,12 @@ const MaterialCalculator = () => {
     toVendor: "VPCS to Vendor",
   };
 
-  // Mapping for vendor display names
   const vendorDisplayNames = {
     genetique: "Genetique Pro",
     godavari: "Godavari Fine Chem",
     balaji: "Sri Balaji Industries",
   };
 
-  // Get the current vendor display name
   const currentVendorName = vendorDisplayNames[vendor] || "Vendor";
 
   const calculateValues = (vendor, material, weight) => {
@@ -135,9 +133,8 @@ const MaterialCalculator = () => {
     apemclCharges,
   } = calculateValues(vendor, material, weight);
 
-  // Create the result items array dynamically based on current state
   const resultItems = [
-    { label: "Material Weight", value: formatNumber(weight || 0), comment: "Weight of the material." },
+    { label: "Material Weight", value: formatNumber(weight || 0), comment: "Total weight of the material." },
     { label: "Hetero material Rate", value: formatNumber(heteroRate), comment: "Rate per unit for Hetero material." },
     { label: "Customs Tax", value: formatNumber(customsTax), comment: "Vendor-specific customs tax." },
     { label: "Material cost", value: formatNumber(materialCost), comment: "Hetero rate + Customs tax." },
@@ -160,9 +157,8 @@ const MaterialCalculator = () => {
 
       <div className="input-section">
         <div className="input-group">
-          <label htmlFor="vendor">Vendor</label>
+          <label>Vendor:</label>
           <select
-            id="vendor"
             value={vendor}
             onChange={(e) => setVendor(e.target.value)}
           >
@@ -174,11 +170,10 @@ const MaterialCalculator = () => {
         </div>
 
         <div className="input-group">
-          <label htmlFor="material">Material</label>
+          <label>Material:</label>
           <select
-            id="material"
-            value={material}
-            onChange={(e) => setMaterial(e.target.value)}
+            value={material}  // Changed from mode to material
+            onChange={(e) => setMaterial(e.target.value)}  // Changed from setMode to setMaterial
           >
             <option value="select">Select Material</option>
             <option value="etp">ETP</option>
@@ -186,29 +181,26 @@ const MaterialCalculator = () => {
           </select>
         </div>
 
-        <div className="input-group">
-          <label htmlFor="weight">Total Weight</label>
-          <input
-            id="weight"
-            type="number"
-            value={weight}
-            min="0"
-            step="1"
-            placeholder="Enter weight"
-            //onChange={(e) => setWeight(parseFloat(e.target.value) || 0)}
-            onChange={(e) => {
-              let value = e.target.value;
-              // Convert to string and remove non-digit characters
-              value = value.toString().replace(/\D/g, '');
-              // Limit to 5 digits
-              if (value.length > 5) {
-                value = value.slice(0, 5);
-              }
-             // Only set to number if value is not empty
-              setWeight(value === "" ? "" : parseFloat(value) || 0);
-            }}
-          />
-
+        <div className="input-group weight-input-group">
+          <label>Weight:</label>
+          <div className="weight-input-wrapper">
+            <input
+              type="number"
+              value={weight || ""}
+              min="0"
+              step="1"
+              placeholder="Enter weight"
+              onChange={(e) => {
+                let value = e.target.value;
+                value = value.toString().replace(/\D/g, '');
+                if (value.length > 5) {
+                  value = value.slice(0, 5);
+                }
+                setWeight(value === "" ? "" : parseFloat(value) || 0);
+              }}
+              maxLength={5}
+            />
+          </div>
         </div>
       </div>
 
