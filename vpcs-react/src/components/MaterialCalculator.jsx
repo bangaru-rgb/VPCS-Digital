@@ -22,7 +22,7 @@ const MaterialCalculator = () => {
     },
     balaji: {
       toHetero: "Balaji Industries to Hetero",
-      toVendor: "VPCS to Balaji",
+      toVendor: "VPCS to Balaji Industries",
     },
   };
 
