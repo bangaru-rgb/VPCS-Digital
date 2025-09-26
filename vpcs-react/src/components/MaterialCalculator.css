@@ -74,6 +74,9 @@
     background-position: right 12px center;
     background-size: 16px;
     padding-right: 36px;
+    /* Ensure select doesn't expand */
+    min-width: 0;
+    flex-shrink: 1;
 }
 
 /* 🔹 Weight Input Specific Styles */
@@ -281,6 +284,8 @@
         background-position: right 12px center;
         background-size: 16px;
         padding-right: 36px;
+        min-width: 0;
+        flex-shrink: 1;
     }
 
     /* Weight Input Mobile Adjustments */
