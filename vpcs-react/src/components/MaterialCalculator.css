@@ -205,9 +205,7 @@
         gap: 16px; /* Consistent gap on mobile */
     }
 
-    .input-group {
-        /* Already set to column in base styles */
-    }
+    
 
     .input-group label {
         font-size: 1rem;
