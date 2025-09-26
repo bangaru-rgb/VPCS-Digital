@@ -1,39 +1,37 @@
 import React, { useState } from "react";
 import "./MaterialCalculator.css";
 
-
-
 const MaterialCalculator = () => {
   const [vendor, setVendor] = useState("select");
   const [material, setMaterial] = useState("select");
   const [weight, setWeight] = useState("");
-
 
   const GST = 0.18;
   const TCS = 0.01;
 
   const formatNumber = (num) => Number(num).toFixed(2);
 
-  
-const vendorLabels = {
-  genetique: {
-    toHetero: "Genetique to Hetero",
-    toVendor: "VPCS to Genetique",
-  },
-  godavari: {
-    toHetero: "Godavari to Hetero",
-    toVendor: "VPCS to Godavari",
-  },
-  balaji: {
-    toHetero: "Balaji Industries to Hetero",
-    toVendor: "VPCS to Balaji",
-  },
-};
+  const vendorLabels = {
+    genetique: {
+      toHetero: "Genetique to Hetero",
+      toVendor: "VPCS to Genetique",
+    },
+    godavari: {
+      toHetero: "Godavari to Hetero",
+      toVendor: "VPCS to Godavari",
+    },
+    balaji: {
+      toHetero: "Balaji Industries to Hetero",
+      toVendor: "VPCS to Balaji",
+    },
+  };
 
- const selectedLabels = vendorLabels[vendor] || {
+  // MOVED THIS SECTION ABOVE calculateValues
+  const selectedLabels = vendorLabels[vendor] || {
     toHetero: "Vendor to Hetero",
     toVendor: "VPCS to Vendor",
   };
+
   const calculateValues = (vendor, material, weight) => {
     let heteroRate = 0;
     let customsTax = 0;
@@ -132,49 +130,47 @@ const vendorLabels = {
     <div className="calculator-container">
       <h1 className="calculator-title">Material Cost Calculation</h1>
 
-  <div className="input-section">
-  <div className="input-group">
-    <label htmlFor="vendor">Vendor</label>
-    <select
-      id="vendor"
-      value={vendor}
-      onChange={(e) => setVendor(e.target.value)}
-    >
-      <option value="select">Select Vendor</option>
-      <option value="genetique">Genetique Pro</option>
-      <option value="godavari">Godavari Fine Chem</option>
-      <option value="balaji">Sri Balaji Industries</option>
-    </select>
-  </div>
+      <div className="input-section">
+        <div className="input-group">
+          <label htmlFor="vendor">Vendor</label>
+          <select
+            id="vendor"
+            value={vendor}
+            onChange={(e) => setVendor(e.target.value)}
+          >
+            <option value="select">Select Vendor</option>
+            <option value="genetique">Genetique Pro</option>
+            <option value="godavari">Godavari Fine Chem</option>
+            <option value="balaji">Sri Balaji Industries</option>
+          </select>
+        </div>
 
-  <div className="input-group">
-    <label htmlFor="material">Material Type</label>
-    <select
-      id="material"
-      value={material}
-      onChange={(e) => setMaterial(e.target.value)}
-    >
-      <option value="select">Select Material</option>
-      <option value="etp">ETP</option>
-      <option value="stripper">Stripper</option>
-    </select>
-  </div>
+        <div className="input-group">
+          <label htmlFor="material">Material</label>
+          <select
+            id="material"
+            value={material}
+            onChange={(e) => setMaterial(e.target.value)}
+          >
+            <option value="select">Select Material</option>
+            <option value="etp">ETP</option>
+            <option value="stripper">Stripper</option>
+          </select>
+        </div>
 
-  <div className="input-group">
-    <label htmlFor="weight">Total Weight</label>
-    <input
-      id="weight"
-      type="number"
-      value={weight}
-      min="0"
-      step="1"
-      placeholder="Enter weight"
-      onChange={(e) => setWeight(parseFloat(e.target.value) || 0)}
-    />
-  </div>
-</div>
-
- 
+        <div className="input-group">
+          <label htmlFor="weight">Total Weight</label>
+          <input
+            id="weight"
+            type="number"
+            value={weight}
+            min="0"
+            step="1"
+            placeholder="Enter weight"
+            onChange={(e) => setWeight(parseFloat(e.target.value) || 0)}
+          />
+        </div>
+      </div>
 
       <div className="summary-card">
         <h2>Summary</h2>
@@ -188,7 +184,6 @@ const vendorLabels = {
         </div>
       </div>
 
-
       <div className="results-cards">
         {[
           { label: "Material Weight", value: formatNumber(weight), comment: "Total weight of the material." },
@@ -199,13 +194,13 @@ const vendorLabels = {
           { label: "GST", value: formatNumber(gstHetero), comment: "18% of Material Price @ Hetero." },
           { label: "Material price + GST", value: formatNumber(materialPriceGst), comment: "Sum of Material Price @ Hetero and GST." },
           { label: "TCS", value: formatNumber(tcs), comment: "1% of (Material price + GST)." },
-          { label: "Genetique to Hetero", value: formatNumber(genetiqueToHetero), comment: "Material price + GST + TCS.", highlight: true },
+          { label: selectedLabels.toHetero, value: formatNumber(genetiqueToHetero), comment: "Material price + GST + TCS.", highlight: true },
           { label: "PCB Charges", value: formatNumber(pcbCharges), comment: "Vendor-specific PCB Charges." },
           { label: "APEMCL charges", value: formatNumber(apemclCharges), comment: "Fixed APEMCL charge." },
           { label: "Genetique material cost", value: formatNumber(genetiqueMaterialCost), comment: "Hetero rate + Customs tax + PCB + APEMCL." },
           { label: "Material Price @ Genetique", value: formatNumber(materialPriceGenetique), comment: "Genetique material cost * Weight." },
           { label: "GST @ Genetique", value: formatNumber(gstGenetique), comment: "18% of Material Price @ Genetique." },
-          { label: "VPCS to Genetique", value: formatNumber(vpcsToGenetique), comment: "Material price @ Genetique + GST.", highlight: true },
+          { label: selectedLabels.toVendor, value: formatNumber(vpcsToGenetique), comment: "Material price @ Genetique + GST.", highlight: true },
         ].map((item, index) => (
           <div className={`result-card ${item.highlight ? "highlight" : ""}`} key={index}>
             <div className="card-label">{item.label}</div>
@@ -214,7 +209,6 @@ const vendorLabels = {
           </div>
         ))}
       </div>
-
     </div>
   );
 };
