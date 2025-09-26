@@ -18,11 +18,11 @@ const MaterialCalculator = () => {
     },
     godavari: {
       toHetero: "Godavari to Hetero",
-      toVendor: "VPCS to Godavari",
+      toVendor: "VPCS to Godavari Fine Chem",
     },
     balaji: {
-      toHetero: "Balaji Industries to Hetero",
-      toVendor: "VPCS to Balaji",
+      toHetero: "Balaji Hetero",
+      toVendor: "VPCS to Balaji Industries",
     },
   };
 
