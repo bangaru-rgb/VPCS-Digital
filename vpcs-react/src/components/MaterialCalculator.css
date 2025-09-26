@@ -8,31 +8,32 @@
 }
 
 .calculator-title {
-  text-align: center;
-  margin-bottom: 24px;
-  font-size: 2rem;
-  font-weight: 700;
-  color: #007bff; /* Changed to match app's blue color */
-  letter-spacing: 0.5px;
+    text-align: center;
+    margin-bottom: 24px;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #007bff;
+    /* Changed to match app's blue color */
+    letter-spacing: 0.5px;
 }
 
 /* 🔹 Input Section */
 .input-section {
-  background-color: #fdfdfd;
-  border-radius: 8px;
-  padding: 16px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
-  margin-bottom: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+    background-color: #fdfdfd;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+    margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
 .input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
 }
 
 .input-group label {
@@ -43,22 +44,27 @@
     width: 100%;
 }
 
+.input-group input {
+    max-width: 150px;
+}
+
 .input-group select,
 .input-group input {
-  display: block;
-  width: 100%;
-  height: 48px;
-  padding: 10px 14px;
-  font-size: 1rem;
-  font-weight: 500;
-  line-height: normal;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  background-color: #fff;
-  color: #333;
-  box-sizing: border-box;
-  appearance: none;
-  text-align: left;
+    display: block;
+    width: 100%;
+    height: 48px;
+    padding: 10px 14px;
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: normal;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background-color: #fff;
+    color: #333;
+    box-sizing: border-box;
+    appearance: none;
+    text-align: left;
+
 }
 
 /* Add custom arrow for selects to ensure consistency */
@@ -72,19 +78,26 @@
 
 /* 🔹 Summary Section */
 .summary-card {
-    background-color: #eef7ff; /* Light blue background */
+    background-color: #eef7ff;
+    /* Light blue background */
     border-radius: 10px;
     padding: 16px;
     margin-bottom: 20px;
-    margin-top: 16px; /* Reduced gap above Summary */
+    margin-top: 16px;
+    /* Reduced gap above Summary */
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-    border-left: 4px solid #007bff; /* Blue border for emphasis */
+    border-left: 4px solid #007bff;
+    /* Blue border for emphasis */
 }
+
+
 
 .summary-card h2 {
     margin-bottom: 12px;
-    font-size: 1.3rem; /* Increased font size for Summary label */
-    color: #007bff; /* Blue color to match title */
+    font-size: 1.3rem;
+    /* Increased font size for Summary label */
+    color: #007bff;
+    /* Blue color to match title */
 }
 
 .summary-item {
@@ -99,7 +112,8 @@
 
 .summary-item .label {
     flex: 1;
-    min-width: 0; /* Allows text to truncate if needed */
+    min-width: 0;
+    /* Allows text to truncate if needed */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -109,7 +123,8 @@
     font-weight: bold;
     color: #007bff;
     text-align: right;
-    min-width: 0; /* Allows value to take available space */
+    min-width: 0;
+    /* Allows value to take available space */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -138,9 +153,11 @@
 }
 
 .table-row.highlight {
-    background-color: #eef7ff; /* Light blue background to match Summary */
+    background-color: #eef7ff;
+    /* Light blue background to match Summary */
     font-weight: bold;
-    border-left: 4px solid #007bff; /* Blue border to match Summary */
+    border-left: 4px solid #007bff;
+    /* Blue border to match Summary */
 }
 
 .component,
@@ -178,8 +195,10 @@
 }
 
 .result-card.highlight {
-    background-color: #eef7ff; /* Light blue background to match other highlights */
-    border-left: 4px solid #007bff; /* Blue border to match other highlights */
+    background-color: #eef7ff;
+    /* Light blue background to match other highlights */
+    border-left: 4px solid #007bff;
+    /* Blue border to match other highlights */
 }
 
 .card-label {
@@ -217,6 +236,13 @@
 
     .input-group {
         width: 100%;
+    }
+
+    .input-group input {
+        max-width: 120px;
+        text-align: right;
+        /* Right-align numbers for better readability */
+
     }
 
     .input-group label {
@@ -258,11 +284,13 @@
     /* Summary Section Mobile Adjustments */
     .summary-card {
         padding: 14px;
-        margin-top: 12px; /* Further reduced gap on mobile */
+        margin-top: 12px;
+        /* Further reduced gap on mobile */
     }
 
     .summary-card h2 {
-        font-size: 1.2rem; /* Slightly smaller on mobile */
+        font-size: 1.2rem;
+        /* Slightly smaller on mobile */
     }
 
     .summary-item {
@@ -275,16 +303,19 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        max-width: 60%; /* Limit label width to prevent wrapping */
+        max-width: 60%;
+        /* Limit label width to prevent wrapping */
     }
 
     .summary-item .value {
-        font-size: 1rem; /* Consistent with label */
+        font-size: 1rem;
+        /* Consistent with label */
         min-width: 0;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        max-width: 40%; /* Limit value width */
+        max-width: 40%;
+        /* Limit value width */
     }
 
     .table-row {
@@ -302,6 +333,7 @@
     }
 
     .table-row.highlight {
-        background-color: #eef7ff; /* Consistent blue background on mobile */
+        background-color: #eef7ff;
+        /* Consistent blue background on mobile */
     }
 }

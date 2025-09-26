@@ -197,12 +197,18 @@ const MaterialCalculator = () => {
             placeholder="Enter weight"
             //onChange={(e) => setWeight(parseFloat(e.target.value) || 0)}
             onChange={(e) => {
-              const value = e.target.value;
-              // Only set to number if value is not empty
+              let value = e.target.value;
+              // Convert to string and remove non-digit characters
+              value = value.toString().replace(/\D/g, '');
+              // Limit to 5 digits
+              if (value.length > 5) {
+                value = value.slice(0, 5);
+              }
+             // Only set to number if value is not empty
               setWeight(value === "" ? "" : parseFloat(value) || 0);
             }}
           />
-        
+
         </div>
       </div>
 
