@@ -18,16 +18,16 @@
 
 /* 🔹 Input Section */
 .input-section {
-  background-color: #fdfdfd;
+  background-color: #f0f7ff;  /* Light blue background to match the theme */
   border-radius: 8px;
   padding: 16px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);  /* Subtle blue-tinted shadow */
   margin-bottom: 24px;
   display: flex;
   flex-direction: column;
   gap: 20px;
+  border: 1px solid rgba(0, 123, 255, 0.2);  /* Light blue border */
 }
-
 .input-group {
   display: flex;
   flex-direction: column;

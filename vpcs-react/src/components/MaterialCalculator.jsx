@@ -153,7 +153,7 @@ const MaterialCalculator = () => {
 
   return (
     <div className="calculator-container">
-      <h1 className="calculator-title">Material Cost Calculation</h1>
+      <h1 className="calculator-title">Material Price Calculator</h1>
 
       <div className="input-section">
         <div className="input-group">
