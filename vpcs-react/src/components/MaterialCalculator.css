@@ -139,7 +139,7 @@
     min-width: 0;
     white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis;
+    /* text-overflow: ellipsis; */
 }
 
 /* 🔹 Results Table */
@@ -331,7 +331,7 @@
         min-width: 0;
         white-space: nowrap;
         overflow: hidden;
-        text-overflow: ellipsis;
+        /* text-overflow: ellipsis; */
         max-width: 40%;
     }
 
