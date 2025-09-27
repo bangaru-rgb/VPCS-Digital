@@ -1,10 +1,10 @@
 // cashFlow.JS
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react'; // Added useMemo import
 import './cashFlow.css';
 
 const CashFlow = () => {
-  // Updated transaction data
-  const rawData = [
+  // Updated transaction data - now wrapped in useMemo
+  const rawData = useMemo(() => [
     { date: '24-Sep-25', type: 'Inflow', party: 'Srinu', inflow: 648600, outflow: 0 },
     { date: '16-Sep-25', type: 'Outflow', party: 'Pullareddy', inflow: 0, outflow: 495000 },
     { date: '15-Sep-25', type: 'Inflow', party: 'Ramji Bhai', inflow: 200000, outflow: 0 },
@@ -28,7 +28,7 @@ const CashFlow = () => {
     { date: '21-Apr-25', type: 'Outflow', party: 'Ravikishore', inflow: 0, outflow: 500000 },
     { date: '20-Apr-25', type: 'Outflow', party: 'Pullareddy', inflow: 0, outflow: 515000 },
     { date: '4/19/25', type: 'Inflow', party: 'Old Ledger', inflow: 1107000, outflow: 0 },
-  ];
+  ], []); // Empty dependency array means this data is created only once
 
   // State for transactions
   const [transactions, setTransactions] = useState([]);
@@ -76,21 +76,27 @@ const CashFlow = () => {
     
     // Reverse back to newest first for display
     setTransactions(processedData.reverse());
-  }, []);
+  }, [rawData]); // rawData is now stable due to useMemo
 
   // Get unique parties for filter dropdown
-  const uniqueParties = ['All', ...new Set(rawData.map(t => t.party))];
+  const uniqueParties = useMemo(() => ['All', ...new Set(rawData.map(t => t.party))], [rawData]);
 
   // Apply filters
-  const filteredTransactions = transactions.filter(transaction => {
+  const filteredTransactions = useMemo(() => transactions.filter(transaction => {
     return (typeFilter === 'All' || transaction.type === typeFilter) &&
            (partyFilter === 'All' || transaction.party === partyFilter);
-  });
+  }), [transactions, typeFilter, partyFilter]);
 
   // Calculate totals
-  const totalInflow = transactions.reduce((sum, t) => sum + t.inflow, 0);
-  const totalOutflow = transactions.reduce((sum, t) => sum + t.outflow, 0);
-  const cashInHand = totalInflow - totalOutflow;
+  const { totalInflow, totalOutflow, cashInHand } = useMemo(() => {
+    const totalInflow = transactions.reduce((sum, t) => sum + t.inflow, 0);
+    const totalOutflow = transactions.reduce((sum, t) => sum + t.outflow, 0);
+    return {
+      totalInflow,
+      totalOutflow,
+      cashInHand: totalInflow - totalOutflow
+    };
+  }, [transactions]);
 
   // Format currency
   const formatCurrency = (amount) => {
