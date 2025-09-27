@@ -32,7 +32,7 @@ const CashFlow = () => {
 
   // State for transactions
   const [transactions, setTransactions] = useState([]);
-  
+
   // State for filters
   const [typeFilter, setTypeFilter] = useState('All');
   const [partyFilter, setPartyFilter] = useState('All');
@@ -57,15 +57,15 @@ const CashFlow = () => {
       ...item,
       dateObj: parseDate(item.date)
     }));
-    
+
     // Sort by date descending (newest first)
     parsedData.sort((a, b) => b.dateObj - a.dateObj);
-    
+
     // Calculate running balance (starting from the oldest transaction)
     // We need to reverse to calculate from oldest to newest
     const reversedData = [...parsedData].reverse();
     let runningBalance = 0;
-    
+
     const processedData = reversedData.map(item => {
       runningBalance += item.inflow - item.outflow;
       return {
@@ -73,7 +73,7 @@ const CashFlow = () => {
         runningBalance
       };
     });
-    
+
     // Reverse back to newest first for display
     setTransactions(processedData.reverse());
   }, [rawData]); // rawData is now stable due to useMemo
@@ -84,7 +84,7 @@ const CashFlow = () => {
   // Apply filters
   const filteredTransactions = useMemo(() => transactions.filter(transaction => {
     return (typeFilter === 'All' || transaction.type === typeFilter) &&
-           (partyFilter === 'All' || transaction.party === partyFilter);
+      (partyFilter === 'All' || transaction.party === partyFilter);
   }), [transactions, typeFilter, partyFilter]);
 
   // Calculate totals
@@ -100,8 +100,8 @@ const CashFlow = () => {
 
   // Format currency
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-IN', { 
-      style: 'currency', 
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
       currency: 'INR',
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
@@ -111,7 +111,7 @@ const CashFlow = () => {
   return (
     <div className="cashflow-container">
       <h1>Cash Flow</h1>
-      
+
       <div className="summary-cards">
         <div className="card">
           <h3>Cash Inflow</h3>
@@ -126,15 +126,15 @@ const CashFlow = () => {
           <p>{formatCurrency(cashInHand)}</p>
         </div>
       </div>
-      
+
       <div className="cashflow-table-container">
         {/* Filter dropdowns */}
         <div className="filters-container">
           <div className="filter-group">
             <label htmlFor="type-filter">Type:</label>
-            <select 
-              id="type-filter" 
-              value={typeFilter} 
+            <select
+              id="type-filter"
+              value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
             >
               <option value="All">All</option>
@@ -142,12 +142,12 @@ const CashFlow = () => {
               <option value="Outflow">Outflow</option>
             </select>
           </div>
-          
+
           <div className="filter-group">
             <label htmlFor="party-filter">Party:</label>
-            <select 
-              id="party-filter" 
-              value={partyFilter} 
+            <select
+              id="party-filter"
+              value={partyFilter}
               onChange={(e) => setPartyFilter(e.target.value)}
             >
               {uniqueParties.map(party => (
@@ -156,7 +156,7 @@ const CashFlow = () => {
             </select>
           </div>
         </div>
-        
+
         <div className="cashflow-table">
           <table>
             <thead>
@@ -192,12 +192,15 @@ const CashFlow = () => {
           </table>
         </div>
       </div>
-      
+
       {/* Mobile cards view */}
       <div className="mobile-cards-view">
         {filteredTransactions.length > 0 ? (
           filteredTransactions.map((transaction, index) => (
-            <div key={index} className="transaction-card">
+            <div
+              key={index}
+              className={`transaction-card ${transaction.type === 'Inflow' ? 'inflow-card' : 'outflow-card'}`}
+            >
               <div className="card-header">
                 <div className="date">{transaction.date}</div>
                 <div className={`type ${transaction.type === 'Inflow' ? 'inflow-type' : 'outflow-type'}`}>
