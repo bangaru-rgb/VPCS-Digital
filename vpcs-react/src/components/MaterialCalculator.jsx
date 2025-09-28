@@ -11,26 +11,26 @@ const MaterialCalculator = () => {
   const TCS = 0.01;
 
   const formatNumber = (num) => Number(num).toFixed(2);
-// Code to copy the values from the summary to clipboard
-const handleCopySummary = async () => {
-  const summaryText = `${selectedLabels.toHetero}: ${formatNumber(genetiqueToHetero)}\n${selectedLabels.toVendor}: ${formatNumber(vpcsToGenetique)}`;
-  
-  try {
-    await navigator.clipboard.writeText(summaryText);
-    setCopySuccess(true);
-    setTimeout(() => setCopySuccess(false), 2000);
-  } catch (err) {
-    // Fallback for older browsers
-    const textArea = document.createElement('textarea');
-    textArea.value = summaryText;
-    document.body.appendChild(textArea);
-    textArea.select();
-    document.execCommand('copy');
-    document.body.removeChild(textArea);
-    setCopySuccess(true);
-    setTimeout(() => setCopySuccess(false), 2000);
-  }
-};
+  // Code to copy the values from the summary to clipboard
+  const handleCopySummary = async () => {
+    const summaryText = `${selectedLabels.toHetero}: ${formatNumber(genetiqueToHetero)}\n${selectedLabels.toVendor}: ${formatNumber(vpcsToGenetique)}`;
+
+    try {
+      await navigator.clipboard.writeText(summaryText);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch (err) {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = summaryText;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    }
+  };
 
   const vendorLabels = {
     genetique: {
@@ -226,13 +226,22 @@ const handleCopySummary = async () => {
       </div>
 
       <div className="summary-card">
-        <h2>Summary</h2>
+        <div className="summary-header">
+          <h2>Summary</h2>
+          <button
+            className="copy-button"
+            onClick={handleCopySummary}
+            title="Copy summary to clipboard"
+          >
+            {copySuccess ? '✓' : '📋'}
+          </button>
+        </div>
         <div className="summary-item">
-          <span className="label">{selectedLabels.toHetero}:</span>
+          <span className="label">{vendor === "select" ? "Vendor to Hetero" : `${currentVendorName} to Hetero`}:</span>
           <span className="value">₹ {formatNumber(genetiqueToHetero)}</span>
         </div>
         <div className="summary-item">
-          <span className="label">{selectedLabels.toVendor}:</span>
+          <span className="label">{vendor === "select" ? "VPCS to Vendor" : `VPCS to ${currentVendorName}`}:</span>
           <span className="value">₹ {formatNumber(vpcsToGenetique)}</span>
         </div>
       </div>
