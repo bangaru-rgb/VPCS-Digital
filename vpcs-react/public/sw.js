@@ -1,4 +1,4 @@
-const CACHE_NAME = 'material-calculator-v1';
+const CACHE_NAME = 'vpcs-digital-v2';
 const urlsToCache = [
   '/',
   '/static/js/bundle.js',
@@ -40,6 +40,11 @@ self.addEventListener('activate', (event) => {
 
 // Fetch event - serve cached content when offline
 self.addEventListener('fetch', (event) => {
+  // Skip chrome-extension requests
+  if (event.request.url.startsWith('chrome-extension://')) {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
@@ -51,8 +56,13 @@ self.addEventListener('fetch', (event) => {
         
         console.log('Service Worker: Fetching from network', event.request.url);
         return fetch(event.request).then((response) => {
-          // Don't cache non-successful responses
+          // Don't cache non-successful responses or chrome extensions
           if (!response || response.status !== 200 || response.type !== 'basic') {
+            return response;
+          }
+
+          // Skip chrome-extension URLs for caching
+          if (event.request.url.startsWith('chrome-extension://')) {
             return response;
           }
 
