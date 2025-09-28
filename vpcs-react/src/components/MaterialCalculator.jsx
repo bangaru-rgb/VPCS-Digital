@@ -5,11 +5,32 @@ const MaterialCalculator = () => {
   const [vendor, setVendor] = useState("select");
   const [material, setMaterial] = useState("select"); // Changed from mode to material
   const [weight, setWeight] = useState("");
+  const [copySuccess, setCopySuccess] = useState(false); // ADD THIS LINE
 
   const GST = 0.18;
   const TCS = 0.01;
 
   const formatNumber = (num) => Number(num).toFixed(2);
+// Code to copy the values from the summary to clipboard
+const handleCopySummary = async () => {
+  const summaryText = `${selectedLabels.toHetero}: ${formatNumber(genetiqueToHetero)}\n${selectedLabels.toVendor}: ${formatNumber(vpcsToGenetique)}`;
+  
+  try {
+    await navigator.clipboard.writeText(summaryText);
+    setCopySuccess(true);
+    setTimeout(() => setCopySuccess(false), 2000);
+  } catch (err) {
+    // Fallback for older browsers
+    const textArea = document.createElement('textarea');
+    textArea.value = summaryText;
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textArea);
+    setCopySuccess(true);
+    setTimeout(() => setCopySuccess(false), 2000);
+  }
+};
 
   const vendorLabels = {
     genetique: {
