@@ -107,9 +107,15 @@
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
     border-left: 4px solid #007bff;
 }
+.summary-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
 
 .summary-card h2 {
-    margin-bottom: 12px;
+    margin: 0;
     font-size: 1.3rem;
     color: #007bff;
 }
@@ -122,6 +128,31 @@
     font-size: 1rem;
     font-weight: 500;
     color: #444;
+}
+
+.copy-button {
+    background: none;
+    border: 1px solid #007bff;
+    border-radius: 4px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: #007bff;
+    transition: all 0.2s ease;
+    min-width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.copy-button:hover {
+    background-color: #007bff;
+    color: white;
+}
+
+.copy-button:active {
+    transform: scale(0.95);
 }
 
 .summary-item .label {
