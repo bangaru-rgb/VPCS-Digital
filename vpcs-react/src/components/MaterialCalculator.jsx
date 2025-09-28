@@ -193,7 +193,7 @@ const MaterialCalculator = () => {
         <div className="input-group">
           <label>Material:</label>
           <select
-            value={material}  // Changed from mode to material
+            value={material}  // Changed from mode to material.
             onChange={(e) => setMaterial(e.target.value)}  // Changed from setMode to setMaterial
           >
             <option value="select">Select Material</option>
