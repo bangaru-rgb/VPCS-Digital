@@ -3,6 +3,7 @@ import './App.css';
 import MaterialCalculator from './components/MaterialCalculator'; // Add .js extension
 import CashFlow from './components/cashFlow'; // Add .js extension
 //import InvoicesDashboard from './components/invoicesDashboard'; // Add .js extension
+import InstallPWA from './InstallPWA';
 
 function App() {
   const [activeModule, setActiveModule] = useState('calculator');
@@ -10,6 +11,7 @@ function App() {
 
   return (
     <div className="app-container">
+      <InstallPWA />
       {/* Hamburger Menu Button */}
       <button 
         className="hamburger-btn" 

@@ -1,6 +1,7 @@
 {
   "short_name": "VPCS Digital App",
   "name": "Vishnu Prasad Chemicals and Solvents",
+  "description": "A responsive web app for material calculations, cash flow management, and transaction tracking",
   "icons": [
     {
       "src": "favicon.ico",
