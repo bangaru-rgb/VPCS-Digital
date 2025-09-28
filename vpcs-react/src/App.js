@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import './App.css';
 import MaterialCalculator from './components/MaterialCalculator'; // Add .js extension
 import CashFlow from './components/cashFlow'; // Add .js extension
-import InvoicesDashboard from './components/invoicesDashboard'; // Add .js extension
+//import InvoicesDashboard from './components/invoicesDashboard'; // Add .js extension
 
 function App() {
   const [activeModule, setActiveModule] = useState('calculator');
@@ -55,7 +55,7 @@ function App() {
       <main className="main-content">
         {activeModule === 'calculator' && <MaterialCalculator />}
         {activeModule === 'cashflow' && <CashFlow />}
-        {activeModule === 'transactions' && <InvoicesDashboard />}
+        {/* {activeModule === 'transactions' && <InvoicesDashboard />} */}
       </main>
     </div>
   );
