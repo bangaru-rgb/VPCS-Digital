@@ -128,11 +128,11 @@ const CashFlow = () => {
     }).format(amount);
   };
 
-  // Logout function
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    setTransactions([]); // Clear transactions when logging out
-  };
+  // // Logout function
+  // const handleLogout = () => {
+  //   setIsAuthenticated(false);
+  //   setTransactions([]); // Clear transactions when logging out
+  // };
 
   // Render passcode screen if not authenticated
   if (!isAuthenticated) {
@@ -162,10 +162,10 @@ const CashFlow = () => {
   // Render cashflow details if authenticated and not loading and no error
   return (
     <div className="cashflow-container">
-      <div className="cashflow-header">
+      {/* <div className="cashflow-header">
         <h1>Cash Flow</h1>
         <button className="logout-button" onClick={handleLogout}>Logout</button>
-      </div>
+      </div> */}
   
       <div className="summary-cards">
         <div className="card">
