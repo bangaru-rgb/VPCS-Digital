@@ -35,7 +35,7 @@ const MaterialCalculator = () => {
   const vendorLabels = {
     genetique: {
       toHetero: "Genetique to Hetero",
-      toVendor: "VPCS to Genetique Pro",
+      toVendor: "VPCS to Genetique",
     },
     godavari: {
       toHetero: "Godavari to Hetero",
@@ -237,11 +237,11 @@ const MaterialCalculator = () => {
           </button>
         </div>
         <div className="summary-item">
-          <span className="label">{vendor === "select" ? "Vendor to Hetero" : `${currentVendorName} to Hetero`}:</span>
+          <span className="label">{selectedLabels.toHetero}:</span>
           <span className="value">₹ {formatNumber(genetiqueToHetero)}</span>
         </div>
         <div className="summary-item">
-          <span className="label">{vendor === "select" ? "VPCS to Vendor" : `VPCS to ${currentVendorName}`}:</span>
+          <span className="label">{selectedLabels.toVendor}:</span>
           <span className="value">₹ {formatNumber(vpcsToGenetique)}</span>
         </div>
       </div>

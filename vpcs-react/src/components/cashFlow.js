@@ -1,91 +1,114 @@
-// cashFlow.JS
-import React, { useState, useEffect, useMemo } from 'react'; // Added useMemo import
+// src/components/cashFlow.js
+import React, { useState, useEffect, useMemo } from 'react';
 import './cashFlow.css';
+import { supabase } from '../lib/supabaseClient';
 
 const CashFlow = () => {
-  // Updated transaction data - now wrapped in useMemo
-  const rawData = useMemo(() => [
-    { date: '24-Sep-25', type: 'Inflow', party: 'Srinu', inflow: 648600, outflow: 0 },
-    { date: '16-Sep-25', type: 'Outflow', party: 'Pullareddy', inflow: 0, outflow: 495000 },
-    { date: '15-Sep-25', type: 'Inflow', party: 'Ramji Bhai', inflow: 200000, outflow: 0 },
-    { date: '13-Sep-25', type: 'Outflow', party: 'Headoffice', inflow: 0, outflow: 373500 },
-    { date: '13-Sep-25', type: 'Outflow', party: 'Headoffice', inflow: 0, outflow: 335500 },
-    { date: '13-Sep-25', type: 'Outflow', party: 'Pullareddy', inflow: 0, outflow: 487000 },
-    { date: '6-Sep-25', type: 'Inflow', party: 'Unknown', inflow: 766000, outflow: 0 },
-    { date: '21-Aug-25', type: 'Inflow', party: 'Ramji bhai', inflow: 600000, outflow: 0 },
-    { date: '21-Aug-25', type: 'Outflow', party: 'Pullareddy', inflow: 0, outflow: 318600 },
-    { date: '25-Jul-25', type: 'Outflow', party: 'Headoffice', inflow: 0, outflow: 276000 },
-    { date: '14-Jul-25', type: 'Inflow', party: 'Ramji bhai', inflow: 350000, outflow: 0 },
-    { date: '2-Jul-25', type: 'Inflow', party: 'Kalyan', inflow: 370000, outflow: 0 },
-    { date: '10-Jun-25', type: 'Outflow', party: 'Prasad', inflow: 0, outflow: 460000 },
-    { date: '2-Jun-25', type: 'Inflow', party: 'Prasad', inflow: 200000, outflow: 0 },
-    { date: '23-May-25', type: 'Outflow', party: 'NISBA KARIM', inflow: 0, outflow: 100000 },
-    { date: '23-May-25', type: 'Outflow', party: 'Pullareddy', inflow: 0, outflow: 680000 },
-    { date: '22-May-25', type: 'Inflow', party: 'Ramji bhai', inflow: 350000, outflow: 0 },
-    { date: '19-May-25', type: 'Inflow', party: 'Visakha', inflow: 296000, outflow: 0 },
-    { date: '8-May-25', type: 'Outflow', party: 'Headoffice', inflow: 0, outflow: 698000 },
-    { date: '2-May-25', type: 'Inflow', party: 'JayeshPatel', inflow: 1000000, outflow: 0 },
-    { date: '21-Apr-25', type: 'Outflow', party: 'Ravikishore', inflow: 0, outflow: 500000 },
-    { date: '20-Apr-25', type: 'Outflow', party: 'Pullareddy', inflow: 0, outflow: 515000 },
-    { date: '4/19/25', type: 'Inflow', party: 'Old Ledger', inflow: 1107000, outflow: 0 },
-  ], []); // Empty dependency array means this data is created only once
-
   // State for transactions
   const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // State for filters
   const [typeFilter, setTypeFilter] = useState('All');
   const [partyFilter, setPartyFilter] = useState('All');
 
-  // Helper function to parse dates
-  const parseDate = (dateStr) => {
-    if (dateStr.includes('-')) {
-      const [day, monthStr, year] = dateStr.split('-');
-      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      const month = monthNames.indexOf(monthStr);
-      return new Date(`20${year}`, month, day);
-    } else {
-      const [month, day, year] = dateStr.split('/');
-      return new Date(`20${year}`, month - 1, day);
-    }
+  // Format date from ISO to DD-MMM-YY format
+  const formatDate = (isoDate) => {
+    if (!isoDate) return '';
+    const date = new Date(isoDate);
+    const day = date.getDate().toString().padStart(2, '0');
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const month = monthNames[date.getMonth()];
+    const year = date.getFullYear().toString().slice(-2);
+    return `${day}-${month}-${year}`;
   };
 
-  // Process transactions on component mount
+  // Fetch transactions from Supabase
   useEffect(() => {
-    // Parse dates and sort by date (newest first)
-    const parsedData = rawData.map(item => ({
-      ...item,
-      dateObj: parseDate(item.date)
-    }));
+    const fetchTransactions = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Fetch data from Supabase cashflow table
+        const { data, error } = await supabase
+          .from('cashflow')
+          .select('*')
+          .order('date', { ascending: false }); // Order by date descending
+        
+        if (error) {
+          throw error;
+        }
+        
+        if (data) {
+          // Process the data to convert strings to numbers and format dates
+          let processedData = data.map(item => ({
+            ...item,
+            inflow: parseFloat(item.inflow) || 0,
+            outflow: parseFloat(item.outflow) || 0,
+            displayDate: formatDate(item.date) // Format date for display
+          }));
+          
+          // Calculate running balance
+          // First, sort by date ascending (oldest first)
+          const sortedAsc = [...processedData].sort((a, b) => new Date(a.date) - new Date(b.date));
+          
+          // Calculate running balance from oldest to newest
+          let runningBalance = 0;
+          const withRunningBalance = sortedAsc.map(transaction => {
+            runningBalance += transaction.inflow - transaction.outflow;
+            return {
+              ...transaction,
+              runningBalance
+            };
+          });
+          
+          // Sort back to descending (newest first) for display
+          const sortedDesc = withRunningBalance.reverse();
+          setTransactions(sortedDesc);
+        }
+      } catch (error) {
+        console.error('Error fetching transactions:', error);
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    // Sort by date descending (newest first)
-    parsedData.sort((a, b) => b.dateObj - a.dateObj);
-
-    // Calculate running balance (starting from the oldest transaction)
-    // We need to reverse to calculate from oldest to newest
-    const reversedData = [...parsedData].reverse();
-    let runningBalance = 0;
-
-    const processedData = reversedData.map(item => {
-      runningBalance += item.inflow - item.outflow;
-      return {
-        ...item,
-        runningBalance
-      };
-    });
-
-    // Reverse back to newest first for display
-    setTransactions(processedData.reverse());
-  }, [rawData]); // rawData is now stable due to useMemo
+    fetchTransactions();
+    
+    // Set up real-time subscription for updates
+    const subscription = supabase
+      .channel('cashflow-changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'cashflow' }, 
+        (payload) => {
+          console.log('Change received!', payload);
+          fetchTransactions(); // Refresh data when changes occur
+        }
+      )
+      .subscribe();
+      
+    // Clean up subscription on unmount
+    return () => {
+      supabase.removeChannel(subscription);
+    };
+  }, []);
 
   // Get unique parties for filter dropdown
-  const uniqueParties = useMemo(() => ['All', ...new Set(rawData.map(t => t.party))], [rawData]);
+  const uniqueParties = useMemo(() => {
+    if (transactions.length === 0) return ['All'];
+    return ['All', ...new Set(transactions.map(t => t.party))];
+  }, [transactions]);
 
   // Apply filters
-  const filteredTransactions = useMemo(() => transactions.filter(transaction => {
-    return (typeFilter === 'All' || transaction.type === typeFilter) &&
-      (partyFilter === 'All' || transaction.party === partyFilter);
-  }), [transactions, typeFilter, partyFilter]);
+  const filteredTransactions = useMemo(() => {
+    return transactions.filter(transaction => {
+      return (typeFilter === 'All' || transaction.type === typeFilter) &&
+        (partyFilter === 'All' || transaction.party === partyFilter);
+    });
+  }, [transactions, typeFilter, partyFilter]);
 
   // Calculate totals
   const { totalInflow, totalOutflow, cashInHand } = useMemo(() => {
@@ -107,6 +130,26 @@ const CashFlow = () => {
       maximumFractionDigits: 2
     }).format(amount);
   };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="cashflow-container">
+        <h1>Cash Flow</h1>
+        <div className="loading">Loading transactions...</div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="cashflow-container">
+        <h1>Cash Flow</h1>
+        <div className="error">Error: {error}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="cashflow-container">
@@ -171,9 +214,9 @@ const CashFlow = () => {
             </thead>
             <tbody>
               {filteredTransactions.length > 0 ? (
-                filteredTransactions.map((transaction, index) => (
-                  <tr key={index}>
-                    <td>{transaction.date}</td>
+                filteredTransactions.map((transaction) => (
+                  <tr key={transaction.id}>
+                    <td>{transaction.displayDate}</td>
                     <td className={transaction.type === 'Inflow' ? 'inflow-type' : 'outflow-type'}>
                       {transaction.type}
                     </td>
@@ -196,13 +239,13 @@ const CashFlow = () => {
       {/* Mobile cards view */}
       <div className="mobile-cards-view">
         {filteredTransactions.length > 0 ? (
-          filteredTransactions.map((transaction, index) => (
+          filteredTransactions.map((transaction) => (
             <div
-              key={index}
+              key={transaction.id}
               className={`transaction-card ${transaction.type === 'Inflow' ? 'inflow-card' : 'outflow-card'}`}
             >
               <div className="card-header">
-                <div className="date">{transaction.date}</div>
+                <div className="date">{transaction.displayDate}</div>
                 <div className={`type ${transaction.type === 'Inflow' ? 'inflow-type' : 'outflow-type'}`}>
                   {transaction.type}
                 </div>
@@ -212,7 +255,7 @@ const CashFlow = () => {
                 {transaction.type === 'Inflow' ? (
                   <>
                     <div className="amount-group">
-                      <div className="amount-label">In:</div>
+                      <div className="amount-label">Recieved:</div>
                       <div className="inflow amount-value">
                         {formatCurrency(transaction.inflow)}
                       </div>
@@ -227,7 +270,7 @@ const CashFlow = () => {
                 ) : (
                   <>
                     <div className="amount-group">
-                      <div className="amount-label">Out:</div>
+                      <div className="amount-label">Given:</div>
                       <div className="outflow amount-value">
                         {formatCurrency(transaction.outflow)}
                       </div>
@@ -241,6 +284,11 @@ const CashFlow = () => {
                   </>
                 )}
               </div>
+              {transaction.comments && (
+                <div className="comments">
+                  <strong>Notes:</strong> {transaction.comments}
+                </div>
+              )}
             </div>
           ))
         ) : (
