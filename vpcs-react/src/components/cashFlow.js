@@ -1,12 +1,18 @@
 // src/components/cashFlow.js
 import React, { useState, useEffect, useMemo } from 'react';
 import './cashFlow.css';
+//import './cashflow_realtime.css';
+import './cashflow_passcode.css';
+import CashflowPasscode from './cashflow_passcode'; // Import the passcode component
 import { supabase } from '../lib/supabaseClient';
 
 const CashFlow = () => {
+  // State for authentication
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  
   // State for transactions
   const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Changed initial state to false
   const [error, setError] = useState(null);
 
   // State for filters
@@ -25,76 +31,67 @@ const CashFlow = () => {
   };
 
   // Fetch transactions from Supabase
-  useEffect(() => {
-    const fetchTransactions = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        // Fetch data from Supabase cashflow table
-        const { data, error } = await supabase
-          .from('cashflow')
-          .select('*')
-          .order('date', { ascending: false }); // Order by date descending
-        
-        if (error) {
-          throw error;
-        }
-        
-        if (data) {
-          // Process the data to convert strings to numbers and format dates
-          let processedData = data.map(item => ({
-            ...item,
-            inflow: parseFloat(item.inflow) || 0,
-            outflow: parseFloat(item.outflow) || 0,
-            displayDate: formatDate(item.date) // Format date for display
-          }));
-          
-          // Calculate running balance
-          // First, sort by date ascending (oldest first)
-          const sortedAsc = [...processedData].sort((a, b) => new Date(a.date) - new Date(b.date));
-          
-          // Calculate running balance from oldest to newest
-          let runningBalance = 0;
-          const withRunningBalance = sortedAsc.map(transaction => {
-            runningBalance += transaction.inflow - transaction.outflow;
-            return {
-              ...transaction,
-              runningBalance
-            };
-          });
-          
-          // Sort back to descending (newest first) for display
-          const sortedDesc = withRunningBalance.reverse();
-          setTransactions(sortedDesc);
-        }
-      } catch (error) {
-        console.error('Error fetching transactions:', error);
-        setError(error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTransactions();
-    
-    // Set up real-time subscription for updates
-    const subscription = supabase
-      .channel('cashflow-changes')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'cashflow' }, 
-        (payload) => {
-          console.log('Change received!', payload);
-          fetchTransactions(); // Refresh data when changes occur
-        }
-      )
-      .subscribe();
+  const fetchTransactions = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      console.log('Fetching transactions...');
       
-    // Clean up subscription on unmount
-    return () => {
-      supabase.removeChannel(subscription);
-    };
-  }, []);
+      // Fetch data from Supabase cashflow table
+      const { data, error } = await supabase
+        .from('cashflow')
+        .select('*')
+        .order('date', { ascending: false }); // Order by date descending
+      
+      if (error) {
+        throw error;
+      }
+      
+      if (data) {
+        console.log('Data fetched:', data);
+        // Process the data to convert strings to numbers and format dates
+        let processedData = data.map(item => ({
+          ...item,
+          inflow: parseFloat(item.inflow) || 0,
+          outflow: parseFloat(item.outflow) || 0,
+          displayDate: formatDate(item.date) // Format date for display
+        }));
+        
+        // Calculate running balance
+        // First, sort by date ascending (oldest first)
+        const sortedAsc = [...processedData].sort((a, b) => new Date(a.date) - new Date(b.date));
+        
+        // Calculate running balance from oldest to newest
+        let runningBalance = 0;
+        const withRunningBalance = sortedAsc.map(transaction => {
+          runningBalance += transaction.inflow - transaction.outflow;
+          return {
+            ...transaction,
+            runningBalance
+          };
+        });
+        
+        // Sort back to descending (newest first) for display
+        const sortedDesc = withRunningBalance.reverse();
+        setTransactions(sortedDesc);
+        console.log('Processed transactions:', sortedDesc);
+      }
+    } catch (error) {
+      console.error('Error fetching transactions:', error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+      console.log('Fetch completed, loading set to false');
+    }
+  };
+
+  // Effect to fetch transactions when authenticated
+  useEffect(() => {
+    console.log('Effect running, isAuthenticated:', isAuthenticated);
+    if (isAuthenticated) {
+      fetchTransactions();
+    }
+  }, [isAuthenticated]);
 
   // Get unique parties for filter dropdown
   const uniqueParties = useMemo(() => {
@@ -131,6 +128,17 @@ const CashFlow = () => {
     }).format(amount);
   };
 
+  // Logout function
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setTransactions([]); // Clear transactions when logging out
+  };
+
+  // Render passcode screen if not authenticated
+  if (!isAuthenticated) {
+    return <CashflowPasscode onCorrectPasscode={() => setIsAuthenticated(true)} />;
+  }
+
   // Show loading state
   if (loading) {
     return (
@@ -151,10 +159,14 @@ const CashFlow = () => {
     );
   }
 
+  // Render cashflow details if authenticated and not loading and no error
   return (
     <div className="cashflow-container">
-      <h1>Cash Flow</h1>
-
+      <div className="cashflow-header">
+        <h1>Cash Flow</h1>
+        <button className="logout-button" onClick={handleLogout}>Logout</button>
+      </div>
+  
       <div className="summary-cards">
         <div className="card">
           <h3>Cash Inflow</h3>
@@ -207,8 +219,7 @@ const CashFlow = () => {
                 <th>Date</th>
                 <th>Type</th>
                 <th>Party</th>
-                <th>Inflow</th>
-                <th>Outflow</th>
+                <th>Amount</th>
                 <th>Running balance</th>
               </tr>
             </thead>
@@ -221,14 +232,15 @@ const CashFlow = () => {
                       {transaction.type}
                     </td>
                     <td>{transaction.party}</td>
-                    <td className="inflow">{transaction.inflow > 0 ? formatCurrency(transaction.inflow) : '-'}</td>
-                    <td className="outflow">{transaction.outflow > 0 ? formatCurrency(transaction.outflow) : '-'}</td>
+                    <td className={transaction.type === 'Inflow' ? 'amount inflow' : 'amount outflow'}>
+                      {formatCurrency(transaction.type === 'Inflow' ? transaction.inflow : transaction.outflow)}
+                    </td>
                     <td className="balance">{formatCurrency(transaction.runningBalance)}</td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="6">No transactions available</td>
+                  <td colSpan="5">No transactions available</td>
                 </tr>
               )}
             </tbody>
@@ -236,7 +248,7 @@ const CashFlow = () => {
         </div>
       </div>
 
-      {/* Mobile cards view */}
+      {/* Mobile cards view - unchanged */}
       <div className="mobile-cards-view">
         {filteredTransactions.length > 0 ? (
           filteredTransactions.map((transaction) => (
