@@ -1,5 +1,5 @@
 // src/components/cashFlow.js
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react'; // Added useCallback
 import './cashFlow.css';
 //import './cashflow_realtime.css';
 import './cashflow_passcode.css';
@@ -30,8 +30,8 @@ const CashFlow = () => {
     return `${day}-${month}-${year}`;
   };
 
-  // Fetch transactions from Supabase
-  const fetchTransactions = async () => {
+  // Fetch transactions from Supabase - now using useCallback
+  const fetchTransactions = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -83,7 +83,7 @@ const CashFlow = () => {
       setLoading(false);
       console.log('Fetch completed, loading set to false');
     }
-  };
+  }, []); // Empty dependency array as it doesn't depend on any state
 
   // Effect to fetch transactions when authenticated
   useEffect(() => {
@@ -91,7 +91,29 @@ const CashFlow = () => {
     if (isAuthenticated) {
       fetchTransactions();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, fetchTransactions]); // Added fetchTransactions to dependencies
+
+  // Effect for real-time subscription
+  useEffect(() => {
+    if (!isAuthenticated) return; // Only set up subscription if authenticated
+    
+    // Set up real-time subscription for updates
+    const subscription = supabase
+      .channel('cashflow-changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'cashflow' }, 
+        (payload) => {
+          console.log('Change received!', payload);
+          fetchTransactions(); // Refresh data when changes occur
+        }
+      )
+      .subscribe();
+      
+    // Clean up subscription on unmount or when authentication changes
+    return () => {
+      supabase.removeChannel(subscription);
+    };
+  }, [isAuthenticated, fetchTransactions]); // Added dependencies
 
   // Get unique parties for filter dropdown
   const uniqueParties = useMemo(() => {
@@ -128,11 +150,11 @@ const CashFlow = () => {
     }).format(amount);
   };
 
-  // // Logout function
-  // const handleLogout = () => {
-  //   setIsAuthenticated(false);
-  //   setTransactions([]); // Clear transactions when logging out
-  // };
+  // Logout function
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setTransactions([]); // Clear transactions when logging out
+  };
 
   // Render passcode screen if not authenticated
   if (!isAuthenticated) {
@@ -162,10 +184,10 @@ const CashFlow = () => {
   // Render cashflow details if authenticated and not loading and no error
   return (
     <div className="cashflow-container">
-      {/* <div className="cashflow-header">
+      <div className="cashflow-header">
         <h1>Cash Flow</h1>
         <button className="logout-button" onClick={handleLogout}>Logout</button>
-      </div> */}
+      </div>
   
       <div className="summary-cards">
         <div className="card">
