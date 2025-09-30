@@ -1,6 +1,15 @@
 const VERSION = new Date().getTime();
 const CACHE_NAME = 'vpcs-digital-v' + VERSION;
 console.log('Service Worker Version:', VERSION);
+
+// Create a version.json file in memory
+const versionInfo = new Response(
+  JSON.stringify({
+    timestamp: VERSION,
+    version: '1.0.0'
+  }),
+  { headers: { 'Content-Type': 'application/json' } }
+);
 const urlsToCache = [
   '/VPCS-Digital/',
   '/VPCS-Digital/index.html',
