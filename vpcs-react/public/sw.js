@@ -1,9 +1,12 @@
-const CACHE_NAME = 'vpcs-digital-v2';
+const CACHE_NAME = 'vpcs-digital-v' + new Date().getTime();
 const urlsToCache = [
   '/',
-  '/static/js/bundle.js',
-  '/static/css/main.css',
-  '/manifest.json'
+  '/index.html',
+  '/manifest.json',
+  '/static/css/main.0034a4ab.css',
+  '/static/js/main.1ea4407d.js',
+  '/static/js/453.3dc873fd.chunk.js',
+  '/favicon.ico'
 ];
 
 // Install event - cache resources
@@ -38,7 +41,7 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch event - serve cached content when offline
+// Fetch event - network first, fallback to cache
 self.addEventListener('fetch', (event) => {
   // Skip chrome-extension requests
   if (event.request.url.startsWith('chrome-extension://')) {
@@ -46,8 +49,22 @@ self.addEventListener('fetch', (event) => {
   }
 
   event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
+    fetch(event.request)
+      .then(response => {
+        // Clone the response since we need to use it twice
+        const responseToCache = response.clone();
+        
+        // Update the cache with the new response
+        caches.open(CACHE_NAME)
+          .then(cache => {
+            cache.put(event.request, responseToCache);
+          });
+
+        return response;
+      })
+      .catch(() => {
+        // If network request fails, try to get it from cache
+        return caches.match(event.request);
         // Return cached version or fetch from network
         if (response) {
           console.log('Service Worker: Serving from cache', event.request.url);
