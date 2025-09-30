@@ -1,20 +1,22 @@
 import React, { useState } from "react";
 import "./MaterialCalculator.css";
-import formatCurrency from "../lib/INDcurrencyFormat"; // Changed to default import
-import formatDate from '../lib/DD-MMM-YY-DateFromat'; // Changed to default import
+import formatCurrency from "../lib/INDcurrencyFormat";
+import formatDate from '../lib/DD-MMM-YY-DateFromat';
 
 const MaterialCalculator = () => {
   const [vendor, setVendor] = useState("select");
   const [material, setMaterial] = useState("select");
   const [weight, setWeight] = useState("");
   const [copySuccess, setCopySuccess] = useState(false);
-  const [currentDate] = useState(new Date().toISOString());
 
   const GST = 0.18;
   const TCS = 0.01;
 
   // Helper function for non-currency number formatting
   const formatNumber = (num) => Number(num).toFixed(2);
+
+  // Get current date using the formatDate function
+  const currentDate = formatDate(new Date().toISOString());
 
   // Code to copy the values from the summary to clipboard
   const handleCopySummary = async () => {
@@ -180,7 +182,7 @@ const MaterialCalculator = () => {
   return (
     <div className="calculator-container">
       <h1 className="calculator-title">Material Price Calculator</h1>
-      {/* <div className="date-display">Today: {formatDate(currentDate)}</div> */}
+      <div className="date-display">Today: {currentDate}</div>
 
       <div className="input-section">
         <div className="input-group">
