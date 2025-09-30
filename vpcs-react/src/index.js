@@ -17,7 +17,18 @@ serviceWorkerRegistration.register({
     console.log('PWA: App is ready for offline use!');
   },
   onUpdate: (registration) => {
-    console.log('PWA: New version available! Please refresh the page.');
-    // You can show a notification to user here
+    console.log('PWA: New version available! Updating...');
+    if (registration && registration.waiting) {
+      registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+    }
+    window.location.reload();
   }
 });
+
+// Listen for reload messages from the service worker
+navigator.serviceWorker.addEventListener('message', (event) => {
+  if (event.data.type === 'RELOAD') {
+    window.location.reload();
+  }
+});
+    // You can show a notification to user here

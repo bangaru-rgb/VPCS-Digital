@@ -1,12 +1,12 @@
 const CACHE_NAME = 'vpcs-digital-v' + new Date().getTime();
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/static/css/main.0034a4ab.css',
-  '/static/js/main.1ea4407d.js',
-  '/static/js/453.3dc873fd.chunk.js',
-  '/favicon.ico'
+  '/VPCS-Digital/',
+  '/VPCS-Digital/index.html',
+  '/VPCS-Digital/manifest.json',
+  '/VPCS-Digital/static/css/main.0034a4ab.css',
+  '/VPCS-Digital/static/js/main.1ea4407d.js',
+  '/VPCS-Digital/static/js/453.3dc873fd.chunk.js',
+  '/VPCS-Digital/favicon.ico'
 ];
 
 // Install event - cache resources
@@ -41,7 +41,7 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch event - network first, fallback to cache
+// Fetch event - network first with cache update and force refresh
 self.addEventListener('fetch', (event) => {
   // Skip chrome-extension requests
   if (event.request.url.startsWith('chrome-extension://')) {
@@ -59,6 +59,15 @@ self.addEventListener('fetch', (event) => {
           .then(cache => {
             cache.put(event.request, responseToCache);
           });
+
+        // Force clients to reload when new version is available
+        if (event.request.mode === 'navigate') {
+          clients.claim().then(() => {
+            clients.matchAll().then(clients => {
+              clients.forEach(client => client.postMessage({ type: 'RELOAD' }));
+            });
+          });
+        }
 
         return response;
       })

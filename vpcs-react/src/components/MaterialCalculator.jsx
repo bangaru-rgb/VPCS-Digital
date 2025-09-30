@@ -1,21 +1,24 @@
 import React, { useState } from "react";
 import "./MaterialCalculator.css";
-import { INDcurrencyFormat } from "../lib/INDcurrencyFormat";
-import {dateformat} from '../lib/DD-MMM-YY-DateFromat';
+import formatCurrency from "../lib/INDcurrencyFormat"; // Changed to default import
+import formatDate from '../lib/DD-MMM-YY-DateFromat'; // Changed to default import
 
 const MaterialCalculator = () => {
   const [vendor, setVendor] = useState("select");
-  const [material, setMaterial] = useState("select"); // Changed from mode to material
+  const [material, setMaterial] = useState("select");
   const [weight, setWeight] = useState("");
-  const [copySuccess, setCopySuccess] = useState(false); // ADD THIS LINE
+  const [copySuccess, setCopySuccess] = useState(false);
+  const [currentDate, setCurrentDate] = useState(new Date().toISOString());
 
   const GST = 0.18;
   const TCS = 0.01;
 
+  // Helper function for non-currency number formatting
   const formatNumber = (num) => Number(num).toFixed(2);
+
   // Code to copy the values from the summary to clipboard
   const handleCopySummary = async () => {
-    const summaryText = `${selectedLabels.toHetero}: ${formatNumber(genetiqueToHetero)}\n${selectedLabels.toVendor}: ${formatNumber(vpcsToGenetique)}`;
+    const summaryText = `${selectedLabels.toHetero}: ${formatCurrency(genetiqueToHetero)}\n${selectedLabels.toVendor}: ${formatCurrency(vpcsToGenetique)}`;
 
     try {
       await navigator.clipboard.writeText(summaryText);
@@ -157,26 +160,27 @@ const MaterialCalculator = () => {
   } = calculateValues(vendor, material, weight);
 
   const resultItems = [
-    { label: "Material Weight", value: formatNumber(weight || 0), comment: "Total weight of the material." },
-    { label: "Hetero material Rate", value: formatNumber(heteroRate), comment: "Rate per unit for Hetero material." },
-    { label: "Customs Tax", value: formatNumber(customsTax), comment: "Vendor-specific customs tax." },
-    { label: "Material cost", value: formatNumber(materialCost), comment: "Hetero rate + Customs tax." },
-    { label: "Material Price @Hetero", value: formatNumber(materialPriceHetero), comment: "Material cost * Weight." },
-    { label: "GST", value: formatNumber(gstHetero), comment: "18% of Material Price @ Hetero." },
-    { label: "Material price + GST", value: formatNumber(materialPriceGst), comment: "Sum of Material Price @ Hetero and GST." },
-    { label: "TCS", value: formatNumber(tcs), comment: "1% of (Material price + GST)." },
-    { label: selectedLabels.toHetero, value: formatNumber(genetiqueToHetero), comment: "Material price + GST + TCS.", highlight: true },
-    { label: "PCB Charges", value: formatNumber(pcbCharges), comment: "Vendor-specific PCB Charges." },
-    { label: "APEMCL charges", value: formatNumber(apemclCharges), comment: "Fixed APEMCL charge." },
-    { label: `${currentVendorName} material cost`, value: formatNumber(genetiqueMaterialCost), comment: `Hetero rate + Customs tax + PCB + APEMCL.` },
-    { label: `Material Price @ ${currentVendorName}`, value: formatNumber(materialPriceGenetique), comment: `${currentVendorName} material cost * Weight.` },
-    { label: `GST @ ${currentVendorName}`, value: formatNumber(gstGenetique), comment: `18% of Material Price @ ${currentVendorName}.` },
-    { label: selectedLabels.toVendor, value: formatNumber(vpcsToGenetique), comment: `Material price @ ${currentVendorName} + GST.`, highlight: true },
+    { label: "Material Weight", value: weight || 0, comment: "Total weight of the material.", isCurrency: false },
+    { label: "Hetero material Rate", value: heteroRate, comment: "Rate per unit for Hetero material.", isCurrency: true },
+    { label: "Customs Tax", value: customsTax, comment: "Vendor-specific customs tax.", isCurrency: true },
+    { label: "Material cost", value: materialCost, comment: "Hetero rate + Customs tax.", isCurrency: true },
+    { label: "Material Price @Hetero", value: materialPriceHetero, comment: "Material cost * Weight.", isCurrency: true },
+    { label: "GST", value: gstHetero, comment: "18% of Material Price @ Hetero.", isCurrency: true },
+    { label: "Material price + GST", value: materialPriceGst, comment: "Sum of Material Price @ Hetero and GST.", isCurrency: true },
+    { label: "TCS", value: tcs, comment: "1% of (Material price + GST).", isCurrency: true },
+    { label: selectedLabels.toHetero, value: genetiqueToHetero, comment: "Material price + GST + TCS.", highlight: true, isCurrency: true },
+    { label: "PCB Charges", value: pcbCharges, comment: "Vendor-specific PCB Charges.", isCurrency: true },
+    { label: "APEMCL charges", value: apemclCharges, comment: "Fixed APEMCL charge.", isCurrency: true },
+    { label: `${currentVendorName} material cost`, value: genetiqueMaterialCost, comment: `Hetero rate + Customs tax + PCB + APEMCL.`, isCurrency: true },
+    { label: `Material Price @ ${currentVendorName}`, value: materialPriceGenetique, comment: `${currentVendorName} material cost * Weight.`, isCurrency: true },
+    { label: `GST @ ${currentVendorName}`, value: gstGenetique, comment: `18% of Material Price @ ${currentVendorName}.`, isCurrency: true },
+    { label: selectedLabels.toVendor, value: vpcsToGenetique, comment: `Material price @ ${currentVendorName} + GST.`, highlight: true, isCurrency: true },
   ];
 
   return (
     <div className="calculator-container">
       <h1 className="calculator-title">Material Price Calculator</h1>
+      <div className="date-display">Today: {formatDate(currentDate)}</div>
 
       <div className="input-section">
         <div className="input-group">
@@ -195,8 +199,8 @@ const MaterialCalculator = () => {
         <div className="input-group">
           <label>Material:</label>
           <select
-            value={material}  // Changed from mode to material.
-            onChange={(e) => setMaterial(e.target.value)}  // Changed from setMode to setMaterial
+            value={material}
+            onChange={(e) => setMaterial(e.target.value)}
           >
             <option value="select">Select Material</option>
             <option value="etp">ETP</option>
@@ -240,11 +244,11 @@ const MaterialCalculator = () => {
         </div>
         <div className="summary-item">
           <span className="label">{selectedLabels.toHetero}:</span>
-          <span className="value">₹ {formatNumber(genetiqueToHetero)}</span>
+          <span className="value">{formatCurrency(genetiqueToHetero)}</span>
         </div>
         <div className="summary-item">
           <span className="label">{selectedLabels.toVendor}:</span>
-          <span className="value">₹ {formatNumber(vpcsToGenetique)}</span>
+          <span className="value">{formatCurrency(vpcsToGenetique)}</span>
         </div>
       </div>
 
@@ -252,7 +256,9 @@ const MaterialCalculator = () => {
         {resultItems.map((item, index) => (
           <div className={`result-card ${item.highlight ? "highlight" : ""}`} key={`${item.label}-${index}`}>
             <div className="card-label">{item.label}</div>
-            <div className="card-value">{item.value}</div>
+            <div className="card-value">
+              {item.isCurrency ? formatCurrency(item.value) : formatNumber(item.value)}
+            </div>
             <div className="card-comment">{item.comment}</div>
           </div>
         ))}
