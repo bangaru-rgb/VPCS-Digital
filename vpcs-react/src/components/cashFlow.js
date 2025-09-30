@@ -5,6 +5,7 @@ import './cashFlow.css';
 import './cashflow_passcode.css';
 import CashflowPasscode from './cashflow_passcode'; // Import the passcode component
 import { supabase } from '../lib/supabaseClient';
+import{INDcurrencyFormat} from '../lib/INDcurrencyFormat';
 
 const CashFlow = () => {
   // State for authentication
