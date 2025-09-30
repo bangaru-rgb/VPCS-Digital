@@ -15,9 +15,6 @@ const MaterialCalculator = () => {
   // Helper function for non-currency number formatting
   const formatNumber = (num) => Number(num).toFixed(2);
 
-  // Get current date using the formatDate function
-  const currentDate = formatDate(new Date().toISOString());
-
   // Code to copy the values from the summary to clipboard
   const handleCopySummary = async () => {
     const summaryText = `${selectedLabels.toHetero}: ${formatCurrency(genetiqueToHetero)}\n${selectedLabels.toVendor}: ${formatCurrency(vpcsToGenetique)}`;
@@ -179,10 +176,14 @@ const MaterialCalculator = () => {
     { label: selectedLabels.toVendor, value: vpcsToGenetique, comment: `Material price @ ${currentVendorName} + GST.`, highlight: true, isCurrency: true },
   ];
 
+  // Get current date using the formatDate function
+  const currentDate = formatDate(new Date().toISOString());
+
   return (
     <div className="calculator-container">
       <h1 className="calculator-title">Material Price Calculator</h1>
-      
+      {/* <div className="date-display">Today: {currentDate}</div> */}
+
       <div className="input-section">
         <div className="input-group">
           <label>Vendor:</label>
