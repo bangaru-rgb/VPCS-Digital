@@ -8,31 +8,35 @@
 }
 
 .calculator-title {
-  text-align: center;
-  margin-bottom: 24px;
-  font-size: 2rem;
-  font-weight: 700;
-  color: #007bff;
-  letter-spacing: 0.5px;
+    text-align: center;
+    margin-bottom: 24px;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #007bff;
+    letter-spacing: 0.5px;
 }
 
 /* 🔹 Input Section */
 .input-section {
-  background-color: #f0f7ff;  /* Light blue background to match the theme */
-  border-radius: 8px;
-  padding: 16px;
-  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);  /* Subtle blue-tinted shadow */
-  margin-bottom: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  border: 1px solid rgba(0, 123, 255, 0.2);  /* Light blue border */
+    background-color: #f0f7ff;
+    /* Light blue background to match the theme */
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
+    /* Subtle blue-tinted shadow */
+    margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    border: 1px solid rgba(0, 123, 255, 0.2);
+    /* Light blue border */
 }
+
 .input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
 }
 
 .input-group label {
@@ -46,25 +50,25 @@
 /* General styles for inputs and selects */
 .input-group select,
 .input-group input {
-  display: block;
-  width: 100%;
-  height: 48px;
-  padding: 10px 14px;
-  font-size: 1rem;
-  font-weight: 500;
-  line-height: normal;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  background-color: #fff;
-  color: #333;
-  box-sizing: border-box;
-  appearance: none;
-  text-align: left;
-  /* Prevent expansion */
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+    display: block;
+    width: 100%;
+    height: 48px;
+    padding: 10px 14px;
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: normal;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background-color: #fff;
+    color: #333;
+    box-sizing: border-box;
+    appearance: none;
+    text-align: left;
+    /* Prevent expansion */
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* Add custom arrow for selects to ensure consistency */
@@ -81,20 +85,23 @@
 
 /* 🔹 Weight Input Specific Styles */
 .input-group.weight-input-group {
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .weight-input-wrapper {
-  flex: 0 0 auto; /* Don't grow or shrink, auto width */
-  max-width: 150px; /* Fixed max width */
+    flex: 0 0 auto;
+    /* Don't grow or shrink, auto width */
+    max-width: 150px;
+    /* Fixed max width */
 }
 
 .input-group.weight-input-group input {
-  width: 100%;
-  text-align: right;
-  flex-shrink: 0; /* Prevent shrinking */
+    width: 100%;
+    text-align: right;
+    flex-shrink: 0;
+    /* Prevent shrinking */
 }
 
 /* 🔹 Summary Section */
@@ -107,6 +114,7 @@
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
     border-left: 4px solid #007bff;
 }
+
 .summary-header {
     display: flex;
     justify-content: space-between;
@@ -144,15 +152,25 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .copy-button:hover {
-    background-color: #007bff;
+    /* background-color: #007bff; */
     color: white;
 }
 
 .copy-button:active {
-    transform: scale(0.95);
+    /* transform: scale(0.95); */
+
+    background: none;
+    /* Prevent blue background on tap */
+    color: #007bff;
+}
+
+.copy-button:focus {
+    outline: none;
+    /* Remove focus outline if needed */
 }
 
 .summary-item .label {
@@ -327,7 +345,8 @@
 
     .weight-input-wrapper {
         width: 100%;
-        max-width: 200px; /* Fixed max width on mobile */
+        max-width: 200px;
+        /* Fixed max width on mobile */
     }
 
     .input-group.weight-input-group input {
