@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "./MaterialCalculator.css";
 import formatCurrency from "../lib/INDcurrencyFormat";
-import formatDate from '../lib/DD-MMM-YY-DateFromat';
+//import formatDate from '../lib/DD-MMM-YY-DateFromat';
 
 const MaterialCalculator = () => {
   const [vendor, setVendor] = useState("select");
