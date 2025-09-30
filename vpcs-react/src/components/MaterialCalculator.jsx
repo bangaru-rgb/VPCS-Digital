@@ -8,7 +8,7 @@ const MaterialCalculator = () => {
   const [material, setMaterial] = useState("select");
   const [weight, setWeight] = useState("");
   const [copySuccess, setCopySuccess] = useState(false);
-  const [currentDate, setCurrentDate] = useState(new Date().toISOString());
+  const [currentDate] = useState(new Date().toISOString());
 
   const GST = 0.18;
   const TCS = 0.01;
@@ -180,7 +180,7 @@ const MaterialCalculator = () => {
   return (
     <div className="calculator-container">
       <h1 className="calculator-title">Material Price Calculator</h1>
-      <div className="date-display">Today: {formatDate(currentDate)}</div>
+      {/* <div className="date-display">Today: {formatDate(currentDate)}</div> */}
 
       <div className="input-section">
         <div className="input-group">

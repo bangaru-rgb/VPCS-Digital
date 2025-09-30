@@ -1,11 +1,11 @@
 // src/components/cashFlow.js
-import React, { useState, useEffect, useMemo, useCallback } from 'react'; // Added useCallback
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import './cashFlow.css';
-//import './cashflow_realtime.css';
 import './cashflow_passcode.css';
-import CashflowPasscode from './cashflow_passcode'; // Import the passcode component
+import CashflowPasscode from './cashflow_passcode';
 import { supabase } from '../lib/supabaseClient';
-import{INDcurrencyFormat} from '../lib/INDcurrencyFormat';
+import formatCurrency from '../lib/INDcurrencyFormat'; // Changed to default import
+import formatDate from '../lib/DD-MMM-YY-DateFromat'; // Added date formatter import
 
 const CashFlow = () => {
   // State for authentication
@@ -13,23 +13,12 @@ const CashFlow = () => {
   
   // State for transactions
   const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading] = useState(false); // Changed initial state to false
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   // State for filters
   const [typeFilter, setTypeFilter] = useState('All');
   const [partyFilter, setPartyFilter] = useState('All');
-
-  // Format date from ISO to DD-MMM-YY format
-  const formatDate = (isoDate) => {
-    if (!isoDate) return '';
-    const date = new Date(isoDate);
-    const day = date.getDate().toString().padStart(2, '0');
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const month = monthNames[date.getMonth()];
-    const year = date.getFullYear().toString().slice(-2);
-    return `${day}-${month}-${year}`;
-  };
 
   // Fetch transactions from Supabase - now using useCallback
   const fetchTransactions = useCallback(async () => {
@@ -55,7 +44,7 @@ const CashFlow = () => {
           ...item,
           inflow: parseFloat(item.inflow) || 0,
           outflow: parseFloat(item.outflow) || 0,
-          displayDate: formatDate(item.date) // Format date for display
+          displayDate: formatDate(item.date) // Using imported date formatter
         }));
         
         // Calculate running balance
@@ -92,7 +81,7 @@ const CashFlow = () => {
     if (isAuthenticated) {
       fetchTransactions();
     }
-  }, [isAuthenticated, fetchTransactions]); // Added fetchTransactions to dependencies
+  }, [isAuthenticated, fetchTransactions]);
 
   // Effect for real-time subscription
   useEffect(() => {
@@ -114,7 +103,7 @@ const CashFlow = () => {
     return () => {
       supabase.removeChannel(subscription);
     };
-  }, [isAuthenticated, fetchTransactions]); // Added dependencies
+  }, [isAuthenticated, fetchTransactions]);
 
   // Get unique parties for filter dropdown
   const uniqueParties = useMemo(() => {
@@ -140,22 +129,6 @@ const CashFlow = () => {
       cashInHand: totalInflow - totalOutflow
     };
   }, [transactions]);
-
-  // Format currency
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(amount);
-  };
-
-  // // Logout function
-  // const handleLogout = () => {
-  //   setIsAuthenticated(false);
-  //   setTransactions([]); // Clear transactions when logging out
-  // };
 
   // Render passcode screen if not authenticated
   if (!isAuthenticated) {
@@ -187,7 +160,6 @@ const CashFlow = () => {
     <div className="cashflow-container">
       <div className="cashflow-header">
         <h1>Cash Flow</h1>
-        {/* <button className="logout-button" onClick={handleLogout}>Logout</button> */}
       </div>
   
       <div className="summary-cards">
@@ -271,7 +243,7 @@ const CashFlow = () => {
         </div>
       </div>
 
-      {/* Mobile cards view - unchanged */}
+      {/* Mobile cards view */}
       <div className="mobile-cards-view">
         {filteredTransactions.length > 0 ? (
           filteredTransactions.map((transaction) => (
