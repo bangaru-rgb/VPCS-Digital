@@ -8,8 +8,10 @@
     background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     padding: 20px;
-    padding-bottom: 100px; /* Add extra bottom padding for keyboard */
-    overflow-y: auto; /* Allow scrolling */
+    padding-bottom: 200px;
+    /* Add extra bottom padding for keyboard */
+    overflow-y: auto;
+    /* Allow scrolling */
 }
 
 .passcode-card {
@@ -20,7 +22,8 @@
     width: 100%;
     max-width: 400px;
     text-align: center;
-    margin-bottom: 50px; /* Space below the card */
+    margin-bottom: 50px;
+    /* Space below the card */
 }
 
 .passcode-title {
@@ -62,19 +65,30 @@
 }
 
 @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-10px); }
-    75% { transform: translateX(10px); }
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-10px);
+    }
+
+    75% {
+        transform: translateX(10px);
+    }
 }
 
 .passcode-error {
     color: #ff4d4d;
     font-size: 14px;
     margin-top: 10px;
-    margin-bottom: 20px; /* Add bottom margin */
+    margin-bottom: 80px;  /* Add bottom margin */
     min-height: 20px;
     display: block;
     text-align: center;
+    padding-bottom: 40px;  /* Add extra padding */
 }
 
 .passcode-submit {
@@ -99,13 +113,14 @@
 /* Mobile responsive adjustments */
 @media (max-width: 480px) {
     .passcode-container {
-        padding-bottom: 150px; /* More padding on mobile */
+        padding-bottom: 250px;
+        /* More padding on mobile */
     }
 
     .passcode-card {
         padding: 25px 15px;
         border-radius: 15px;
-        margin-bottom: 30px;
+        margin-bottom: 60px;
     }
 
     .passcode-title {
