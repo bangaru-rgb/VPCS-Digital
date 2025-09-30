@@ -177,7 +177,7 @@ const MaterialCalculator = () => {
   ];
 
   // Get current date using the formatDate function
-  const currentDate = formatDate(new Date().toISOString());
+  // const currentDate = formatDate(new Date().toISOString());
 
   return (
     <div className="calculator-container">
