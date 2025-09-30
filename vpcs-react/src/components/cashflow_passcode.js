@@ -5,7 +5,7 @@ const Passcode = ({ onCorrectPasscode }) => {
     const [passcode, setPasscode] = useState(['', '', '', '', '', '']);
     const [error, setError] = useState('');
     const inputRefs = useRef([]);
-    
+
     const CORRECT_PASSCODE = '123123';
 
     useEffect(() => {
@@ -31,13 +31,13 @@ const Passcode = ({ onCorrectPasscode }) => {
 
     const handleInputChange = (index, value) => {
         if (error) setError('');
-        
+
         if (value && !/^\d$/.test(value)) return;
-        
+
         const newPasscode = [...passcode];
         newPasscode[index] = value;
         setPasscode(newPasscode);
-        
+
         if (value && index < passcode.length - 1) {
             inputRefs.current[index + 1].focus();
         }
@@ -73,6 +73,8 @@ const Passcode = ({ onCorrectPasscode }) => {
                             key={index}
                             ref={el => inputRefs.current[index] = el}
                             type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             className={`passcode-input ${error ? 'error' : ''}`}
                             value={digit}
                             onChange={(e) => handleInputChange(index, e.target.value)}
