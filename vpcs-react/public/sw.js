@@ -1,4 +1,6 @@
-const CACHE_NAME = 'vpcs-digital-v' + new Date().getTime();
+const VERSION = new Date().getTime();
+const CACHE_NAME = 'vpcs-digital-v' + VERSION;
+console.log('Service Worker Version:', VERSION);
 const urlsToCache = [
   '/VPCS-Digital/',
   '/VPCS-Digital/index.html',
@@ -9,9 +11,19 @@ const urlsToCache = [
   '/VPCS-Digital/favicon.ico'
 ];
 
+// Skip waiting and activate immediately
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
 // Install event - cache resources
 self.addEventListener('install', (event) => {
   console.log('Service Worker: Installing...');
+  // Skip waiting by default to force immediate activation
+  self.skipWaiting();
+  
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
@@ -24,20 +36,25 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// Activate event - clean up old caches
+// Activate event - clean up old caches and claim clients
 self.addEventListener('activate', (event) => {
   console.log('Service Worker: Activating...');
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('Service Worker: Deleting old cache', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
+    Promise.all([
+      // Clean up old caches
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            if (cacheName !== CACHE_NAME) {
+              console.log('Service Worker: Deleting old cache', cacheName);
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      }),
+      // Claim all clients immediately
+      clients.claim()
+    ])
   );
 });
 
