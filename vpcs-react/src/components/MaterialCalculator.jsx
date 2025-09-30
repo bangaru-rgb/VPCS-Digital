@@ -46,8 +46,8 @@ const MaterialCalculator = () => {
       toVendor: "VPCS to Godavari",
     },
     balaji: {
-      toHetero: "Balaji to Hetero",
-      toVendor: "VPCS to Balaji",
+      toHetero: "Sri Balaji to Hetero",
+      toVendor: "VPCS to Sri Balaji",
     },
   };
 
