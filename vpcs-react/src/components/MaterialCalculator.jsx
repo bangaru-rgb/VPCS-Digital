@@ -176,13 +176,12 @@ const MaterialCalculator = () => {
     { label: selectedLabels.toVendor, value: vpcsToGenetique, comment: `Material price @ ${currentVendorName} + GST.`, highlight: true, isCurrency: true },
   ];
 
-  // Get current date using the formatDate function
-  // const currentDate = formatDate(new Date().toISOString());
+
 
   return (
     <div className="calculator-container">
       <h1 className="calculator-title">Material Price Calculator</h1>
-      {/* <div className="date-display">Today: {currentDate}</div> */}
+   
 
       <div className="input-section">
         <div className="input-group">
