@@ -12,6 +12,26 @@ const Passcode = ({ onCorrectPasscode }) => {
         inputRefs.current[0].focus();
     }, []);
 
+    // Scroll error message into view when error appears (mobile only)
+    useEffect(() => {
+        if (error) {
+            // Check if device is mobile
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+            
+            if (isMobile) {
+                setTimeout(() => {
+                    const errorElement = document.querySelector('.passcode-error');
+                    if (errorElement) {
+                        errorElement.scrollIntoView({ 
+                            behavior: 'smooth', 
+                            block: 'center'
+                        });
+                    }
+                }, 100);
+            }
+        }
+    }, [error]);
+
     // Auto-verify when all 6 digits are entered
     useEffect(() => {
         const enteredPasscode = passcode.join('');
