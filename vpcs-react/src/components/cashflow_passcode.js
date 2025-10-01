@@ -24,7 +24,7 @@ const Passcode = ({ onCorrectPasscode }) => {
                     if (errorElement) {
                         errorElement.scrollIntoView({ 
                             behavior: 'smooth', 
-                            block: 'center'
+                            block: 'nearest'
                         });
                     }
                 }, 100);
