@@ -17,7 +17,11 @@ const MaterialCalculator = () => {
 
   // Code to copy the values from the summary to clipboard
   const handleCopySummary = async () => {
-    const summaryText = `${selectedLabels.toHetero}: ${formatCurrency(genetiqueToHetero)}\n${selectedLabels.toVendor}: ${formatCurrency(vpcsToGenetique)}`;
+    // Capitalize the material name
+    const materialName = material === "select" ? "Material" : material.charAt(0).toUpperCase() + material.slice(1);
+    
+    // Create the summary text with material, weight, and the existing values
+    const summaryText = `${materialName} weight: ${weight || 0} kg\n${selectedLabels.toHetero}: ${formatCurrency(genetiqueToHetero)}\n${selectedLabels.toVendor}: ${formatCurrency(vpcsToGenetique)}`;
 
     try {
       await navigator.clipboard.writeText(summaryText);
@@ -175,8 +179,6 @@ const MaterialCalculator = () => {
     { label: `GST @ ${currentVendorName}`, value: gstGenetique, comment: `18% of Material Price @ ${currentVendorName}.`, isCurrency: true },
     { label: selectedLabels.toVendor, value: vpcsToGenetique, comment: `Material price @ ${currentVendorName} + GST.`, highlight: true, isCurrency: true },
   ];
-
-
 
   return (
     <div className="calculator-container">
