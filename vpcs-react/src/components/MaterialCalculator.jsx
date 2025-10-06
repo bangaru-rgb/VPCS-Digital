@@ -3,6 +3,8 @@ import "./MaterialCalculator.css";
 import formatCurrency from "../lib/INDcurrencyFormat";
 //import formatDate from '../lib/DD-MMM-YY-DateFromat';
 
+
+
 const MaterialCalculator = () => {
   const [vendor, setVendor] = useState("select");
   const [material, setMaterial] = useState("select");
@@ -18,7 +20,7 @@ const MaterialCalculator = () => {
   // Code to copy the values from the summary to clipboard
   const handleCopySummary = async () => {
     // Capitalize the material name
-    const materialName = material === "select" ? "Material" : material.charAt(0).toUpperCase() + material.slice(1);
+    const materialName = material === "Select" ? "Material" : material;
     
     // Create the summary text with material, weight, and the existing values
     const summaryText = `${materialName} weight: ${weight || 0} kg\n${selectedLabels.toHetero}: ${formatCurrency(genetiqueToHetero)}\n${selectedLabels.toVendor}: ${formatCurrency(vpcsToGenetique)}`;
@@ -74,24 +76,24 @@ const MaterialCalculator = () => {
     let pcbCharges = 0;
     let APEMCL = 0;
     if (vendor === "genetique") {
-      if (material === "etp") {
+      if (material === "ETP") {
         heteroRate = 18.0;
         customsTax = heteroRate * 0.11;
         pcbCharges = 2.0;
         APEMCL = 0.07;
-      } else if (material === "stripper") {
+      } else if (material === "Stripper") {
         heteroRate = 4.0;
         customsTax = 0.0;
         pcbCharges = 1.0;
         APEMCL = 0.07;
       }
     } else if (vendor === "godavari") {
-      if (material === "etp") {
+      if (material === "ETP") {
         heteroRate = 18.0;
         customsTax = heteroRate * 0.11;
         pcbCharges = 2.0;
         APEMCL = 0;
-      } else if (material === "stripper") {
+      } else if (material === "Stripper") {
         heteroRate = 4.0;
         customsTax = 0.0;
         if (heteroRate < 15.0) {
@@ -102,12 +104,12 @@ const MaterialCalculator = () => {
         APEMCL = 0;
       }
     } else if (vendor === "balaji") {
-      if (material === "etp") {
+      if (material === "ETP") {
         heteroRate = 18.0;
         customsTax = heteroRate * 0.11;
         pcbCharges = 2.0;
         APEMCL = 0;
-      } else if (material === "stripper") {
+      } else if (material === "Stripper") {
         heteroRate = 4.0;
         customsTax = 0.0;
         pcbCharges = 1.5;
@@ -205,9 +207,9 @@ const MaterialCalculator = () => {
             value={material}
             onChange={(e) => setMaterial(e.target.value)}
           >
-            <option value="select">Select Material</option>
-            <option value="etp">ETP</option>
-            <option value="stripper">Stripper</option>
+            <option value="Select">Select Material</option>
+            <option value="ETP">ETP</option>
+            <option value="Stripper">Stripper</option>
           </select>
         </div>
 
