@@ -19,8 +19,9 @@ const MaterialCalculator = () => {
 
   // Code to copy the values from the summary to clipboard
   const handleCopySummary = async () => {
-    // Capitalize the material name
-    const materialName = material === "Select" ? "Material" : material;
+   
+    //const materialName = material === "Select" ? "Material" : material;
+    const materialName = material === "" || material === "Select" ? "Material" : material;
     
     // Create the summary text with material, weight, and the existing values
     const summaryText = `${materialName} weight: ${weight || 0} kg\n${selectedLabels.toHetero}: ${formatCurrency(genetiqueToHetero)}\n${selectedLabels.toVendor}: ${formatCurrency(vpcsToGenetique)}`;
@@ -207,7 +208,7 @@ const MaterialCalculator = () => {
             value={material}
             onChange={(e) => setMaterial(e.target.value)}
           >
-            <option value="Select">Select Material</option>
+            <option value="">Select Material</option>
             <option value="ETP">ETP</option>
             <option value="Stripper">Stripper</option>
           </select>
