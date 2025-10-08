@@ -6,8 +6,8 @@ import formatCurrency from "../lib/INDcurrencyFormat";
 
 
 const MaterialCalculator = () => {
-  const [vendor, setVendor] = useState("select");
-  const [material, setMaterial] = useState("select");
+  const [vendor, setVendor] = useState("");
+  const [material, setMaterial] = useState("");
   const [weight, setWeight] = useState("");
   const [copySuccess, setCopySuccess] = useState(false);
 
@@ -21,7 +21,8 @@ const MaterialCalculator = () => {
   const handleCopySummary = async () => {
    
     //const materialName = material === "Select" ? "Material" : material;
-    const materialName = material === "" || material === "Select" ? "Material" : material;
+   // const materialName = material === "" || material === "Select" ? "Material" : material;
+    const materialName = material === "" ? "Material" : material;
     
     // Create the summary text with material, weight, and the existing values
     const summaryText = `${materialName} weight: ${weight || 0} kg\n${selectedLabels.toHetero}: ${formatCurrency(genetiqueToHetero)}\n${selectedLabels.toVendor}: ${formatCurrency(vpcsToGenetique)}`;
@@ -44,15 +45,15 @@ const MaterialCalculator = () => {
   };
 
   const vendorLabels = {
-    genetique: {
+    Genetique: {
       toHetero: "Genetique to Hetero",
       toVendor: "VPCS to Genetique",
     },
-    godavari: {
+    Godavari: {
       toHetero: "Godavari to Hetero",
       toVendor: "VPCS to Godavari",
     },
-    balaji: {
+    Balaji: {
       toHetero: "Sri Balaji to Hetero",
       toVendor: "VPCS to Sri Balaji",
     },
@@ -64,9 +65,9 @@ const MaterialCalculator = () => {
   };
 
   const vendorDisplayNames = {
-    genetique: "Genetique Pro",
-    godavari: "Godavari Fine Chem",
-    balaji: "Sri Balaji Industries",
+    Genetique: "Genetique Pro",
+    Godavari: "Godavari Fine Chem",
+    Balaji: "Sri Balaji Industries",
   };
 
   const currentVendorName = vendorDisplayNames[vendor] || "Vendor";
@@ -76,7 +77,7 @@ const MaterialCalculator = () => {
     let customsTax = 0;
     let pcbCharges = 0;
     let APEMCL = 0;
-    if (vendor === "genetique") {
+    if (vendor === "Genetique") {
       if (material === "ETP") {
         heteroRate = 18.0;
         customsTax = heteroRate * 0.11;
@@ -88,7 +89,7 @@ const MaterialCalculator = () => {
         pcbCharges = 1.0;
         APEMCL = 0.07;
       }
-    } else if (vendor === "godavari") {
+    } else if (vendor === "Godavari") {
       if (material === "ETP") {
         heteroRate = 18.0;
         customsTax = heteroRate * 0.11;
@@ -104,7 +105,7 @@ const MaterialCalculator = () => {
         }
         APEMCL = 0;
       }
-    } else if (vendor === "balaji") {
+    } else if (vendor === "Balaji") {
       if (material === "ETP") {
         heteroRate = 18.0;
         customsTax = heteroRate * 0.11;
@@ -195,10 +196,10 @@ const MaterialCalculator = () => {
             value={vendor}
             onChange={(e) => setVendor(e.target.value)}
           >
-            <option value="select">Select Vendor</option>
-            <option value="genetique">Genetique Pro</option>
-            <option value="godavari">Godavari Fine Chem</option>
-            <option value="balaji">Sri Balaji Industries</option>
+            <option value="">Select Vendor</option>
+            <option value="Genetique">Genetique Pro</option>
+            <option value="Godavari">Godavari Fine Chem</option>
+            <option value="Balaji">Sri Balaji Industries</option>
           </select>
         </div>
 
