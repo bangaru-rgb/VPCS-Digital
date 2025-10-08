@@ -94,7 +94,7 @@ body {
 @media (min-width: 768px) {
   .sidebar {
     transform: translateX(0);
-    position: relative;
+    position: fixed;
     padding-top: 0;
   }
   
