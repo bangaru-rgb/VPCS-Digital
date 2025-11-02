@@ -533,7 +533,7 @@ const MaterialCalculator = () => {
       <div className="calc-wrapper">
         <div className="calc-container">
           <div className="calc-header">
-            <h1 className="calc-title">💰 Material Calculator</h1>
+            <h1 className="calc-title">Material Calculator</h1>
             <p className="calc-subtitle">Calculate material costs with precision</p>
           </div>
 
