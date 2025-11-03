@@ -1,4 +1,6 @@
-/* Reset and base styles */
+/* App.css - Complete styles for the application */
+
+/* Global Styles */
 * {
   margin: 0;
   padding: 0;
@@ -8,186 +10,358 @@
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-color: #f5f7fa;
-  color: #333;
 }
 
-/* App container */
+/* App Container */
 .app-container {
   display: flex;
   min-height: 100vh;
+  position: relative;
 }
 
-/* Hamburger menu button */
+/* Update Banner */
+.update-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 12px 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  z-index: 1000;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.update-banner span {
+  font-weight: 500;
+}
+
+.update-banner button {
+  padding: 6px 16px;
+  background: white;
+  color: #667eea;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.update-banner button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Hamburger Menu Button */
 .hamburger-btn {
   position: fixed;
-  top: 15px;
-  left: 15px;
-  z-index: 1000;
-  background: #4a6cf7;
+  top: 20px;
+  left: 20px;
+  z-index: 1001;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
-  border-radius: 5px;
-  width: 40px;
-  height: 40px;
-  font-size: 24px;
+  padding: 12px 16px;
+  font-size: 1.5rem;
+  border-radius: 8px;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
   transition: all 0.3s ease;
 }
 
 .hamburger-btn:hover {
-  background: #3a5ce5;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.6);
+}
+
+.hamburger-btn:active {
+  transform: translateY(0);
 }
 
 /* Sidebar */
 .sidebar {
   position: fixed;
+  left: -280px;
   top: 0;
-  left: 0;
+  width: 280px;
   height: 100vh;
-  width: 250px;
-  background-color: #2c3e50;
-  color: white;
-  transform: translateX(-100%);
-  transition: transform 0.3s ease;
-  z-index: 999;
-  padding-top: 60px;
-  box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+  background: white;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  transition: left 0.3s ease;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
 }
 
 .sidebar.open {
-  transform: translateX(0);
+  left: 0;
 }
 
+/* Sidebar Header */
+.sidebar-header {
+  padding: 20px 15px;
+  border-bottom: 1px solid #e0e0e0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.user-info {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-icon {
+  font-size: 2.5rem;
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.access-badge {
+  display: inline-block;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.95);
+  font-weight: 600;
+  font-size: 0.85rem;
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Sidebar Menu */
 .sidebar ul {
   list-style: none;
+  padding: 10px 0;
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 80px; /* Space for logout button */
 }
 
-.sidebar li {
+.sidebar ul li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   padding: 15px 20px;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.3s ease;
+  border-left: 3px solid transparent;
+  font-size: 0.95rem;
+  color: #2c3e50;
 }
 
-.sidebar li:hover {
-  background-color: #34495e;
+.sidebar ul li:hover {
+  background: rgba(102, 126, 234, 0.08);
+  border-left-color: #667eea;
 }
 
-.sidebar li.active {
-  background-color: #4a6cf7;
-  border-left: 4px solid #fff;
-}
-
-/* Main content area */
-.main-content {
-  flex: 1;
-  padding: 20px;
-  margin-left: 0;
-  transition: margin-left 0.3s ease;
-  width: 100%;
-}
-
-/* Responsive adjustments */
-@media (min-width: 768px) {
-  .sidebar {
-    transform: translateX(0);
-    position: fixed;
-    padding-top: 0;
-  }
-  
-  .hamburger-btn {
-    display: none;
-  }
-  
-  .main-content {
-    margin-left: 250px;
-  }
-}
-
-/* Module content containers */
-.module-content {
-  background: white;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-  margin-bottom: 20px;
-}
-
-/* Card styles */
-.card {
-  background: white;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-  margin-bottom: 20px;
-}
-
-/* Table styles */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 20px 0;
-}
-
-th, td {
-  padding: 12px 15px;
-  text-align: left;
-  border-bottom: 1px solid #e1e1e1;
-}
-
-th {
-  background-color: #f8f9fa;
+.sidebar ul li.active {
+  background: rgba(102, 126, 234, 0.12);
+  border-left-color: #667eea;
+  color: #667eea;
   font-weight: 600;
 }
 
-tr:hover {
-  background-color: #f8f9fa;
+/* Sidebar Footer */
+.sidebar-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 15px;
+  border-top: 1px solid #e0e0e0;
+  background: #f8f9fa;
 }
 
-/* Form styles */
-.input-group {
-  margin-bottom: 15px;
-}
-
-label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: 500;
-}
-
-input, select {
+.logout-btn {
   width: 100%;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-}
-
-button {
-  background: #4a6cf7;
+  padding: 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
-  border-radius: 4px;
-  padding: 10px 15px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background 0.2s;
-}
-
-button:hover {
-  background: #3a5ce5;
-}
-
-/* Graph placeholder */
-.graph-placeholder {
-  background: #f8f9fa;
-  border: 1px dashed #ddd;
   border-radius: 8px;
-  padding: 40px;
-  text-align: center;
-  color: #666;
-  margin: 20px 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.logout-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+}
+
+.logout-btn:active {
+  transform: translateY(0);
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  margin-left: 0;
+  padding: 20px;
+  transition: margin-left 0.3s ease;
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* Overlay for mobile when sidebar is open */
+.sidebar.open::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 280px;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: -1;
+}
+
+/* Responsive Design */
+@media (min-width: 769px) {
+  .hamburger-btn {
+    display: block;
+  }
+  
+  .sidebar.open + .main-content {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .hamburger-btn {
+    top: 15px;
+    left: 15px;
+    padding: 10px 14px;
+    font-size: 1.3rem;
+  }
+
+  .sidebar {
+    width: 260px;
+    left: -260px;
+  }
+
+  .main-content {
+    padding: 15px;
+  }
+
+  .sidebar-footer {
+    position: relative;
+  }
+  
+  .sidebar ul {
+    padding-bottom: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar {
+    width: 240px;
+    left: -240px;
+  }
+
+  .hamburger-btn {
+    top: 10px;
+    left: 10px;
+    padding: 8px 12px;
+    font-size: 1.2rem;
+  }
+
+  .main-content {
+    padding: 10px;
+  }
+
+  .access-badge {
+    font-size: 0.75rem;
+    padding: 6px 12px;
+  }
+
+  .user-icon {
+    font-size: 2rem;
+  }
+}
+
+/* Scrollbar Styling */
+.sidebar ul::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar ul::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.sidebar ul::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+.sidebar ul::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.main-content {
+  animation: fadeIn 0.3s ease;
+}
+
+/* PWA Install Button Styles (if you have InstallPWA component) */
+.install-pwa-banner {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: white;
+  padding: 15px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 999;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.install-pwa-banner button {
+  margin-top: 10px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.install-pwa-banner button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
 }
