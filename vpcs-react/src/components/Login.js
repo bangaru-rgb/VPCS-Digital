@@ -41,7 +41,7 @@ function Login({ onLogin }) {
 
   const handleCodeChange = (e) => {
     const value = e.target.value.replace(/\D/g, ''); // Only allow digits
-    if (value.length <= 6) {
+    if (value.length <= 4) {
       setCode(value);
       setError('');
     }
@@ -62,15 +62,15 @@ function Login({ onLogin }) {
               type="password"
               value={code}
               onChange={handleCodeChange}
-              placeholder="Enter 6-digit code"
-              maxLength="6"
+              placeholder="Enter 4-digit code"
+              maxLength="4"
               className={`pin-input ${error ? 'error' : ''}`}
               autoFocus
               inputMode="numeric"
               disabled={isLoading}
             />
             <div className="pin-dots">
-              {[...Array(6)].map((_, i) => (
+              {[...Array(4)].map((_, i) => (
                 <div 
                   key={i} 
                   className={`dot ${i < code.length ? 'filled' : ''}`}
@@ -89,7 +89,7 @@ function Login({ onLogin }) {
           <button 
             type="submit" 
             className="login-button"
-            disabled={code.length !== 6 || isLoading}
+            disabled={code.length !== 4 || isLoading}
           >
             {isLoading ? (
               <>

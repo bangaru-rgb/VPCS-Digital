@@ -1,19 +1,14 @@
 // src/components/cashFlow.js
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import './cashFlow.css';
-import './cashflow_passcode.css';
-import CashflowPasscode from './cashflow_passcode';
 import { supabase } from '../lib/supabaseClient';
 import formatCurrency from '../lib/INDcurrencyFormat'; // Changed to default import
 import formatDate from '../lib/DD-MMM-YY-DateFromat'; // Added date formatter import
 
 const CashFlow = () => {
-  // State for authentication
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  
   // State for transactions
   const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   // State for filters
@@ -23,7 +18,6 @@ const CashFlow = () => {
   // Fetch transactions from Supabase - now using useCallback
   const fetchTransactions = useCallback(async () => {
     try {
-      setLoading(true);
       setError(null);
       console.log('Fetching transactions...');
       
@@ -75,18 +69,13 @@ const CashFlow = () => {
     }
   }, []); // Empty dependency array as it doesn't depend on any state
 
-  // Effect to fetch transactions when authenticated
+  // Effect to fetch transactions on component mount
   useEffect(() => {
-    console.log('Effect running, isAuthenticated:', isAuthenticated);
-    if (isAuthenticated) {
-      fetchTransactions();
-    }
-  }, [isAuthenticated, fetchTransactions]);
+    fetchTransactions();
+  }, [fetchTransactions]);
 
   // Effect for real-time subscription
   useEffect(() => {
-    if (!isAuthenticated) return; // Only set up subscription if authenticated
-    
     // Set up real-time subscription for updates
     const subscription = supabase
       .channel('cashflow-changes')
@@ -99,11 +88,11 @@ const CashFlow = () => {
       )
       .subscribe();
       
-    // Clean up subscription on unmount or when authentication changes
+    // Clean up subscription on unmount
     return () => {
       supabase.removeChannel(subscription);
     };
-  }, [isAuthenticated, fetchTransactions]);
+  }, [fetchTransactions]);
 
   // Get unique parties for filter dropdown
   const uniqueParties = useMemo(() => {
@@ -130,10 +119,6 @@ const CashFlow = () => {
     };
   }, [transactions]);
 
-  // Render passcode screen if not authenticated
-  if (!isAuthenticated) {
-    return <CashflowPasscode onCorrectPasscode={() => setIsAuthenticated(true)} />;
-  }
 
   // Show loading state
   if (loading) {
