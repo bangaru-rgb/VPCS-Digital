@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 import MaterialCalculator from './components/MaterialCalculator';
 import CashFlow from './components/cashFlow';
-import CashFlowEntry from './components/cashFlowEntry';
+import CashFlowEntry from './components/CashFlowEntry';
+import tankerManagement from './components/tankerManagement';
 //import InvoicesDashboard from './components/invoicesDashboard';
 import InstallPWA from './InstallPWA';
 import Login from './components/Login';
@@ -128,7 +129,7 @@ function App() {
                 setIsMenuOpen(false);
               }}
             >
-              📝 Cash Flow Entry
+              ✍️ Cash Flow Entry
             </li>
           )}
           {hasAccess('transactions') && (

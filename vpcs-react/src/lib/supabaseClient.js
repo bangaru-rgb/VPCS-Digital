@@ -39,7 +39,7 @@ const ROLE_MODULE_MAP = {
 export const verifyRoleCode = async (roleCode) => {
   try {
     const { data, error } = await supabase
-      .from('Roles') // Your table name in Supabase
+      .from('roles') // Your table name in Supabase
       .select('*')
       .eq('Role_Code', roleCode)
       .single();
@@ -85,7 +85,7 @@ export const verifyRoleCode = async (roleCode) => {
 export const getAllRoles = async () => {
   try {
     const { data, error } = await supabase
-      .from('Roles')
+      .from('roles')
       .select('*')
       .order('id', { ascending: true });
 

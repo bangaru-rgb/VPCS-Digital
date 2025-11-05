@@ -1,7 +1,7 @@
 // src/components/Login.js
 import React, { useState } from 'react';
 import './Login.css';
-import { verifyRoleCode } from '../lib/supabaseClient';
+import { verifyEmpLogin_ID } from '../lib/supabaseClient';
 
 function Login({ onLogin }) {
   const [code, setCode] = useState('');
@@ -16,8 +16,8 @@ function Login({ onLogin }) {
 
     try {
       // Verify code with Supabase
-      //const accessConfig = await verifyRoleCode(parseInt(code));
-      const accessConfig = await verifyRoleCode(parseInt(code));
+      //const accessConfig = await verifyEmpLogin_ID(parseInt(code));
+      const accessConfig = await verifyEmpLogin_ID(parseInt(code));
 
       if (accessConfig && accessConfig.modules.length > 0) {
         // Successful login
