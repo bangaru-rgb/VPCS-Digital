@@ -18,7 +18,7 @@ const ROLE_MODULE_MAP = {
     icon: '👑'
   },
   'Supervisor': {
-    modules: ['calculator'],
+    modules: ['calculator', 'tanker-management'],
     displayName: 'Supervisor',
     color: '#48bb78',
     icon: '📊'
@@ -36,12 +36,12 @@ const ROLE_MODULE_MAP = {
  * @param {number} roleCode - 6-digit role code
  * @returns {object|null} User access configuration or null if invalid
  */
-export const verifyRoleCode = async (roleCode) => {
+export const verifyEmpLogin_ID = async (EmpLogin_ID) => {
   try {
     const { data, error } = await supabase
-      .from('roles') // Your table name in Supabase
+      .from('Roles') // Your table name in Supabase
       .select('*')
-      .eq('Role_Code', roleCode)
+      .eq('Login_ID', EmpLogin_ID)
       .single();
 
     if (error) {
@@ -50,7 +50,7 @@ export const verifyRoleCode = async (roleCode) => {
     }
 
     if (!data) {
-      console.log('No role found for code:', roleCode);
+      console.log('No role found for code:', EmpLogin_ID);
       return null;
     }
 
@@ -65,10 +65,10 @@ export const verifyRoleCode = async (roleCode) => {
     // Return complete access configuration
     return {
       role: data.Role,
-      roleCode: data.Role_Code,
+      EmpLogin_ID: data.Role_Code,
       roleId: data.id,
       modules: roleConfig.modules,
-      name: roleConfig.displayName,
+      name: data.Emp_Name,
       color: roleConfig.color,
       icon: roleConfig.icon
     };

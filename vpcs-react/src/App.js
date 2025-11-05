@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 import MaterialCalculator from './components/MaterialCalculator';
 import CashFlow from './components/cashFlow';
-import CashFlowEntry from './components/CashFlowEntry';
-import tankerManagement from './components/tankerManagement';
+import CashFlowEntry from './components/cashFlowEntry';
+import TankerManagement from './components/tankerManagement';
 //import InvoicesDashboard from './components/invoicesDashboard';
 import InstallPWA from './InstallPWA';
 import Login from './components/Login';
@@ -132,6 +132,17 @@ function App() {
               ✍️ Cash Flow Entry
             </li>
           )}
+          {hasAccess('tanker-management') && (
+            <li
+              className={activeModule === 'tanker-management' ? 'active' : ''}
+              onClick={() => {
+                setActiveModule('tanker-management');
+                setIsMenuOpen(false);
+              }}
+            >
+              🚚 Tanker Management
+            </li>
+          )}
           {hasAccess('transactions') && (
             <li 
               className={activeModule === 'transactions' ? 'active' : ''}
@@ -156,6 +167,7 @@ function App() {
         {activeModule === 'calculator' && hasAccess('calculator') && <MaterialCalculator />}
         {activeModule === 'cashflow' && hasAccess('cashflow') && <CashFlow />}
         {activeModule === 'cashflowentry' && hasAccess('cashflowentry') && <CashFlowEntry />}
+        {activeModule === 'tanker-management' && hasAccess('tanker-management') && <TankerManagement userInfo={userAccess} />}
         {/* {activeModule === 'transactions' && hasAccess('transactions') && <InvoicesDashboard />} */}
       </main>
     </div>

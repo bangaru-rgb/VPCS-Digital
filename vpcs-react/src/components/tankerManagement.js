@@ -1,6 +1,6 @@
 // src/components/TankerManagement.js
 import React, { useState, useEffect } from 'react';
-import './TankerManagement.css';
+import './tankerManagement.css';
 import { supabase } from '../lib/supabaseClient';
 import formatDate from '../lib/DD-MMM-YY-DateFromat';
 
@@ -28,7 +28,7 @@ function TankerManagement({ userInfo }) {
   const fetchTransporters = async () => {
     try {
       const { data, error } = await supabase
-        .from('Tankers_info')
+        .from('Tankers_Info')
         .select('Transporter_name')
         .order('Transporter_name', { ascending: true });
 
@@ -52,7 +52,7 @@ function TankerManagement({ userInfo }) {
 
     try {
       const { data, error } = await supabase
-        .from('Tankers_info')
+        .from('Tankers_Info')
         .select('*')
         .eq('Transporter_name', transporterName)
         .order('Tanker_number', { ascending: true });
@@ -111,7 +111,7 @@ function TankerManagement({ userInfo }) {
   const checkDuplicate = async (tankerNumber, transporterName) => {
     try {
       const { data, error } = await supabase
-        .from('Tankers_info')
+        .from('Tankers_Info')
         .select('*')
         .eq('Tanker_number', tankerNumber)
         .eq('Transporter_name', transporterName)
@@ -171,7 +171,7 @@ function TankerManagement({ userInfo }) {
 
       // Insert into Supabase
       const { data, error } = await supabase
-        .from('Tankers_info')
+        .from('Tankers_Info')
         .insert([dataToInsert])
         .select();
 
@@ -231,7 +231,7 @@ function TankerManagement({ userInfo }) {
 
       <div className="tanker-content">
         {/* Form Section */}
-        <div className="tanker-form-card">
+        <div className="tanker-card">
           <h2>Add New Tanker</h2>
           <form onSubmit={handleSubmit} className="tanker-form">
             {/* Transporter Name with Autocomplete */}
@@ -259,7 +259,7 @@ function TankerManagement({ userInfo }) {
                         className="suggestion-item"
                         onClick={() => handleSuggestionClick(transporter)}
                       >
-                        🚚 {transporter}
+                        {transporter}
                       </div>
                     ))}
                   </div>
@@ -303,9 +303,6 @@ function TankerManagement({ userInfo }) {
             {/* Message Display */}
             {message.text && (
               <div className={`message ${message.type}`}>
-                <span className="message-icon">
-                  {message.type === 'success' ? '✓' : '⚠'}
-                </span>
                 {message.text}
               </div>
             )}
@@ -314,8 +311,7 @@ function TankerManagement({ userInfo }) {
             {lastEntry && message.type === 'success' && (
               <div className="last-entry-display">
                 <div className="last-entry-header">
-                  <span className="entry-icon">✅</span>
-                  <strong>Tanker Added Successfully:</strong>
+                  <strong>Tanker Added:</strong>
                 </div>
                 <div className="last-entry-details">
                   <div className="entry-detail">
@@ -325,14 +321,6 @@ function TankerManagement({ userInfo }) {
                   <div className="entry-detail">
                     <span className="detail-label">Tanker Number:</span>
                     <span className="detail-value tanker-badge">{lastEntry.Tanker_number}</span>
-                  </div>
-                  <div className="entry-detail">
-                    <span className="detail-label">Capacity:</span>
-                    <span className="detail-value">{lastEntry.Tanker_capacity || 'Not specified'}</span>
-                  </div>
-                  <div className="entry-detail">
-                    <span className="detail-label">Updated By:</span>
-                    <span className="detail-value updated-by">{lastEntry.Updated_by}</span>
                   </div>
                 </div>
               </div>
@@ -353,17 +341,7 @@ function TankerManagement({ userInfo }) {
                 className="btn btn-primary"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? (
-                  <>
-                    <span className="spinner"></span>
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <span className="btn-icon">💾</span>
-                    Save Tanker
-                  </>
-                )}
+                {isSubmitting ? 'Saving...' : 'Save Tanker'}
               </button>
             </div>
           </form>
@@ -371,18 +349,18 @@ function TankerManagement({ userInfo }) {
 
         {/* Existing Tankers Display */}
         {showExistingTankers && existingTankers.length > 0 && (
-          <div className="existing-tankers-card">
+          <div className="tanker-card">
             <h2>📋 Existing Tankers for {formData.transporterName}</h2>
             <div className="tankers-list">
               {existingTankers.map((tanker) => (
                 <div key={tanker.id} className="tanker-item">
                   <div className="tanker-item-header">
                     <span className="tanker-number">{tanker.Tanker_number}</span>
-                    <span className="tanker-capacity">{tanker.Tanker_capacity || 'Capacity not specified'}</span>
+                    <span className="tanker-capacity">{tanker.Tanker_capacity || 'N/A'}</span>
                   </div>
                   <div className="tanker-item-footer">
                     <span className="updated-info">
-                      🕒 {tanker.Updated_by || 'No update info'}
+                      Updated: {tanker.Updated_by || 'No info'}
                     </span>
                   </div>
                 </div>
@@ -393,20 +371,20 @@ function TankerManagement({ userInfo }) {
             </div>
           </div>
         )}
-      </div>
 
-      {/* Info Box */}
-      <div className="info-box">
-        <div className="info-icon">💡</div>
-        <div className="info-content">
-          <h3>Instructions:</h3>
-          <ul>
-            <li><strong>Autocomplete:</strong> Start typing transporter name to see suggestions</li>
-            <li><strong>Existing Tankers:</strong> Select a transporter to view their registered tankers</li>
-            <li><strong>Duplicate Prevention:</strong> System won't allow duplicate tanker numbers for same transporter</li>
-            <li><strong>Auto-tracking:</strong> Your name and timestamp are automatically recorded</li>
-            <li><strong>Quick Entry:</strong> After adding a tanker, transporter name stays for easy multiple entries</li>
-          </ul>
+        {/* Info Box */}
+        <div className="tanker-card info-box">
+            <div className="info-icon">💡</div>
+            <div className="info-content">
+            <h3>Instructions</h3>
+            <ul>
+                <li><strong>Autocomplete:</strong> Start typing transporter name to see suggestions.</li>
+                <li><strong>Existing Tankers:</strong> Select a transporter to view their registered tankers.</li>
+                <li><strong>Duplicate Prevention:</strong> The system prevents duplicate tanker numbers for the same transporter.</li>
+                <li><strong>Auto-tracking:</strong> Your name and timestamp are automatically recorded.</li>
+                <li><strong>Quick Entry:</strong> After adding a tanker, the transporter name stays for easy multiple entries.</li>
+            </ul>
+            </div>
         </div>
       </div>
     </div>
