@@ -1,13 +1,18 @@
 /* Login.css */
 .login-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 20px;
   animation: gradientShift 15s ease infinite;
   background-size: 200% 200%;
+  z-index: 9999; /* Ensure it's on top */
 }
 
 @keyframes gradientShift {
@@ -229,6 +234,24 @@
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+.remember-me-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: -10px; /* Pull it closer to the input field */
+  margin-bottom: 10px;
+}
+
+.remember-me-container label {
+  font-size: 0.9rem;
+  color: #555;
+  cursor: pointer;
+}
+
+.remember-me-container input[type="checkbox"] {
+  cursor: pointer;
 }
 
 /* Responsive */

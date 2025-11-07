@@ -1,5 +1,5 @@
 // src/components/Login.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Login.css';
 import { verifyEmpLogin_ID } from '../lib/supabaseClient';
 
@@ -8,6 +8,15 @@ function Login({ onLogin }) {
   const [error, setError] = useState('');
   const [isShaking, setIsShaking] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+
+  useEffect(() => {
+    const savedCode = localStorage.getItem('rememberedCode');
+    if (savedCode) {
+      setCode(savedCode);
+      setRememberMe(true);
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -16,11 +25,15 @@ function Login({ onLogin }) {
 
     try {
       // Verify code with Supabase
-      //const accessConfig = await verifyEmpLogin_ID(parseInt(code));
       const accessConfig = await verifyEmpLogin_ID(parseInt(code));
 
       if (accessConfig && accessConfig.modules.length > 0) {
         // Successful login
+        if (rememberMe) {
+          localStorage.setItem('rememberedCode', code);
+        } else {
+          localStorage.removeItem('rememberedCode');
+        }
         onLogin(accessConfig);
       } else {
         // Invalid code
@@ -52,7 +65,7 @@ function Login({ onLogin }) {
       <div className={`login-card ${isShaking ? 'shake' : ''}`}>
         <div className="login-header">
           <div className="lock-icon">🔒</div>
-          <h1>Welcome Back</h1>
+          <h1>Welcome to VPCS</h1>
           <p>Enter your access code to continue</p>
         </div>
 
@@ -85,6 +98,16 @@ function Login({ onLogin }) {
               {error}
             </div>
           )}
+
+          <div className="remember-me-container">
+            <input
+              type="checkbox"
+              id="rememberMe"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+            />
+            <label htmlFor="rememberMe">Remember Me</label>
+          </div>
 
           <button 
             type="submit" 

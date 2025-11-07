@@ -110,7 +110,7 @@ function TankerManagement({ userInfo }) {
   // Check for duplicate tanker number
   const checkDuplicate = async (tankerNumber, transporterName) => {
     try {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('Tankers_Info')
         .select('*')
         .eq('Tanker_number', tankerNumber)
@@ -170,7 +170,7 @@ function TankerManagement({ userInfo }) {
       };
 
       // Insert into Supabase
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('Tankers_Info')
         .insert([dataToInsert])
         .select();
@@ -313,8 +313,7 @@ function TankerManagement({ userInfo }) {
                 <div className="last-entry-header">
                   <strong>Tanker Added:</strong>
                 </div>
-                <div className="last-entry-details">
-                  <div className="entry-detail">
+                <div className="entry-detail">
                     <span className="detail-label">Transporter:</span>
                     <span className="detail-value">{lastEntry.Transporter_name}</span>
                   </div>
@@ -323,7 +322,6 @@ function TankerManagement({ userInfo }) {
                     <span className="detail-value tanker-badge">{lastEntry.Tanker_number}</span>
                   </div>
                 </div>
-              </div>
             )}
 
             {/* Form Actions */}
