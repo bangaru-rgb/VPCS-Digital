@@ -4,10 +4,10 @@ import MaterialCalculator from './components/MaterialCalculator';
 import CashFlow from './components/cashFlow';
 import CashFlowEntry from './components/cashFlowEntry';
 import TankerManagement from './components/tankerManagement';
-//import InvoicesDashboard from './components/invoicesDashboard';
 import InstallPWA from './InstallPWA';
 import Login from './components/Login';
 import { APP_VERSION } from './utils/version';
+import { supabase } from './lib/supabaseClient';
 
 function App() {
   const [activeModule, setActiveModule] = useState('calculator');
@@ -32,8 +32,35 @@ function App() {
       }
     };
 
-    const interval = setInterval(checkForUpdates, 60000); // Check every minute
+    const interval = setInterval(checkForUpdates, 60000);
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    // Monitor auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state changed:', event);
+        
+        if (event === 'SIGNED_OUT') {
+          // Session ended, redirect to login
+          console.log('Session signed out, clearing state...');
+          setIsAuthenticated(false);
+          setUserAccess(null);
+          localStorage.removeItem('userRole');
+        }
+        
+        if (event === 'TOKEN_REFRESHED') {
+          console.log('Session token refreshed');
+        }
+
+        if (event === 'SIGNED_IN') {
+          console.log('Session signed in');
+        }
+      }
+    );
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const handleUpdate = () => {
@@ -47,17 +74,37 @@ function App() {
   };
 
   const handleLogin = (accessConfig) => {
+    console.log('Login successful, setting state...');
     setIsAuthenticated(true);
     setUserAccess(accessConfig);
     // Set first available module as active
     setActiveModule(accessConfig.modules[0]);
   };
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    setUserAccess(null);
-    setActiveModule('calculator');
-    setIsMenuOpen(false);
+  const handleLogout = async () => {
+    console.log('Logging out...');
+    try {
+      // Sign out from Supabase
+      await supabase.auth.signOut();
+      
+      // Clear local storage
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('rememberedCode'); // Optional: clear remembered code
+      
+      // Reset state
+      setIsAuthenticated(false);
+      setUserAccess(null);
+      setActiveModule('calculator');
+      setIsMenuOpen(false);
+      
+      console.log('Logout successful');
+    } catch (error) {
+      console.error('Error during logout:', error);
+      // Force logout even if there's an error
+      setIsAuthenticated(false);
+      setUserAccess(null);
+      localStorage.removeItem('userRole');
+    }
   };
 
   // Check if user has access to a specific module
@@ -129,7 +176,7 @@ function App() {
                 setIsMenuOpen(false);
               }}
             >
-              ✍️ Cash Flow Entry
+              ✏️ Cash Flow Entry
             </li>
           )}
           {hasAccess('tanker-management') && (
