@@ -43,11 +43,16 @@ function App() {
         console.log('Auth state changed:', event);
         
         if (event === 'SIGNED_OUT') {
-          // Session ended, redirect to login
-          console.log('Session signed out, clearing state...');
-          setIsAuthenticated(false);
-          setUserAccess(null);
-          localStorage.removeItem('userRole');
+          // Only clear state if we're already authenticated
+          // This prevents clearing state during login flow
+          if (isAuthenticated) {
+            console.log('Session signed out, clearing state...');
+            setIsAuthenticated(false);
+            setUserAccess(null);
+            localStorage.removeItem('userRole');
+          } else {
+            console.log('Sign out detected but not authenticated yet (login flow)');
+          }
         }
         
         if (event === 'TOKEN_REFRESHED') {
@@ -61,7 +66,7 @@ function App() {
     );
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [isAuthenticated]);
 
   const handleUpdate = () => {
     if ('serviceWorker' in navigator) {

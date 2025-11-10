@@ -26,9 +26,11 @@ serviceWorkerRegistration.register({
 });
 
 // Listen for reload messages from the service worker
-navigator.serviceWorker.addEventListener('message', (event) => {
-  if (event.data.type === 'RELOAD') {
-    window.location.reload();
-  }
-});
+if (navigator.serviceWorker) {
+  navigator.serviceWorker.addEventListener('message', (event) => {
+    if (event.data.type === 'RELOAD') {
+      window.location.reload();
+    }
+  });
+}
     // You can show a notification to user here

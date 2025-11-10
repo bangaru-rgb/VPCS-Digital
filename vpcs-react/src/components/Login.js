@@ -1,5 +1,6 @@
 // src/components/Login.js
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import HCaptcha from '@hcaptcha/react-hcaptcha'; // Make sure to install this package
 import './Login.css';
 import { supabase, verifyEmpLogin_ID } from '../lib/supabaseClient';
 
@@ -10,6 +11,8 @@ function Login({ onLogin }) {
   const [isLoading, setIsLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
+  const [captchaToken, setCaptchaToken] = useState(null);
+  const captchaRef = useRef(null);
 
   const checkExistingSession = useCallback(async () => {
     try {
@@ -54,6 +57,14 @@ function Login({ onLogin }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!captchaToken) {
+      setError('Please complete the CAPTCHA.');
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 500);
+      return;
+    }
+
     setIsLoading(true);
     setError('');
 
@@ -67,37 +78,52 @@ function Login({ onLogin }) {
       console.log('Verifying employee login ID...');
       const accessConfig = await verifyEmpLogin_ID(parseInt(code));
 
-      if (accessConfig && accessConfig.modules.length > 0) {
-        console.log('Access config verified:', accessConfig.role);
+      if (accessConfig) {
+        console.log('Access config verified:', accessConfig.name);
         
         console.log('Creating new authentication session...');
-        const { data: authData, error: authError } = await supabase.auth.signInAnonymously();
-        
-        if (authError) {
-          console.error('Authentication error:', authError);
-          throw new Error('Failed to create secure session. Please try again.');
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: 'anonymous1@example.com',
+          password: 'anonymous-password',
+          options: {
+            captchaToken,
+          },
+        });
+
+        if (error) {
+          console.error('Error creating session:', error.message);
+          setError(`Login failed: ${error.message}`); // Display the actual error
+          if (captchaRef.current) {
+            captchaRef.current.resetCaptcha();
+          }
+          setCaptchaToken(null);
+          setIsLoading(false);
+          return;
         }
 
-        console.log('Authentication successful');
-        console.log('User ID:', authData.user?.id);
+        if (data) {
+            if (rememberMe) {
+              localStorage.setItem('rememberedCode', code);
+            } else {
+              localStorage.removeItem('rememberedCode');
+            }
 
-        if (rememberMe) {
-          localStorage.setItem('rememberedCode', code);
-        } else {
-          localStorage.removeItem('rememberedCode');
+            localStorage.setItem('userRole', JSON.stringify(accessConfig));
+            
+            console.log('=== LOGIN SUCCESS ===');
+            
+            onLogin(accessConfig);
         }
-
-        localStorage.setItem('userRole', JSON.stringify(accessConfig));
-        
-        console.log('=== LOGIN SUCCESS ===');
-        
-        onLogin(accessConfig);
       } else {
         console.log('Invalid login code');
         setError('Invalid code. Access denied.');
         setIsShaking(true);
         setTimeout(() => setIsShaking(false), 500);
         setCode('');
+        if (captchaRef.current) {
+          captchaRef.current.resetCaptcha();
+        }
+        setCaptchaToken(null);
       }
     } catch (error) {
       console.error('=== LOGIN ERROR ===');
@@ -116,6 +142,10 @@ function Login({ onLogin }) {
       
       await supabase.auth.signOut();
       localStorage.removeItem('userRole');
+      if (captchaRef.current) {
+        captchaRef.current.resetCaptcha();
+      }
+      setCaptchaToken(null);
     } finally {
       setIsLoading(false);
     }
@@ -192,10 +222,18 @@ function Login({ onLogin }) {
             <label htmlFor="rememberMe">Remember Me</label>
           </div>
 
+          <div className="captcha-container">
+            <HCaptcha
+              sitekey="0cdef1ca-f994-411e-a4c8-23f604e6cd32" // Replace with your hCaptcha Sitekey
+              onVerify={setCaptchaToken}
+              ref={captchaRef}
+            />
+          </div>
+
           <button 
             type="submit" 
             className="login-button"
-            disabled={code.length !== 4 || isLoading}
+            disabled={code.length !== 4 || isLoading || !captchaToken}
           >
             {isLoading ? (
               <>
