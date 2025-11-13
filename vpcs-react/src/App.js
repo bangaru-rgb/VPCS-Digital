@@ -1,228 +1,184 @@
+// src/App.js - Main Application Component
 import React, { useState, useEffect } from 'react';
-import './App.css';
-import MaterialCalculator from './components/MaterialCalculator';
-import CashFlow from './components/cashFlow';
-import CashFlowEntry from './components/cashFlowEntry';
-import TankerManagement from './components/tankerManagement';
-import InstallPWA from './InstallPWA';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './components/Login';
-import { APP_VERSION } from './utils/version';
-import { supabase } from './lib/supabaseClient';
+import Dashboard from './components/invoicesDashboard'; // Your main dashboard
+import TankerManagement from './components/tankerManagement';
+// Import other components as needed
+import { signOut, getCurrentSession, hasModuleAccess } from './lib/supabaseClient';
+import './App.css';
 
 function App() {
-  const [activeModule, setActiveModule] = useState('calculator');
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [updateAvailable, setUpdateAvailable] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userAccess, setUserAccess] = useState(null);
+  const [userInfo, setUserInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check for updates every minute
-    const checkForUpdates = async () => {
-      try {
-        const response = await fetch('/version.json?t=' + new Date().getTime());
-        if (response.ok) {
-          const serverVersion = await response.json();
-          if (serverVersion.timestamp > APP_VERSION.timestamp) {
-            setUpdateAvailable(true);
-          }
-        }
-      } catch (error) {
-        console.log('Version check failed:', error);
-      }
-    };
-
-    const interval = setInterval(checkForUpdates, 60000);
-    return () => clearInterval(interval);
+    // Check for existing session on app load
+    checkSession();
   }, []);
 
-  useEffect(() => {
-    // Monitor auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event);
-        
-        if (event === 'SIGNED_OUT') {
-          // Only clear state if we're already authenticated
-          // This prevents clearing state during login flow
-          if (isAuthenticated) {
-            console.log('Session signed out, clearing state...');
-            setIsAuthenticated(false);
-            setUserAccess(null);
-            localStorage.removeItem('userRole');
-          } else {
-            console.log('Sign out detected but not authenticated yet (login flow)');
-          }
-        }
-        
-        if (event === 'TOKEN_REFRESHED') {
-          console.log('Session token refreshed');
-        }
+  const checkSession = async () => {
+    try {
+      const session = await getCurrentSession();
+      const savedUserInfo = localStorage.getItem('userRole');
 
-        if (event === 'SIGNED_IN') {
-          console.log('Session signed in');
-        }
+      if (session && savedUserInfo) {
+        const userConfig = JSON.parse(savedUserInfo);
+        console.log('Restoring session for:', userConfig.email);
+        setUserInfo(userConfig);
+        setIsAuthenticated(true);
+      } else {
+        console.log('No valid session found');
+        setIsAuthenticated(false);
+        setUserInfo(null);
       }
-    );
-
-    return () => subscription.unsubscribe();
-  }, [isAuthenticated]);
-
-  const handleUpdate = () => {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.ready.then(registration => {
-        registration.update().then(() => {
-          window.location.reload();
-        });
-      });
+    } catch (error) {
+      console.error('Session check error:', error);
+      setIsAuthenticated(false);
+      setUserInfo(null);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleLogin = (accessConfig) => {
-    console.log('Login successful, setting state...');
+  const handleLogin = (userConfig) => {
+    console.log('User logged in:', userConfig);
+    setUserInfo(userConfig);
     setIsAuthenticated(true);
-    setUserAccess(accessConfig);
-    // Set first available module as active
-    setActiveModule(accessConfig.modules[0]);
   };
 
   const handleLogout = async () => {
     console.log('Logging out...');
-    try {
-      // Sign out from Supabase
-      await supabase.auth.signOut();
-      
-      // Clear local storage
-      localStorage.removeItem('userRole');
-      localStorage.removeItem('rememberedCode'); // Optional: clear remembered code
-      
-      // Reset state
-      setIsAuthenticated(false);
-      setUserAccess(null);
-      setActiveModule('calculator');
-      setIsMenuOpen(false);
-      
-      console.log('Logout successful');
-    } catch (error) {
-      console.error('Error during logout:', error);
-      // Force logout even if there's an error
-      setIsAuthenticated(false);
-      setUserAccess(null);
-      localStorage.removeItem('userRole');
+    await signOut();
+    setIsAuthenticated(false);
+    setUserInfo(null);
+  };
+
+  // Protected Route Component
+  const ProtectedRoute = ({ children, requiredModule }) => {
+    if (!isAuthenticated) {
+      return <Navigate to="/login" replace />;
     }
+
+    // If module access is required, check it
+    if (requiredModule && !hasModuleAccess(userInfo, requiredModule)) {
+      return (
+        <div className="access-denied">
+          <h1>🚫 Access Denied</h1>
+          <p>You don't have permission to access this module.</p>
+          <button onClick={() => window.history.back()}>Go Back</button>
+        </div>
+      );
+    }
+
+    return children;
   };
 
-  // Check if user has access to a specific module
-  const hasAccess = (module) => {
-    return userAccess && userAccess.modules.includes(module);
-  };
-
-  // If not authenticated, show login screen
-  if (!isAuthenticated) {
-    return <Login onLogin={handleLogin} />;
+  if (loading) {
+    return (
+      <div className="app-loading">
+        <div className="spinner"></div>
+        <p>Loading VPCS...</p>
+      </div>
+    );
   }
 
   return (
-    <div className="app-container">
-      <InstallPWA />
-      {updateAvailable && (
-        <div className="update-banner">
-          <span>A new version is available!</span>
-          <button onClick={handleUpdate}>Update Now</button>
-        </div>
-      )}
-      
-      {/* Hamburger Menu Button */}
-      <button 
-        className="hamburger-btn" 
-        onClick={() => setIsMenuOpen(!isMenuOpen)}
-      >
-        ☰
-      </button>
+    <Router>
+      <div className="App">
+        {isAuthenticated && (
+          <header className="app-header">
+            <div className="header-content">
+              <div className="header-left">
+                <h1>VPCS</h1>
+                <span className="header-subtitle">Vendor Payment & Control System</span>
+              </div>
+              <div className="header-right">
+                <div className="user-info">
+                  {userInfo?.photo && (
+                    <img 
+                      src={userInfo.photo} 
+                      alt={userInfo.name} 
+                      className="user-avatar"
+                    />
+                  )}
+                  <div className="user-details">
+                    <span className="user-name">{userInfo?.name}</span>
+                    <span className="user-role" style={{ color: userInfo?.color }}>
+                      {userInfo?.icon} {userInfo?.displayName}
+                    </span>
+                  </div>
+                </div>
+                <button onClick={handleLogout} className="logout-button">
+                  Sign Out
+                </button>
+              </div>
+            </div>
+          </header>
+        )}
 
-      {/* Sidebar Menu */}
-      <nav className={`sidebar ${isMenuOpen ? 'open' : ''}`}>
-        <div className="sidebar-header">
-          <div className="user-info">
-            <div className="user-icon">{userAccess.icon}</div>
-            <span className="access-badge" style={{ color: userAccess.color }}>
-              {userAccess.name}
-            </span>
-          </div>
-        </div>
-        <ul>
-          {hasAccess('calculator') && (
-            <li 
-              className={activeModule === 'calculator' ? 'active' : ''}
-              onClick={() => {
-                setActiveModule('calculator');
-                setIsMenuOpen(false);
-              }}
-            >
-              📊 Material Price Calculator
-            </li>
-          )}
-          {hasAccess('cashflow') && (
-            <li 
-              className={activeModule === 'cashflow' ? 'active' : ''}
-              onClick={() => {
-                setActiveModule('cashflow');
-                setIsMenuOpen(false);
-              }}
-            >
-              💰 Cash Flow
-            </li>
-          )}
-          {hasAccess('cashflowentry') && (
-            <li 
-              className={activeModule === 'cashflowentry' ? 'active' : ''}
-              onClick={() => {
-                setActiveModule('cashflowentry');
-                setIsMenuOpen(false);
-              }}
-            >
-              ✏️ Cash Flow Entry
-            </li>
-          )}
-          {hasAccess('tanker-management') && (
-            <li
-              className={activeModule === 'tanker-management' ? 'active' : ''}
-              onClick={() => {
-                setActiveModule('tanker-management');
-                setIsMenuOpen(false);
-              }}
-            >
-              🚚 Tanker Management
-            </li>
-          )}
-          {hasAccess('transactions') && (
-            <li 
-              className={activeModule === 'transactions' ? 'active' : ''}
-              onClick={() => {
-                setActiveModule('transactions');
-                setIsMenuOpen(false);
-              }}
-            >
-              📈 Transactions Dashboard
-            </li>
-          )}
-        </ul>
-        <div className="sidebar-footer">
-          <button className="logout-btn" onClick={handleLogout}>
-            🚪 Logout
-          </button>
-        </div>
-      </nav>
+        <main className="app-main">
+          <Routes>
+            {/* Public Route */}
+            <Route 
+              path="/login" 
+              element={
+                isAuthenticated ? 
+                  <Navigate to="/" replace /> : 
+                  <Login onLogin={handleLogin} />
+              } 
+            />
 
-      {/* Main Content Area */}
-      <main className="main-content">
-        {activeModule === 'calculator' && hasAccess('calculator') && <MaterialCalculator />}
-        {activeModule === 'cashflow' && hasAccess('cashflow') && <CashFlow />}
-        {activeModule === 'cashflowentry' && hasAccess('cashflowentry') && <CashFlowEntry />}
-        {activeModule === 'tanker-management' && hasAccess('tanker-management') && <TankerManagement userInfo={userAccess} />}
-        {/* {activeModule === 'transactions' && hasAccess('transactions') && <InvoicesDashboard />} */}
-      </main>
-    </div>
+            {/* Protected Routes */}
+            <Route 
+              path="/" 
+              element={
+                <ProtectedRoute>
+                  <Dashboard userInfo={userInfo} />
+                </ProtectedRoute>
+              } 
+            />
+
+            <Route 
+              path="/tanker-management" 
+              element={
+                <ProtectedRoute requiredModule="tanker-management">
+                  <TankerManagement userInfo={userInfo} />
+                </ProtectedRoute>
+              } 
+            />
+
+            {/* Add more protected routes for other modules */}
+            {/* 
+            <Route 
+              path="/calculator" 
+              element={
+                <ProtectedRoute requiredModule="calculator">
+                  <Calculator userInfo={userInfo} />
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/cashflow" 
+              element={
+                <ProtectedRoute requiredModule="cashflow">
+                  <Cashflow userInfo={userInfo} />
+                </ProtectedRoute>
+              } 
+            />
+            */}
+
+            {/* Fallback Route */}
+            <Route 
+              path="*" 
+              element={<Navigate to={isAuthenticated ? "/" : "/login"} replace />} 
+            />
+          </Routes>
+        </main>
+      </div>
+    </Router>
   );
 }
 

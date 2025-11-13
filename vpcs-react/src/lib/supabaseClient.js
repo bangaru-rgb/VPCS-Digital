@@ -1,102 +1,273 @@
-// src/lib/supabaseClient.js
+// src/lib/supabaseClient.js - Final Google OAuth Implementation
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = 'https://dgalxobdjjvxbrogghhk.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRnYWx4b2Jkamp2eGJyb2dnaGhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5Njk3MDEsImV4cCI6MjA3NDU0NTcwMX0.JKr4k4wCUqxWxI6WRwJGj_65odBG8sBRxYchPILWjVs';
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+export const supabase = createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true,
+    flowType: 'pkce'
+  }
+});
 
 /**
- * Role to Module mapping
- * Define which modules each role can access
+ * Role configuration mapping
  */
-const ROLE_MODULE_MAP = {
+const ROLE_CONFIG = {
   'Administrator': {
-    modules: ['calculator', 'cashflow', 'cashflowentry', 'transactions'],
     displayName: 'Administrator',
     color: '#667eea',
-    icon: '👑'
+    icon: '🔑',
+    description: 'Full system access'
   },
   'Supervisor': {
-    modules: ['calculator', 'tanker-management'],
     displayName: 'Supervisor',
     color: '#48bb78',
-    icon: '📊'
+    icon: '📊',
+    description: 'Operations management'
   },
   'Management': {
-    modules: ['calculator', 'cashflow'],
     displayName: 'Management',
     color: '#ed8936',
-    icon: '💼'
+    icon: '💼',
+    description: 'Financial oversight'
   }
 };
 
 /**
- * Verify role code and get user access configuration
- * @param {number} roleCode - 6-digit role code
- * @returns {object|null} User access configuration or null if invalid
+ * Module definitions (what each role can access)
  */
-export const verifyEmpLogin_ID = async (EmpLogin_ID) => {
+const MODULE_ACCESS = {
+  'Administrator': ['calculator', 'cashflow', 'cashflowentry', 'transactions', 'tanker-management'],
+  'Supervisor': ['tanker-management'],
+  'Management': ['calculator', 'cashflow']
+};
+
+/**
+ * Sign in with Google OAuth
+ */
+export const signInWithGoogle = async () => {
   try {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent'
+        }
+      }
+    });
+
+    if (error) throw error;
+    return { success: true, data };
+  } catch (error) {
+    console.error('Google sign in error:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Check if user is approved and get their access configuration
+ */
+export const checkApprovedUser = async (session) => {
+  try {
+    if (!session?.user) {
+      console.log('No session provided');
+      return null;
+    }
+
+    const userEmail = session.user.email;
+    const googleUserId = session.user.id;
+
+    console.log('Checking approved user:', userEmail);
+
+    // Query Approved_Users table
     const { data, error } = await supabase
-      .from('Roles') // Your table name in Supabase
+      .from('Approved_Users')
       .select('*')
-      .eq('Login_ID', EmpLogin_ID)
+      .eq('email', userEmail)
+      .eq('status', 'active')
       .single();
 
-    if (error) {
-      console.error('Supabase error:', error);
+    if (error || !data) {
+      console.log('User not approved or not found:', userEmail);
       return null;
     }
 
-    if (!data) {
-      console.log('No role found for code:', EmpLogin_ID);
-      return null;
-    }
+    // Update user's last login and Google user ID
+    await supabase
+      .from('Approved_Users')
+      .update({ 
+        last_login: new Date().toISOString(),
+        google_user_id: googleUserId,
+        full_name: session.user.user_metadata?.full_name || data.full_name,
+        profile_photo_url: session.user.user_metadata?.avatar_url || data.profile_photo_url
+      })
+      .eq('id', data.id);
 
-    // Get role access configuration
-    const roleConfig = ROLE_MODULE_MAP[data.Role];
-    
-    if (!roleConfig) {
-      console.error(`Role "${data.Role}" not configured in ROLE_MODULE_MAP`);
-      return null;
-    }
+    // Log the login
+    await logLogin(userEmail, session.user.user_metadata?.full_name || data.full_name, true);
 
-    // Return complete access configuration
+    const roleConfig = ROLE_CONFIG[data.role] || {};
+    const modules = MODULE_ACCESS[data.role] || [];
+
     return {
-      role: data.Role,
-      EmpLogin_ID: data.Role_Code,
-      roleId: data.id,
-      modules: roleConfig.modules,
-      name: data.Emp_Name,
-      color: roleConfig.color,
-      icon: roleConfig.icon
+      userId: data.id,
+      email: data.email,
+      role: data.role,
+      name: data.full_name || session.user.user_metadata?.full_name || userEmail.split('@')[0],
+      photo: data.profile_photo_url || session.user.user_metadata?.avatar_url,
+      modules: modules,
+      color: roleConfig.color || '#667eea',
+      icon: roleConfig.icon || '👤',
+      displayName: roleConfig.displayName || data.role,
+      description: roleConfig.description || '',
+      authUserId: googleUserId,
+      sessionExpiry: session.expires_at
     };
   } catch (error) {
-    console.error('Error verifying role code:', error);
+    console.error('Error checking approved user:', error);
     return null;
   }
 };
 
 /**
- * Get all roles from Supabase (optional - for admin purposes)
- * @returns {array} Array of all roles
+ * Log login attempt
  */
-export const getAllRoles = async () => {
+const logLogin = async (email, name, success) => {
+  try {
+    await supabase
+      .from('Login_Audit')
+      .insert([{
+        user_email: email,
+        user_name: name,
+        success: success,
+        user_agent: navigator.userAgent
+      }]);
+  } catch (error) {
+    console.error('Failed to log login:', error);
+    // Don't fail login if logging fails
+  }
+};
+
+/**
+ * Sign out current user
+ */
+export const signOut = async () => {
+  try {
+    await supabase.auth.signOut();
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('lastLoginTime');
+    console.log('User signed out successfully');
+    return { success: true };
+  } catch (error) {
+    console.error('Sign out error:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Get current session
+ */
+export const getCurrentSession = async () => {
+  try {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    
+    if (error) throw error;
+    return session;
+  } catch (error) {
+    console.error('Error getting session:', error);
+    return null;
+  }
+};
+
+/**
+ * Refresh session
+ */
+export const refreshSession = async () => {
+  try {
+    const { data: { session }, error } = await supabase.auth.refreshSession();
+    
+    if (error) throw error;
+    return session;
+  } catch (error) {
+    console.error('Error refreshing session:', error);
+    return null;
+  }
+};
+
+/**
+ * Check if user has access to a specific module
+ */
+export const hasModuleAccess = (userInfo, moduleName) => {
+  if (!userInfo || !userInfo.modules) return false;
+  return userInfo.modules.includes(moduleName);
+};
+
+/**
+ * Get all approved users (Admin only)
+ */
+export const getAllApprovedUsers = async () => {
   try {
     const { data, error } = await supabase
-      .from('roles')
+      .from('Approved_Users')
       .select('*')
-      .order('id', { ascending: true });
+      .order('approved_at', { ascending: false });
 
-    if (error) {
-      console.error('Error fetching roles:', error);
-      return [];
-    }
-
-    return data || [];
+    if (error) throw error;
+    return { success: true, data };
   } catch (error) {
-    console.error('Error fetching roles:', error);
-    return [];
+    console.error('Error fetching approved users:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Add new approved user (Admin only)
+ */
+export const addApprovedUser = async (email, role, fullName, approvedBy, notes = '') => {
+  try {
+    const { data, error } = await supabase
+      .from('Approved_Users')
+      .insert([{
+        email,
+        role,
+        full_name: fullName,
+        approved_by: approvedBy,
+        notes,
+        status: 'active'
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error adding approved user:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Update user status (Admin only)
+ */
+export const updateUserStatus = async (userId, status) => {
+  try {
+    const { data, error } = await supabase
+      .from('Approved_Users')
+      .update({ status })
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error updating user status:', error);
+    return { success: false, error: error.message };
   }
 };

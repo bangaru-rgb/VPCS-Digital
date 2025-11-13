@@ -143,6 +143,25 @@ function TankerManagement({ userInfo }) {
         return;
       }
 
+      // Validate userInfo exists and has required fields
+      if (!userInfo || !userInfo.name || !userInfo.EmpLogin_ID) {
+        setMessage({ 
+          type: 'error', 
+          text: 'User information is incomplete. Please log in again.' 
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Get the currently authenticated user
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        setMessage({ type: 'error', text: 'Authentication error. Please log in again.' });
+        setIsSubmitting(false);
+        return;
+      }
+
       // Check for duplicate
       const isDuplicate = await checkDuplicate(
         formData.tankerNumber.trim().toUpperCase(),
@@ -166,7 +185,9 @@ function TankerManagement({ userInfo }) {
         Transporter_name: formData.transporterName.trim(),
         Tanker_number: formData.tankerNumber.trim().toUpperCase(),
         Tanker_capacity: formData.tankerCapacity.trim() || null,
-        Updated_by: `${userInfo.name} - ${formatDate(currentDateTime)} ${new Date(currentDateTime).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`
+        // created_by_user_id: user.id, // New column for tracking creator
+        // updated_by_user_id: user.id, // New column for tracking last updater (same on creation)
+        status: 'Active' // New column with default status
       };
 
       // Insert into Supabase
@@ -351,14 +372,14 @@ function TankerManagement({ userInfo }) {
             <h2>📋 Existing Tankers for {formData.transporterName}</h2>
             <div className="tankers-list">
               {existingTankers.map((tanker) => (
-                <div key={tanker.id} className="tanker-item">
+                <div key={tanker.transporter_id} className="tanker-item">
                   <div className="tanker-item-header">
                     <span className="tanker-number">{tanker.Tanker_number}</span>
                     <span className="tanker-capacity">{tanker.Tanker_capacity || 'N/A'}</span>
                   </div>
                   <div className="tanker-item-footer">
                     <span className="updated-info">
-                      Updated: {tanker.Updated_by || 'No info'}
+                      {tanker.updated_by ? `Updated: ${tanker.updated_by}` : `Created: ${tanker.created_by || 'No info'}`}
                     </span>
                   </div>
                 </div>

@@ -1,162 +1,112 @@
-// src/components/Login.js
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import HCaptcha from '@hcaptcha/react-hcaptcha'; // Make sure to install this package
+// src/components/Login.js - Google OAuth Login
+import React, { useState, useEffect } from 'react';
 import './Login.css';
-import { supabase, verifyEmpLogin_ID } from '../lib/supabaseClient';
+import { 
+  supabase,
+  signInWithGoogle, 
+  checkApprovedUser,
+  getCurrentSession 
+} from '../lib/supabaseClient';
 
 function Login({ onLogin }) {
-  const [code, setCode] = useState('');
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [isShaking, setIsShaking] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
-  const [captchaToken, setCaptchaToken] = useState(null);
-  const captchaRef = useRef(null);
 
-  const checkExistingSession = useCallback(async () => {
+  useEffect(() => {
+    // Check for existing session on mount
+    checkExistingSession();
+    
+    // Listen for auth state changes (handles OAuth redirect)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth event:', event);
+        
+        if (event === 'SIGNED_IN' && session) {
+          await handleAuthSuccess(session);
+        } else if (event === 'SIGNED_OUT') {
+          console.log('User signed out');
+          localStorage.removeItem('userRole');
+        } else if (event === 'TOKEN_REFRESHED') {
+          console.log('Token refreshed');
+        }
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const checkExistingSession = async () => {
     try {
       console.log('Checking for existing session...');
-      const { data: { session } } = await supabase.auth.getSession();
+      const session = await getCurrentSession();
       
-      if (session) {
-        console.log('Existing session found:', session.user.id);
-        
-        const savedRole = localStorage.getItem('userRole');
-        
-        if (savedRole) {
-          const roleConfig = JSON.parse(savedRole);
-          console.log('Auto-logging in with role:', roleConfig.role);
-          onLogin(roleConfig);
-          return;
-        } else {
-          console.log('Session exists but no role config, cleaning up...');
-          await supabase.auth.signOut();
-        }
+      if (session?.user) {
+        console.log('Existing session found for:', session.user.email);
+        await handleAuthSuccess(session);
       } else {
         console.log('No existing session found');
       }
     } catch (error) {
-      console.error('Error checking existing session:', error);
-      await supabase.auth.signOut();
-      localStorage.removeItem('userRole');
+      console.error('Session check error:', error);
+      setError('Session check failed. Please try logging in.');
     } finally {
       setCheckingSession(false);
     }
-  }, [onLogin]);
+  };
 
-  useEffect(() => {
-    const savedCode = localStorage.getItem('rememberedCode');
-    if (savedCode) {
-      setCode(savedCode);
-      setRememberMe(true);
-    }
-
-    checkExistingSession();
-  }, [checkExistingSession]);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!captchaToken) {
-      setError('Please complete the CAPTCHA.');
-      setIsShaking(true);
-      setTimeout(() => setIsShaking(false), 500);
-      return;
-    }
-
-    setIsLoading(true);
-    setError('');
-
+  const handleAuthSuccess = async (session) => {
     try {
-      console.log('=== LOGIN ATTEMPT ===');
-      console.log('Entered code:', code);
+      setLoading(true);
+      const userEmail = session.user.email;
+      console.log('Processing login for:', userEmail);
 
-      console.log('Signing out any existing sessions...');
-      await supabase.auth.signOut();
-      
-      console.log('Verifying employee login ID...');
-      const accessConfig = await verifyEmpLogin_ID(parseInt(code));
+      // Check if user is approved
+      const accessConfig = await checkApprovedUser(session);
 
       if (accessConfig) {
-        console.log('Access config verified:', accessConfig.name);
+        console.log('User approved:', accessConfig.role);
+        console.log('Modules:', accessConfig.modules);
         
-        console.log('Creating new authentication session...');
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: 'anonymous1@example.com',
-          password: 'anonymous-password',
-          options: {
-            captchaToken,
-          },
-        });
-
-        if (error) {
-          console.error('Error creating session:', error.message);
-          setError(`Login failed: ${error.message}`); // Display the actual error
-          if (captchaRef.current) {
-            captchaRef.current.resetCaptcha();
-          }
-          setCaptchaToken(null);
-          setIsLoading(false);
-          return;
-        }
-
-        if (data) {
-            if (rememberMe) {
-              localStorage.setItem('rememberedCode', code);
-            } else {
-              localStorage.removeItem('rememberedCode');
-            }
-
-            localStorage.setItem('userRole', JSON.stringify(accessConfig));
-            
-            console.log('=== LOGIN SUCCESS ===');
-            
-            onLogin(accessConfig);
-        }
+        // Save to localStorage for persistence
+        localStorage.setItem('userRole', JSON.stringify(accessConfig));
+        localStorage.setItem('lastLoginTime', new Date().toISOString());
+        
+        // Call parent component's onLogin
+        onLogin(accessConfig);
       } else {
-        console.log('Invalid login code');
-        setError('Invalid code. Access denied.');
-        setIsShaking(true);
-        setTimeout(() => setIsShaking(false), 500);
-        setCode('');
-        if (captchaRef.current) {
-          captchaRef.current.resetCaptcha();
-        }
-        setCaptchaToken(null);
+        setError('Access Denied: Your email is not authorized for this system. Please contact your administrator.');
+        console.log('User not approved:', userEmail);
+        
+        // Sign out the unauthorized user
+        await supabase.auth.signOut();
+        localStorage.removeItem('userRole');
       }
     } catch (error) {
-      console.error('=== LOGIN ERROR ===');
-      console.error('Error:', error);
-      
-      if (error.message.includes('secure session')) {
-        setError(error.message);
-      } else if (error.message.includes('network')) {
-        setError('Network error. Please check your connection.');
-      } else {
-        setError('Connection error. Please try again.');
-      }
-      
-      setIsShaking(true);
-      setTimeout(() => setIsShaking(false), 500);
-      
+      console.error('Auth success handler error:', error);
+      setError('An error occurred during login. Please try again.');
       await supabase.auth.signOut();
-      localStorage.removeItem('userRole');
-      if (captchaRef.current) {
-        captchaRef.current.resetCaptcha();
-      }
-      setCaptchaToken(null);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const handleCodeChange = (e) => {
-    const value = e.target.value.replace(/\D/g, '');
-    if (value.length <= 4) {
-      setCode(value);
-      setError('');
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    setError('');
+
+    console.log('Initiating Google login...');
+    const result = await signInWithGoogle();
+
+    if (!result.success) {
+      setError(result.error || 'Failed to initiate Google sign-in');
+      setLoading(false);
+      console.error('Google login failed:', result.error);
     }
+    // If successful, OAuth redirect happens automatically
+    // Loading state continues until redirect completes
   };
 
   if (checkingSession) {
@@ -166,7 +116,10 @@ function Login({ onLogin }) {
           <div className="login-header">
             <div className="lock-icon">🔒</div>
             <h1>Welcome to VPCS</h1>
-            <p>Checking session...</p>
+            <p>Verifying your session...</p>
+          </div>
+          <div className="loading-spinner">
+            <div className="spinner"></div>
           </div>
         </div>
       </div>
@@ -175,82 +128,69 @@ function Login({ onLogin }) {
 
   return (
     <div className="login-container">
-      <div className={`login-card ${isShaking ? 'shake' : ''}`}>
+      <div className="login-card">
         <div className="login-header">
           <div className="lock-icon">🔒</div>
           <h1>Welcome to VPCS</h1>
-          <p>Enter your access code to continue</p>
+          <p className="subtitle">Vendor Payment and Control System</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="login-form">
-          <div className="pin-input-container">
-            <input
-              type="password"
-              value={code}
-              onChange={handleCodeChange}
-              placeholder="Enter 4-digit code"
-              maxLength="4"
-              className={`pin-input ${error ? 'error' : ''}`}
-              autoFocus
-              inputMode="numeric"
-              disabled={isLoading}
-            />
-            <div className="pin-dots">
-              {[...Array(4)].map((_, i) => (
-                <div 
-                  key={i} 
-                  className={`dot ${i < code.length ? 'filled' : ''}`}
-                />
-              ))}
-            </div>
-          </div>
-
+        <div className="login-content">
           {error && (
             <div className="error-message">
               <span className="error-icon">⚠️</span>
-              {error}
+              <span>{error}</span>
             </div>
           )}
 
-          <div className="remember-me-container">
-            <input
-              type="checkbox"
-              id="rememberMe"
-              checked={rememberMe}
-              onChange={(e) => setRememberMe(e.target.checked)}
-            />
-            <label htmlFor="rememberMe">Remember Me</label>
-          </div>
-
-          <div className="captcha-container">
-            <HCaptcha
-              sitekey="0cdef1ca-f994-411e-a4c8-23f604e6cd32" // Replace with your hCaptcha Sitekey
-              onVerify={setCaptchaToken}
-              ref={captchaRef}
-            />
-          </div>
-
-          <button 
-            type="submit" 
-            className="login-button"
-            disabled={code.length !== 4 || isLoading || !captchaToken}
+          <button
+            onClick={handleGoogleLogin}
+            disabled={loading}
+            className="google-login-button"
           >
-            {isLoading ? (
+            {loading ? (
               <>
                 <span className="spinner"></span>
-                Verifying...
+                <span>Signing in...</span>
               </>
             ) : (
-              'Access System'
+              <>
+                <svg className="google-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                <span>Continue with Google</span>
+              </>
             )}
           </button>
-        </form>
 
-        <div className="login-footer">
-          <p className="info-text">
-            <span className="info-icon">ℹ️</span>
-            Contact your administrator for access code
-          </p>
+          <div className="login-divider">
+            <span>Authorized Access Only</span>
+          </div>
+
+          <div className="login-info">
+            <div className="info-item">
+              <span className="info-icon">🔐</span>
+              <span>Secure authentication via Google</span>
+            </div>
+            <div className="info-item">
+              <span className="info-icon">✅</span>
+              <span>Pre-approved users only</span>
+            </div>
+            <div className="info-item">
+              <span className="info-icon">📱</span>
+              <span>Works on all devices</span>
+            </div>
+          </div>
+
+          <div className="login-footer">
+            <p className="help-text">
+              <span className="info-icon">ℹ️</span>
+              Need access? Contact your system administrator
+            </p>
+          </div>
         </div>
       </div>
     </div>
