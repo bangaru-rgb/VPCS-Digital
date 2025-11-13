@@ -20,6 +20,10 @@ function App() {
   const checkSession = async () => {
     try {
       console.log('App: Checking session...');
+      console.log('App: Current URL:', window.location.href);
+      console.log('App: URL hash:', window.location.hash);
+      console.log('App: URL search:', window.location.search);
+      
       const session = await getCurrentSession();
       const savedUserInfo = localStorage.getItem('userRole');
 
@@ -32,7 +36,6 @@ function App() {
           setUserInfo(userConfig);
           setIsAuthenticated(true);
         } else {
-          // Mismatch - clear and force re-login
           console.log('App: Session mismatch, clearing...');
           localStorage.removeItem('userRole');
           setIsAuthenticated(false);
@@ -53,9 +56,12 @@ function App() {
   };
 
   const handleLogin = (userConfig) => {
-    console.log('App: User logged in:', userConfig.email);
+    console.log('=== APP HANDLE LOGIN CALLED ===');
+    console.log('User config:', userConfig);
+    console.log('Setting authenticated to true...');
     setUserInfo(userConfig);
     setIsAuthenticated(true);
+    console.log('Authentication state updated!');
   };
 
   const handleLogout = async () => {
@@ -137,7 +143,7 @@ function App() {
 
         <main className="app-main">
           <Routes>
-            {/* Public Route */}
+            {/* Public Route - Handle OAuth callback at root */}
             <Route 
               path="/login" 
               element={
@@ -147,13 +153,13 @@ function App() {
               } 
             />
 
-            {/* Protected Routes */}
+            {/* Root path - will handle OAuth redirect */}
             <Route 
               path="/" 
               element={
-                <ProtectedRoute>
-                  <Dashboard userInfo={userInfo} />
-                </ProtectedRoute>
+                isAuthenticated ? 
+                  <Dashboard userInfo={userInfo} /> :
+                  <Login onLogin={handleLogin} />
               } 
             />
 

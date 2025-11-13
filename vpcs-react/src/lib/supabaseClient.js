@@ -56,7 +56,7 @@ const getRedirectUrl = () => {
     return process.env.REACT_APP_SITE_URL;
   }
   
-  // For development, always use localhost without subdirectory
+  // For development, use root URL (not /login to avoid React Router clearing params)
   if (process.env.NODE_ENV === 'development') {
     return 'http://localhost:3000';
   }
@@ -66,7 +66,7 @@ const getRedirectUrl = () => {
     return 'https://bangaru-rgb.github.io/VPCS-Digital';
   }
   
-  // Fallback
+  // Fallback - always use origin, not origin + pathname
   return window.location.origin;
 };
 
@@ -76,7 +76,12 @@ const getRedirectUrl = () => {
 export const signInWithGoogle = async () => {
   try {
     const redirectUrl = getRedirectUrl();
-    console.log('Using redirect URL:', redirectUrl);
+    console.log('=== GOOGLE SIGN IN DEBUG ===');
+    console.log('Current URL:', window.location.href);
+    console.log('Redirect URL:', redirectUrl);
+    console.log('Environment:', process.env.NODE_ENV);
+    console.log('PUBLIC_URL:', process.env.PUBLIC_URL);
+    console.log('REACT_APP_SITE_URL:', process.env.REACT_APP_SITE_URL);
     
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -89,10 +94,15 @@ export const signInWithGoogle = async () => {
       }
     });
 
+    console.log('OAuth response data:', data);
+    console.log('OAuth response error:', error);
+
     if (error) throw error;
+    
+    console.log('OAuth initiated successfully, redirecting to Google...');
     return { success: true, data };
   } catch (error) {
-    console.error('Google sign in error:', error);
+    console.error('❌ Google sign in error:', error);
     return { success: false, error: error.message };
   }
 };

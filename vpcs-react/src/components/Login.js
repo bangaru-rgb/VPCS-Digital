@@ -1,4 +1,4 @@
-// src/components/Login.js - Complete Fixed Google OAuth Login
+// src/components/Login.js - Complete with Debug
 import React, { useState, useEffect, useCallback } from 'react';
 import './Login.css';
 import { 
@@ -12,8 +12,26 @@ function Login({ onLogin }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [checkingSession, setCheckingSession] = useState(true);
+  const [debugInfo, setDebugInfo] = useState({});
 
-  // Handle authentication success - wrapped in useCallback to prevent recreating on every render
+  // Update debug info every second
+  useEffect(() => {
+    const updateDebug = () => {
+      setDebugInfo({
+        url: window.location.href,
+        hash: window.location.hash,
+        search: window.location.search,
+        hasHash: !!window.location.hash,
+        hasSearch: !!window.location.search
+      });
+    };
+    
+    updateDebug();
+    const interval = setInterval(updateDebug, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Handle authentication success
   const handleAuthSuccess = useCallback(async (session) => {
     try {
       setLoading(true);
@@ -29,9 +47,7 @@ function Login({ onLogin }) {
       console.log('=== AUTH SUCCESS DEBUG ===');
       console.log('User email:', userEmail);
       console.log('User ID:', session.user.id);
-      console.log('Session expires:', new Date(session.expires_at * 1000).toISOString());
 
-      // Check if user is approved
       const accessConfig = await checkApprovedUser(session);
       console.log('Access config returned:', accessConfig);
 
@@ -39,21 +55,16 @@ function Login({ onLogin }) {
         console.log('✅ User approved with role:', accessConfig.role);
         console.log('Available modules:', accessConfig.modules);
         
-        // Save to localStorage
         localStorage.setItem('userRole', JSON.stringify(accessConfig));
         localStorage.setItem('lastLoginTime', new Date().toISOString());
         
-        console.log('Saved to localStorage, calling onLogin...');
-        
-        // Small delay to ensure state is saved
+        console.log('Calling onLogin...');
         setTimeout(() => {
           onLogin(accessConfig);
         }, 100);
       } else {
         console.log('❌ User not approved:', userEmail);
         setError('Access Denied: Your email is not authorized. Please contact your administrator.');
-        
-        // Sign out unauthorized user
         await supabase.auth.signOut();
         localStorage.removeItem('userRole');
       }
@@ -73,15 +84,29 @@ function Login({ onLogin }) {
 
     const initAuth = async () => {
       try {
-        console.log('Initializing auth...');
-        // First, check if there's an existing valid session
+        console.log('=== INIT AUTH DEBUG ===');
+        console.log('Current URL:', window.location.href);
+        console.log('URL hash:', window.location.hash);
+        console.log('URL search:', window.location.search);
+        console.log('Pathname:', window.location.pathname);
+        
+        // Check if we have OAuth callback parameters
+        const hasOAuthCallback = window.location.hash.includes('access_token') || 
+                                  window.location.search.includes('code=');
+        
+        if (hasOAuthCallback) {
+          console.log('🎯 OAuth callback detected! Waiting for Supabase to process...');
+          // Give Supabase a moment to process the callback
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+        
         const session = await getCurrentSession();
         
         if (session?.user && mounted) {
-          console.log('Found existing session, processing...');
+          console.log('✅ Found session after OAuth callback!');
           await handleAuthSuccess(session);
         } else {
-          console.log('No existing session found');
+          console.log('No session found');
         }
       } catch (error) {
         console.error('Init auth error:', error);
@@ -92,24 +117,24 @@ function Login({ onLogin }) {
       }
     };
 
-    // Initialize auth check
     initAuth();
 
-    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
+        console.log('=== AUTH STATE CHANGE ===');
+        console.log('Event:', event);
+        console.log('User:', session?.user?.email);
+        console.log('URL:', window.location.href);
         
         if (!mounted) return;
 
-        // Ignore INITIAL_SESSION event
         if (event === 'INITIAL_SESSION') {
           console.log('Initial session event, skipping...');
           return;
         }
 
         if (event === 'SIGNED_IN' && session) {
-          console.log('Processing sign in...');
+          console.log('✅ SIGNED_IN event - Processing...');
           await handleAuthSuccess(session);
         } else if (event === 'SIGNED_OUT') {
           console.log('User signed out');
@@ -127,31 +152,55 @@ function Login({ onLogin }) {
     };
   }, [handleAuthSuccess]);
 
-  // Handle Google login button click
   const handleGoogleLogin = async () => {
     try {
       setLoading(true);
       setError('');
 
-      console.log('Initiating Google login...');
+      console.log('=== LOGIN BUTTON CLICKED ===');
+      console.log('Calling signInWithGoogle...');
+      
       const result = await signInWithGoogle();
+      console.log('signInWithGoogle result:', result);
 
       if (!result.success) {
+        console.error('❌ Login failed:', result.error);
         setError(result.error || 'Failed to initiate Google sign-in');
         setLoading(false);
+      } else {
+        console.log('✅ Login initiated, waiting for redirect...');
       }
-      // Keep loading state - it will be cleared after redirect
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('❌ Login error:', error);
       setError('An error occurred. Please try again.');
       setLoading(false);
     }
   };
 
-  // Show loading screen while checking session
   if (checkingSession) {
     return (
       <div className="login-container">
+        {/* Debug Box */}
+        <div style={{
+          position: 'fixed',
+          bottom: '10px',
+          right: '10px',
+          background: '#000',
+          color: '#0f0',
+          padding: '10px',
+          fontSize: '11px',
+          maxWidth: '500px',
+          zIndex: 99999,
+          fontFamily: 'monospace',
+          borderRadius: '4px',
+          border: '2px solid #0f0'
+        }}>
+          <div><strong>🔍 Debug Info:</strong></div>
+          <div>URL: {debugInfo.url}</div>
+          <div>Hash: {debugInfo.hash || 'none'}</div>
+          <div>Search: {debugInfo.search || 'none'}</div>
+        </div>
+
         <div className="login-card">
           <div className="login-header">
             <div className="lock-icon">🔒</div>
@@ -166,9 +215,29 @@ function Login({ onLogin }) {
     );
   }
 
-  // Main login screen
   return (
     <div className="login-container">
+      {/* Debug Box */}
+      <div style={{
+        position: 'fixed',
+        bottom: '10px',
+        right: '10px',
+        background: '#000',
+        color: '#0f0',
+        padding: '10px',
+        fontSize: '11px',
+        maxWidth: '500px',
+        zIndex: 99999,
+        fontFamily: 'monospace',
+        borderRadius: '4px',
+        border: '2px solid #0f0'
+      }}>
+        <div><strong>🔍 Debug Info:</strong></div>
+        <div>URL: {debugInfo.url}</div>
+        <div>Hash: {debugInfo.hash || 'none'}</div>
+        <div>Search: {debugInfo.search || 'none'}</div>
+      </div>
+
       <div className="login-card">
         <div className="login-header">
           <div className="lock-icon">🔒</div>
