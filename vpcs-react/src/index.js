@@ -11,21 +11,25 @@ root.render(
   </React.StrictMode>
 );
 
-// TEMPORARILY UNREGISTER SERVICE WORKER FOR DEBUGGING
-serviceWorkerRegistration.unregister();
+// Register service worker for PWA functionality
+serviceWorkerRegistration.register({
+  onSuccess: () => {
+    console.log('PWA: App is ready for offline use!');
+  },
+  onUpdate: (registration) => {
+    console.log('PWA: New version available! Updating...');
+    if (registration && registration.waiting) {
+      registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+    }
+    window.location.reload();
+  }
+});
 
-console.log('Service Worker: DISABLED for debugging OAuth');
-
-// Once OAuth works, you can re-enable it with:
-// serviceWorkerRegistration.register({
-//   onSuccess: () => {
-//     console.log('PWA: App is ready for offline use!');
-//   },
-//   onUpdate: (registration) => {
-//     console.log('PWA: New version available! Updating...');
-//     if (registration && registration.waiting) {
-//       registration.waiting.postMessage({ type: 'SKIP_WAITING' });
-//     }
-//     window.location.reload();
-//   }
-// });
+// Listen for reload messages from the service worker
+if (navigator.serviceWorker) {
+  navigator.serviceWorker.addEventListener('message', (event) => {
+    if (event.data.type === 'RELOAD') {
+      window.location.reload();
+    }
+  });
+}

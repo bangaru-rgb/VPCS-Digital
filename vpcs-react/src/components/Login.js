@@ -1,4 +1,4 @@
-// src/components/Login.js - Complete with Debug
+// src/components/Login.js - Clean Production Version
 import React, { useState, useEffect, useCallback } from 'react';
 import './Login.css';
 import { 
@@ -12,24 +12,6 @@ function Login({ onLogin }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [checkingSession, setCheckingSession] = useState(true);
-  const [debugInfo, setDebugInfo] = useState({});
-
-  // Update debug info every second
-  useEffect(() => {
-    const updateDebug = () => {
-      setDebugInfo({
-        url: window.location.href,
-        hash: window.location.hash,
-        search: window.location.search,
-        hasHash: !!window.location.hash,
-        hasSearch: !!window.location.search
-      });
-    };
-    
-    updateDebug();
-    const interval = setInterval(updateDebug, 1000);
-    return () => clearInterval(interval);
-  }, []);
 
   // Handle authentication success
   const handleAuthSuccess = useCallback(async (session) => {
@@ -38,38 +20,26 @@ function Login({ onLogin }) {
       setError('');
       
       if (!session?.user) {
-        console.error('No user in session');
         setCheckingSession(false);
         return;
       }
 
-      const userEmail = session.user.email;
-      console.log('=== AUTH SUCCESS DEBUG ===');
-      console.log('User email:', userEmail);
-      console.log('User ID:', session.user.id);
-
       const accessConfig = await checkApprovedUser(session);
-      console.log('Access config returned:', accessConfig);
 
       if (accessConfig) {
-        console.log('✅ User approved with role:', accessConfig.role);
-        console.log('Available modules:', accessConfig.modules);
-        
         localStorage.setItem('userRole', JSON.stringify(accessConfig));
         localStorage.setItem('lastLoginTime', new Date().toISOString());
         
-        console.log('Calling onLogin...');
         setTimeout(() => {
           onLogin(accessConfig);
         }, 100);
       } else {
-        console.log('❌ User not approved:', userEmail);
         setError('Access Denied: Your email is not authorized. Please contact your administrator.');
         await supabase.auth.signOut();
         localStorage.removeItem('userRole');
       }
     } catch (error) {
-      console.error('❌ Auth handler error:', error);
+      console.error('Authentication error:', error);
       setError('Login failed. Please try again.');
       await supabase.auth.signOut();
     } finally {
@@ -84,32 +54,22 @@ function Login({ onLogin }) {
 
     const initAuth = async () => {
       try {
-        console.log('=== INIT AUTH DEBUG ===');
-        console.log('Current URL:', window.location.href);
-        console.log('URL hash:', window.location.hash);
-        console.log('URL search:', window.location.search);
-        console.log('Pathname:', window.location.pathname);
-        
         // Check if we have OAuth callback parameters
         const hasOAuthCallback = window.location.hash.includes('access_token') || 
                                   window.location.search.includes('code=');
         
         if (hasOAuthCallback) {
-          console.log('🎯 OAuth callback detected! Waiting for Supabase to process...');
-          // Give Supabase a moment to process the callback
+          // Give Supabase a moment to process the OAuth callback
           await new Promise(resolve => setTimeout(resolve, 500));
         }
         
         const session = await getCurrentSession();
         
         if (session?.user && mounted) {
-          console.log('✅ Found session after OAuth callback!');
           await handleAuthSuccess(session);
-        } else {
-          console.log('No session found');
         }
       } catch (error) {
-        console.error('Init auth error:', error);
+        console.error('Auth initialization error:', error);
       } finally {
         if (mounted) {
           setCheckingSession(false);
@@ -119,29 +79,19 @@ function Login({ onLogin }) {
 
     initAuth();
 
+    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('=== AUTH STATE CHANGE ===');
-        console.log('Event:', event);
-        console.log('User:', session?.user?.email);
-        console.log('URL:', window.location.href);
-        
         if (!mounted) return;
 
-        if (event === 'INITIAL_SESSION') {
-          console.log('Initial session event, skipping...');
-          return;
-        }
+        // Ignore initial session event
+        if (event === 'INITIAL_SESSION') return;
 
         if (event === 'SIGNED_IN' && session) {
-          console.log('✅ SIGNED_IN event - Processing...');
           await handleAuthSuccess(session);
         } else if (event === 'SIGNED_OUT') {
-          console.log('User signed out');
           localStorage.removeItem('userRole');
           setCheckingSession(false);
-        } else if (event === 'TOKEN_REFRESHED') {
-          console.log('Token refreshed');
         }
       }
     );
@@ -156,22 +106,15 @@ function Login({ onLogin }) {
     try {
       setLoading(true);
       setError('');
-
-      console.log('=== LOGIN BUTTON CLICKED ===');
-      console.log('Calling signInWithGoogle...');
       
       const result = await signInWithGoogle();
-      console.log('signInWithGoogle result:', result);
 
       if (!result.success) {
-        console.error('❌ Login failed:', result.error);
         setError(result.error || 'Failed to initiate Google sign-in');
         setLoading(false);
-      } else {
-        console.log('✅ Login initiated, waiting for redirect...');
       }
     } catch (error) {
-      console.error('❌ Login error:', error);
+      console.error('Login error:', error);
       setError('An error occurred. Please try again.');
       setLoading(false);
     }
@@ -180,27 +123,6 @@ function Login({ onLogin }) {
   if (checkingSession) {
     return (
       <div className="login-container">
-        {/* Debug Box */}
-        <div style={{
-          position: 'fixed',
-          bottom: '10px',
-          right: '10px',
-          background: '#000',
-          color: '#0f0',
-          padding: '10px',
-          fontSize: '11px',
-          maxWidth: '500px',
-          zIndex: 99999,
-          fontFamily: 'monospace',
-          borderRadius: '4px',
-          border: '2px solid #0f0'
-        }}>
-          <div><strong>🔍 Debug Info:</strong></div>
-          <div>URL: {debugInfo.url}</div>
-          <div>Hash: {debugInfo.hash || 'none'}</div>
-          <div>Search: {debugInfo.search || 'none'}</div>
-        </div>
-
         <div className="login-card">
           <div className="login-header">
             <div className="lock-icon">🔒</div>
@@ -217,27 +139,6 @@ function Login({ onLogin }) {
 
   return (
     <div className="login-container">
-      {/* Debug Box */}
-      <div style={{
-        position: 'fixed',
-        bottom: '10px',
-        right: '10px',
-        background: '#000',
-        color: '#0f0',
-        padding: '10px',
-        fontSize: '11px',
-        maxWidth: '500px',
-        zIndex: 99999,
-        fontFamily: 'monospace',
-        borderRadius: '4px',
-        border: '2px solid #0f0'
-      }}>
-        <div><strong>🔍 Debug Info:</strong></div>
-        <div>URL: {debugInfo.url}</div>
-        <div>Hash: {debugInfo.hash || 'none'}</div>
-        <div>Search: {debugInfo.search || 'none'}</div>
-      </div>
-
       <div className="login-card">
         <div className="login-header">
           <div className="lock-icon">🔒</div>

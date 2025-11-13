@@ -52,11 +52,10 @@ const MODULE_ACCESS = {
 const getRedirectUrl = () => {
   // Use environment variable if set
   if (process.env.REACT_APP_SITE_URL) {
-    console.log('Using REACT_APP_SITE_URL:', process.env.REACT_APP_SITE_URL);
     return process.env.REACT_APP_SITE_URL;
   }
   
-  // For development, use root URL (not /login to avoid React Router clearing params)
+  // For development, use root URL
   if (process.env.NODE_ENV === 'development') {
     return 'http://localhost:3000';
   }
@@ -66,7 +65,7 @@ const getRedirectUrl = () => {
     return 'https://bangaru-rgb.github.io/VPCS-Digital';
   }
   
-  // Fallback - always use origin, not origin + pathname
+  // Fallback to origin
   return window.location.origin;
 };
 
@@ -76,12 +75,6 @@ const getRedirectUrl = () => {
 export const signInWithGoogle = async () => {
   try {
     const redirectUrl = getRedirectUrl();
-    console.log('=== GOOGLE SIGN IN DEBUG ===');
-    console.log('Current URL:', window.location.href);
-    console.log('Redirect URL:', redirectUrl);
-    console.log('Environment:', process.env.NODE_ENV);
-    console.log('PUBLIC_URL:', process.env.PUBLIC_URL);
-    console.log('REACT_APP_SITE_URL:', process.env.REACT_APP_SITE_URL);
     
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -94,15 +87,10 @@ export const signInWithGoogle = async () => {
       }
     });
 
-    console.log('OAuth response data:', data);
-    console.log('OAuth response error:', error);
-
     if (error) throw error;
-    
-    console.log('OAuth initiated successfully, redirecting to Google...');
     return { success: true, data };
   } catch (error) {
-    console.error('❌ Google sign in error:', error);
+    console.error('Google sign in error:', error);
     return { success: false, error: error.message };
   }
 };
@@ -113,14 +101,11 @@ export const signInWithGoogle = async () => {
 export const checkApprovedUser = async (session) => {
   try {
     if (!session?.user) {
-      console.log('No session provided');
       return null;
     }
 
     const userEmail = session.user.email;
     const googleUserId = session.user.id;
-
-    console.log('Checking approved user:', userEmail);
 
     // Query Approved_Users table
     const { data, error } = await supabase
@@ -131,12 +116,8 @@ export const checkApprovedUser = async (session) => {
       .single();
 
     if (error || !data) {
-      console.log('User not approved or not found:', userEmail);
-      console.log('Database error:', error);
       return null;
     }
-
-    console.log('Found approved user:', data);
 
     // Update user's last login and Google user ID
     await supabase
@@ -167,7 +148,7 @@ export const checkApprovedUser = async (session) => {
       displayName: roleConfig.displayName || data.role,
       description: roleConfig.description || '',
       authUserId: googleUserId,
-      EmpLogin_ID: data.id, // Added for compatibility with tankerManagement
+      EmpLogin_ID: data.id,
       sessionExpiry: session.expires_at
     };
   } catch (error) {
