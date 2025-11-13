@@ -1,4 +1,4 @@
-// src/lib/supabaseClient.js - Final Google OAuth Implementation
+// src/lib/supabaseClient.js - Updated with Dynamic Redirect
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = 'https://dgalxobdjjvxbrogghhk.supabase.co';
@@ -47,14 +47,41 @@ const MODULE_ACCESS = {
 };
 
 /**
+ * Get the correct redirect URL based on environment
+ */
+const getRedirectUrl = () => {
+  // Use environment variable if set
+  if (process.env.REACT_APP_SITE_URL) {
+    console.log('Using REACT_APP_SITE_URL:', process.env.REACT_APP_SITE_URL);
+    return process.env.REACT_APP_SITE_URL;
+  }
+  
+  // For development, always use localhost without subdirectory
+  if (process.env.NODE_ENV === 'development') {
+    return 'http://localhost:3000';
+  }
+  
+  // For production on GitHub Pages
+  if (window.location.hostname.includes('github.io')) {
+    return 'https://bangaru-rgb.github.io/VPCS-Digital';
+  }
+  
+  // Fallback
+  return window.location.origin;
+};
+
+/**
  * Sign in with Google OAuth
  */
 export const signInWithGoogle = async () => {
   try {
+    const redirectUrl = getRedirectUrl();
+    console.log('Using redirect URL:', redirectUrl);
+    
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.origin,
+        redirectTo: redirectUrl,
         queryParams: {
           access_type: 'offline',
           prompt: 'consent'
@@ -95,8 +122,11 @@ export const checkApprovedUser = async (session) => {
 
     if (error || !data) {
       console.log('User not approved or not found:', userEmail);
+      console.log('Database error:', error);
       return null;
     }
+
+    console.log('Found approved user:', data);
 
     // Update user's last login and Google user ID
     await supabase
@@ -127,6 +157,7 @@ export const checkApprovedUser = async (session) => {
       displayName: roleConfig.displayName || data.role,
       description: roleConfig.description || '',
       authUserId: googleUserId,
+      EmpLogin_ID: data.id, // Added for compatibility with tankerManagement
       sessionExpiry: session.expires_at
     };
   } catch (error) {

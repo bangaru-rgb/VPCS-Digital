@@ -1,8 +1,8 @@
-// src/components/TankerManagement.js
+// src/components/TankerManagement.js - Fixed warnings
 import React, { useState, useEffect } from 'react';
 import './tankerManagement.css';
 import { supabase } from '../lib/supabaseClient';
-import formatDate from '../lib/DD-MMM-YY-DateFromat';
+// Removed unused formatDate import
 
 function TankerManagement({ userInfo }) {
   const [formData, setFormData] = useState({
@@ -34,7 +34,6 @@ function TankerManagement({ userInfo }) {
 
       if (error) throw error;
 
-      // Get unique transporter names
       const uniqueTransporters = [...new Set(data.map(item => item.Transporter_name))];
       setTransporters(uniqueTransporters);
     } catch (error) {
@@ -42,7 +41,6 @@ function TankerManagement({ userInfo }) {
     }
   };
 
-  // Check for existing tankers when transporter is selected
   const fetchExistingTankers = async (transporterName) => {
     if (!transporterName.trim()) {
       setExistingTankers([]);
@@ -75,7 +73,6 @@ function TankerManagement({ userInfo }) {
     const value = e.target.value;
     setFormData({ ...formData, transporterName: value });
 
-    // Filter suggestions
     if (value.trim()) {
       const filtered = transporters.filter(name =>
         name.toLowerCase().includes(value.toLowerCase())
@@ -87,7 +84,6 @@ function TankerManagement({ userInfo }) {
       setShowSuggestions(false);
     }
 
-    // Fetch existing tankers if exact match
     if (transporters.includes(value)) {
       fetchExistingTankers(value);
     } else {
@@ -107,7 +103,6 @@ function TankerManagement({ userInfo }) {
     setFormData({ ...formData, [name]: value });
   };
 
-  // Check for duplicate tanker number
   const checkDuplicate = async (tankerNumber, transporterName) => {
     try {
       const { data } = await supabase
@@ -119,7 +114,6 @@ function TankerManagement({ userInfo }) {
 
       return data !== null;
     } catch (error) {
-      // If error is "PGRST116" it means no rows found, which is good
       return false;
     }
   };
@@ -130,7 +124,6 @@ function TankerManagement({ userInfo }) {
     setMessage({ type: '', text: '' });
 
     try {
-      // Validate required fields
       if (!formData.transporterName.trim()) {
         setMessage({ type: 'error', text: 'Transporter name is required' });
         setIsSubmitting(false);
@@ -143,7 +136,6 @@ function TankerManagement({ userInfo }) {
         return;
       }
 
-      // Validate userInfo exists and has required fields
       if (!userInfo || !userInfo.name || !userInfo.EmpLogin_ID) {
         setMessage({ 
           type: 'error', 
@@ -153,7 +145,6 @@ function TankerManagement({ userInfo }) {
         return;
       }
 
-      // Get the currently authenticated user
       const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {
@@ -162,7 +153,6 @@ function TankerManagement({ userInfo }) {
         return;
       }
 
-      // Check for duplicate
       const isDuplicate = await checkDuplicate(
         formData.tankerNumber.trim().toUpperCase(),
         formData.transporterName.trim()
@@ -177,20 +167,14 @@ function TankerManagement({ userInfo }) {
         return;
       }
 
-      // Get current date and time
-      const currentDateTime = new Date().toISOString();
-
-      // Prepare data for insertion
+      // Removed unused currentDateTime variable
       const dataToInsert = {
         Transporter_name: formData.transporterName.trim(),
         Tanker_number: formData.tankerNumber.trim().toUpperCase(),
         Tanker_capacity: formData.tankerCapacity.trim() || null,
-        // created_by_user_id: user.id, // New column for tracking creator
-        // updated_by_user_id: user.id, // New column for tracking last updater (same on creation)
-        status: 'Active' // New column with default status
+        status: 'Active'
       };
 
-      // Insert into Supabase
       const { error } = await supabase
         .from('Tankers_Info')
         .insert([dataToInsert])
@@ -198,22 +182,18 @@ function TankerManagement({ userInfo }) {
 
       if (error) throw error;
 
-      // Success
       setLastEntry(dataToInsert);
       setMessage({ type: 'success', text: 'Tanker added successfully!' });
 
-      // Refresh transporters list and existing tankers
       await fetchTransporters();
       await fetchExistingTankers(dataToInsert.Transporter_name);
 
-      // Reset form
       setFormData({
-        transporterName: dataToInsert.Transporter_name, // Keep transporter name for easy multiple entries
+        transporterName: dataToInsert.Transporter_name,
         tankerNumber: '',
         tankerCapacity: ''
       });
 
-      // Clear success message after 5 seconds
       setTimeout(() => {
         setMessage({ type: '', text: '' });
       }, 5000);
@@ -251,11 +231,9 @@ function TankerManagement({ userInfo }) {
       </div>
 
       <div className="tanker-content">
-        {/* Form Section */}
         <div className="tanker-card">
           <h2>Add New Tanker</h2>
           <form onSubmit={handleSubmit} className="tanker-form">
-            {/* Transporter Name with Autocomplete */}
             <div className="form-group">
               <label htmlFor="transporterName">
                 Transporter Name <span className="required">*</span>
@@ -288,7 +266,6 @@ function TankerManagement({ userInfo }) {
               </div>
             </div>
 
-            {/* Tanker Number */}
             <div className="form-group">
               <label htmlFor="tankerNumber">
                 Tanker Number <span className="required">*</span>
@@ -305,7 +282,6 @@ function TankerManagement({ userInfo }) {
               />
             </div>
 
-            {/* Tanker Capacity */}
             <div className="form-group">
               <label htmlFor="tankerCapacity">
                 Tanker Capacity <span className="optional">(Optional)</span>
@@ -321,31 +297,28 @@ function TankerManagement({ userInfo }) {
               />
             </div>
 
-            {/* Message Display */}
             {message.text && (
               <div className={`message ${message.type}`}>
                 {message.text}
               </div>
             )}
 
-            {/* Last Entry Display */}
             {lastEntry && message.type === 'success' && (
               <div className="last-entry-display">
                 <div className="last-entry-header">
                   <strong>Tanker Added:</strong>
                 </div>
                 <div className="entry-detail">
-                    <span className="detail-label">Transporter:</span>
-                    <span className="detail-value">{lastEntry.Transporter_name}</span>
-                  </div>
-                  <div className="entry-detail">
-                    <span className="detail-label">Tanker Number:</span>
-                    <span className="detail-value tanker-badge">{lastEntry.Tanker_number}</span>
-                  </div>
+                  <span className="detail-label">Transporter:</span>
+                  <span className="detail-value">{lastEntry.Transporter_name}</span>
                 </div>
+                <div className="entry-detail">
+                  <span className="detail-label">Tanker Number:</span>
+                  <span className="detail-value tanker-badge">{lastEntry.Tanker_number}</span>
+                </div>
+              </div>
             )}
 
-            {/* Form Actions */}
             <div className="form-actions">
               <button
                 type="button"
@@ -366,7 +339,6 @@ function TankerManagement({ userInfo }) {
           </form>
         </div>
 
-        {/* Existing Tankers Display */}
         {showExistingTankers && existingTankers.length > 0 && (
           <div className="tanker-card">
             <h2>📋 Existing Tankers for {formData.transporterName}</h2>
@@ -391,19 +363,18 @@ function TankerManagement({ userInfo }) {
           </div>
         )}
 
-        {/* Info Box */}
         <div className="tanker-card info-box">
-            <div className="info-icon">💡</div>
-            <div className="info-content">
+          <div className="info-icon">💡</div>
+          <div className="info-content">
             <h3>Instructions</h3>
             <ul>
-                <li><strong>Autocomplete:</strong> Start typing transporter name to see suggestions.</li>
-                <li><strong>Existing Tankers:</strong> Select a transporter to view their registered tankers.</li>
-                <li><strong>Duplicate Prevention:</strong> The system prevents duplicate tanker numbers for the same transporter.</li>
-                <li><strong>Auto-tracking:</strong> Your name and timestamp are automatically recorded.</li>
-                <li><strong>Quick Entry:</strong> After adding a tanker, the transporter name stays for easy multiple entries.</li>
+              <li><strong>Autocomplete:</strong> Start typing transporter name to see suggestions.</li>
+              <li><strong>Existing Tankers:</strong> Select a transporter to view their registered tankers.</li>
+              <li><strong>Duplicate Prevention:</strong> The system prevents duplicate tanker numbers for the same transporter.</li>
+              <li><strong>Auto-tracking:</strong> Your name and timestamp are automatically recorded.</li>
+              <li><strong>Quick Entry:</strong> After adding a tanker, the transporter name stays for easy multiple entries.</li>
             </ul>
-            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -1,5 +1,5 @@
-// src/components/Login.js - Google OAuth Login
-import React, { useState, useEffect } from 'react';
+// src/components/Login.js - Complete Fixed Google OAuth Login
+import React, { useState, useEffect, useCallback } from 'react';
 import './Login.css';
 import { 
   supabase,
@@ -13,20 +13,108 @@ function Login({ onLogin }) {
   const [error, setError] = useState('');
   const [checkingSession, setCheckingSession] = useState(true);
 
+  // Handle authentication success - wrapped in useCallback to prevent recreating on every render
+  const handleAuthSuccess = useCallback(async (session) => {
+    try {
+      setLoading(true);
+      setError('');
+      
+      if (!session?.user) {
+        console.error('No user in session');
+        setCheckingSession(false);
+        return;
+      }
+
+      const userEmail = session.user.email;
+      console.log('=== AUTH SUCCESS DEBUG ===');
+      console.log('User email:', userEmail);
+      console.log('User ID:', session.user.id);
+      console.log('Session expires:', new Date(session.expires_at * 1000).toISOString());
+
+      // Check if user is approved
+      const accessConfig = await checkApprovedUser(session);
+      console.log('Access config returned:', accessConfig);
+
+      if (accessConfig) {
+        console.log('✅ User approved with role:', accessConfig.role);
+        console.log('Available modules:', accessConfig.modules);
+        
+        // Save to localStorage
+        localStorage.setItem('userRole', JSON.stringify(accessConfig));
+        localStorage.setItem('lastLoginTime', new Date().toISOString());
+        
+        console.log('Saved to localStorage, calling onLogin...');
+        
+        // Small delay to ensure state is saved
+        setTimeout(() => {
+          onLogin(accessConfig);
+        }, 100);
+      } else {
+        console.log('❌ User not approved:', userEmail);
+        setError('Access Denied: Your email is not authorized. Please contact your administrator.');
+        
+        // Sign out unauthorized user
+        await supabase.auth.signOut();
+        localStorage.removeItem('userRole');
+      }
+    } catch (error) {
+      console.error('❌ Auth handler error:', error);
+      setError('Login failed. Please try again.');
+      await supabase.auth.signOut();
+    } finally {
+      setLoading(false);
+      setCheckingSession(false);
+    }
+  }, [onLogin]);
+
+  // Initialize authentication and set up listeners
   useEffect(() => {
-    // Check for existing session on mount
-    checkExistingSession();
-    
-    // Listen for auth state changes (handles OAuth redirect)
+    let mounted = true;
+
+    const initAuth = async () => {
+      try {
+        console.log('Initializing auth...');
+        // First, check if there's an existing valid session
+        const session = await getCurrentSession();
+        
+        if (session?.user && mounted) {
+          console.log('Found existing session, processing...');
+          await handleAuthSuccess(session);
+        } else {
+          console.log('No existing session found');
+        }
+      } catch (error) {
+        console.error('Init auth error:', error);
+      } finally {
+        if (mounted) {
+          setCheckingSession(false);
+        }
+      }
+    };
+
+    // Initialize auth check
+    initAuth();
+
+    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth event:', event);
+        console.log('Auth state changed:', event, session?.user?.email);
         
+        if (!mounted) return;
+
+        // Ignore INITIAL_SESSION event
+        if (event === 'INITIAL_SESSION') {
+          console.log('Initial session event, skipping...');
+          return;
+        }
+
         if (event === 'SIGNED_IN' && session) {
+          console.log('Processing sign in...');
           await handleAuthSuccess(session);
         } else if (event === 'SIGNED_OUT') {
           console.log('User signed out');
           localStorage.removeItem('userRole');
+          setCheckingSession(false);
         } else if (event === 'TOKEN_REFRESHED') {
           console.log('Token refreshed');
         }
@@ -34,81 +122,33 @@ function Login({ onLogin }) {
     );
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [handleAuthSuccess]);
 
-  const checkExistingSession = async () => {
-    try {
-      console.log('Checking for existing session...');
-      const session = await getCurrentSession();
-      
-      if (session?.user) {
-        console.log('Existing session found for:', session.user.email);
-        await handleAuthSuccess(session);
-      } else {
-        console.log('No existing session found');
-      }
-    } catch (error) {
-      console.error('Session check error:', error);
-      setError('Session check failed. Please try logging in.');
-    } finally {
-      setCheckingSession(false);
-    }
-  };
-
-  const handleAuthSuccess = async (session) => {
+  // Handle Google login button click
+  const handleGoogleLogin = async () => {
     try {
       setLoading(true);
-      const userEmail = session.user.email;
-      console.log('Processing login for:', userEmail);
+      setError('');
 
-      // Check if user is approved
-      const accessConfig = await checkApprovedUser(session);
+      console.log('Initiating Google login...');
+      const result = await signInWithGoogle();
 
-      if (accessConfig) {
-        console.log('User approved:', accessConfig.role);
-        console.log('Modules:', accessConfig.modules);
-        
-        // Save to localStorage for persistence
-        localStorage.setItem('userRole', JSON.stringify(accessConfig));
-        localStorage.setItem('lastLoginTime', new Date().toISOString());
-        
-        // Call parent component's onLogin
-        onLogin(accessConfig);
-      } else {
-        setError('Access Denied: Your email is not authorized for this system. Please contact your administrator.');
-        console.log('User not approved:', userEmail);
-        
-        // Sign out the unauthorized user
-        await supabase.auth.signOut();
-        localStorage.removeItem('userRole');
+      if (!result.success) {
+        setError(result.error || 'Failed to initiate Google sign-in');
+        setLoading(false);
       }
+      // Keep loading state - it will be cleared after redirect
     } catch (error) {
-      console.error('Auth success handler error:', error);
-      setError('An error occurred during login. Please try again.');
-      await supabase.auth.signOut();
-    } finally {
+      console.error('Login error:', error);
+      setError('An error occurred. Please try again.');
       setLoading(false);
     }
   };
 
-  const handleGoogleLogin = async () => {
-    setLoading(true);
-    setError('');
-
-    console.log('Initiating Google login...');
-    const result = await signInWithGoogle();
-
-    if (!result.success) {
-      setError(result.error || 'Failed to initiate Google sign-in');
-      setLoading(false);
-      console.error('Google login failed:', result.error);
-    }
-    // If successful, OAuth redirect happens automatically
-    // Loading state continues until redirect completes
-  };
-
+  // Show loading screen while checking session
   if (checkingSession) {
     return (
       <div className="login-container">
@@ -116,7 +156,7 @@ function Login({ onLogin }) {
           <div className="login-header">
             <div className="lock-icon">🔒</div>
             <h1>Welcome to VPCS</h1>
-            <p>Verifying your session...</p>
+            <p className="subtitle">Checking authentication...</p>
           </div>
           <div className="loading-spinner">
             <div className="spinner"></div>
@@ -126,6 +166,7 @@ function Login({ onLogin }) {
     );
   }
 
+  // Main login screen
   return (
     <div className="login-container">
       <div className="login-card">

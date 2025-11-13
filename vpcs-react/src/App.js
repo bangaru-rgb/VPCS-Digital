@@ -1,10 +1,9 @@
-// src/App.js - Main Application Component
+// src/App.js - Fixed Main Application Component
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './components/Login';
-import Dashboard from './components/invoicesDashboard'; // Your main dashboard
+import Dashboard from './components/invoicesDashboard';
 import TankerManagement from './components/tankerManagement';
-// Import other components as needed
 import { signOut, getCurrentSession, hasModuleAccess } from './lib/supabaseClient';
 import './App.css';
 
@@ -20,21 +19,32 @@ function App() {
 
   const checkSession = async () => {
     try {
+      console.log('App: Checking session...');
       const session = await getCurrentSession();
       const savedUserInfo = localStorage.getItem('userRole');
 
       if (session && savedUserInfo) {
         const userConfig = JSON.parse(savedUserInfo);
-        console.log('Restoring session for:', userConfig.email);
-        setUserInfo(userConfig);
-        setIsAuthenticated(true);
+        console.log('App: Restoring session for:', userConfig.email);
+        
+        // Verify the session user matches saved user
+        if (session.user.email === userConfig.email) {
+          setUserInfo(userConfig);
+          setIsAuthenticated(true);
+        } else {
+          // Mismatch - clear and force re-login
+          console.log('App: Session mismatch, clearing...');
+          localStorage.removeItem('userRole');
+          setIsAuthenticated(false);
+          setUserInfo(null);
+        }
       } else {
-        console.log('No valid session found');
+        console.log('App: No valid session found');
         setIsAuthenticated(false);
         setUserInfo(null);
       }
     } catch (error) {
-      console.error('Session check error:', error);
+      console.error('App: Session check error:', error);
       setIsAuthenticated(false);
       setUserInfo(null);
     } finally {
@@ -43,21 +53,28 @@ function App() {
   };
 
   const handleLogin = (userConfig) => {
-    console.log('User logged in:', userConfig);
+    console.log('App: User logged in:', userConfig.email);
     setUserInfo(userConfig);
     setIsAuthenticated(true);
   };
 
   const handleLogout = async () => {
-    console.log('Logging out...');
-    await signOut();
-    setIsAuthenticated(false);
-    setUserInfo(null);
+    console.log('App: Logging out...');
+    try {
+      await signOut();
+      setIsAuthenticated(false);
+      setUserInfo(null);
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('lastLoginTime');
+    } catch (error) {
+      console.error('App: Logout error:', error);
+    }
   };
 
   // Protected Route Component
   const ProtectedRoute = ({ children, requiredModule }) => {
     if (!isAuthenticated) {
+      console.log('ProtectedRoute: Not authenticated, redirecting to login');
       return <Navigate to="/login" replace />;
     }
 
@@ -148,27 +165,6 @@ function App() {
                 </ProtectedRoute>
               } 
             />
-
-            {/* Add more protected routes for other modules */}
-            {/* 
-            <Route 
-              path="/calculator" 
-              element={
-                <ProtectedRoute requiredModule="calculator">
-                  <Calculator userInfo={userInfo} />
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path="/cashflow" 
-              element={
-                <ProtectedRoute requiredModule="cashflow">
-                  <Cashflow userInfo={userInfo} />
-                </ProtectedRoute>
-              } 
-            />
-            */}
 
             {/* Fallback Route */}
             <Route 
