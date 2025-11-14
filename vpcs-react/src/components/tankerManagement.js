@@ -1,4 +1,4 @@
-// src/components/TankerManagement.js - Industry Standard UI
+// src/components/TankerManagement.js - Updated without duplicate header
 import React, { useState, useEffect } from 'react';
 import './tankerManagement.css';
 import { supabase } from '../lib/supabaseClient';
@@ -392,10 +392,7 @@ function TankerManagement({ userInfo }) {
 
   return (
     <div className="tanker-container">
-      <div className="tanker-header">
-        <h1>🚚 Tanker Management</h1>
-        <p>Add and manage tanker information efficiently</p>
-      </div>
+      {/* REMOVED: Page header - now handled by PageHeader component */}
 
       <div className="tanker-content">
         {/* === FORM SECTION === */}

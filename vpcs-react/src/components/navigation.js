@@ -1,10 +1,10 @@
-// src/components/navigation.js
+// src/components/navigation.js - Modern Professional Navigation with Dynamic Page Title
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import './navigation.css';
 
 const Navigation = ({ userInfo, onLogout }) => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false); // Collapsed by default
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
 
   // Module configuration with routes and display info
@@ -68,18 +68,18 @@ const Navigation = ({ userInfo, onLogout }) => {
 
   return (
     <>
-      {/* Mobile Menu Button */}
+      {/* Mobile Menu Toggle Button */}
       <button 
         className="mobile-menu-toggle" 
         onClick={toggleMenu}
         aria-label="Toggle menu"
       >
-        <span className="hamburger-icon">☰</span>
+        ☰
       </button>
 
-      {/* Navigation Menu */}
+      {/* Navigation Sidebar */}
       <nav className={`nav-menu ${isMenuOpen ? 'open' : ''}`}>
-        {/* Close button */}
+        {/* Mobile Close Button */}
         <button 
           className="mobile-menu-close" 
           onClick={closeMenu}
@@ -88,36 +88,30 @@ const Navigation = ({ userInfo, onLogout }) => {
           ✕
         </button>
 
-        {/* Clean Header with Company and User */}
-        <div className="nav-header-section">
-          {/* Company branding - compact */}
-          <div className="nav-brand">
-            <div className="brand-icon">VP</div>
-            <div className="brand-text">
-              <div className="brand-name">VPCS</div>
-              <div className="brand-subtitle">Chemicals & Solvents</div>
-            </div>
+        {/* User Info Section - Top of Sidebar */}
+        <div className="nav-user-section">
+          <div className="user-avatar">
+            {userInfo?.photo ? (
+              <img src={userInfo.photo} alt={userInfo.name} />
+            ) : (
+              <span>{userInfo?.name?.charAt(0) || 'U'}</span>
+            )}
           </div>
-          
-          {/* User info - minimal */}
-          <div className="nav-user-compact">
-            <div className="user-avatar-circle">
-              {userInfo?.photo ? (
-                <img src={userInfo.photo} alt={userInfo.name} />
-              ) : (
-                <span>{userInfo?.name?.charAt(0) || 'U'}</span>
-              )}
+          <div className="user-details">
+            <div className="user-name">
+              {userInfo?.name || 'User'}
             </div>
-            <div className="user-info-text">
-              <div className="user-name-compact">{userInfo?.name?.split(' ')[0]}</div>
-              <div className="user-role-badge" style={{ backgroundColor: userInfo?.color }}>
-                {userInfo?.displayName}
-              </div>
+            <div 
+              className="user-role" 
+              style={{ 
+                backgroundColor: userInfo?.color || '#007bff'
+              }}
+            >
+              {userInfo?.displayName || 'User'}
             </div>
           </div>
         </div>
 
-        {/* Divider */}
         <div className="nav-divider"></div>
 
         {/* Menu Items */}
@@ -136,10 +130,9 @@ const Navigation = ({ userInfo, onLogout }) => {
           ))}
         </ul>
 
-        {/* Divider before footer */}
         <div className="nav-divider"></div>
 
-        {/* Footer with Logout */}
+        {/* Logout Button */}
         <div className="nav-footer">
           <button 
             onClick={handleLogout}
@@ -151,7 +144,7 @@ const Navigation = ({ userInfo, onLogout }) => {
         </div>
       </nav>
 
-      {/* Overlay for menu */}
+      {/* Overlay for Mobile Menu */}
       {isMenuOpen && (
         <div 
           className="nav-overlay active" 
@@ -159,6 +152,73 @@ const Navigation = ({ userInfo, onLogout }) => {
         />
       )}
     </>
+  );
+};
+
+// Page Header Component with Dynamic Page Title
+export const PageHeader = () => {
+  const location = useLocation();
+
+  // Map routes to page titles and icons
+  const pageInfo = {
+    '/calculator': {
+      title: 'Material Calculator',
+      icon: '🧮',
+      description: 'Calculate material quantities and costs'
+    },
+    '/cashflow': {
+      title: 'Cash Flow',
+      icon: '💰',
+      description: 'View cash flow transactions'
+    },
+    '/cashflowentry': {
+      title: 'Cash Flow Entry',
+      icon: '📝',
+      description: 'Add new cash flow entries'
+    },
+    '/transactions': {
+      title: 'Transactions',
+      icon: '📊',
+      description: 'View all transactions and invoices'
+    },
+    '/tanker-management': {
+      title: 'Tanker Management',
+      icon: '🚚',
+      description: 'Add and manage tanker information'
+    }
+  };
+
+  const currentPage = pageInfo[location.pathname] || {
+    title: 'Dashboard',
+    icon: '📱',
+    description: 'Welcome to VPCS'
+  };
+
+  return (
+    <div className="page-header">
+      <div className="page-header-left">
+        {/* Company Branding */}
+        <div className="page-brand">
+          <div className="page-brand-icon">VP</div>
+          <div className="page-brand-text">
+            <div className="page-brand-name">VPCS</div>
+            <div className="page-brand-subtitle">chemicals & solvents</div>
+          </div>
+        </div>
+
+        {/* Separator */}
+        <div className="header-separator"></div>
+
+        {/* Current Page Title */}
+        <div className="page-title-section">
+          <div className="page-title-wrapper">
+            <span className="page-icon">{currentPage.icon}</span>
+            <h1 className="page-title">{currentPage.title}</h1>
+          </div>
+          <p className="page-description">{currentPage.description}</p>
+        </div>
+      </div>
+    </div>
   );
 };
 

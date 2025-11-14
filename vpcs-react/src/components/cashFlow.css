@@ -208,14 +208,14 @@
 
 /* Add arrows using pseudo-elements */
 .cashflow-table .amount.inflow::before {
-  content: "↑ ";
+  content: "↓ ";
   color: #28a745;
   font-weight: bold;
   margin-right: 4px;
 }
 
 .cashflow-table .amount.outflow::before {
-  content: "↓ ";
+  content: "↑ ";
   color: #dc3545;
   font-weight: bold;
   margin-right: 4px;

@@ -1,8 +1,8 @@
-// src/App.js - Main Application Component with Navigation
+// src/App.js - Main Application Component with Modern Navigation
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './components/Login';
-import Navigation from './components/navigation';
+import Navigation, { PageHeader } from './components/navigation';
 import MaterialCalculator from './components/MaterialCalculator';
 import CashFlow from './components/cashFlow';
 import CashFlowEntry from './components/cashFlowEntry';
@@ -118,88 +118,96 @@ function App() {
   return (
     <Router>
       <div className="App">
+        {/* Navigation Sidebar - Only show when authenticated */}
         {isAuthenticated && <Navigation userInfo={userInfo} onLogout={handleLogout} />}
 
+        {/* Main Content Area */}
         <main className="app-main">
-          <Routes>
-            {/* Login Route - also handles OAuth callback */}
-            <Route 
-              path="/login" 
-              element={
-                isAuthenticated ? 
-                  <Navigate to={getDefaultRoute(userInfo)} replace /> : 
-                  <Login onLogin={handleLogin} />
-              } 
-            />
+          {/* Page Header with VPCS Branding - Only show when authenticated */}
+          {isAuthenticated && <PageHeader />}
+          
+          {/* Page Content */}
+          <div className="page-content">
+            <Routes>
+              {/* Login Route - also handles OAuth callback */}
+              <Route 
+                path="/login" 
+                element={
+                  isAuthenticated ? 
+                    <Navigate to={getDefaultRoute(userInfo)} replace /> : 
+                    <Login onLogin={handleLogin} />
+                } 
+              />
 
-            {/* Root path - Login or redirect to first module */}
-            <Route 
-              path="/" 
-              element={
-                isAuthenticated ? 
-                  <Navigate to={getDefaultRoute(userInfo)} replace /> :
-                  <Login onLogin={handleLogin} />
-              } 
-            />
+              {/* Root path - Login or redirect to first module */}
+              <Route 
+                path="/" 
+                element={
+                  isAuthenticated ? 
+                    <Navigate to={getDefaultRoute(userInfo)} replace /> :
+                    <Login onLogin={handleLogin} />
+                } 
+              />
 
-            {/* Protected Routes - All Available Modules */}
-            
-            {/* Material Calculator */}
-            <Route 
-              path="/calculator" 
-              element={
-                <ProtectedRoute requiredModule="calculator">
-                  <MaterialCalculator userInfo={userInfo} />
-                </ProtectedRoute>
-              } 
-            />
+              {/* Protected Routes - All Available Modules */}
+              
+              {/* Material Calculator */}
+              <Route 
+                path="/calculator" 
+                element={
+                  <ProtectedRoute requiredModule="calculator">
+                    <MaterialCalculator userInfo={userInfo} />
+                  </ProtectedRoute>
+                } 
+              />
 
-            {/* Cash Flow View */}
-            <Route 
-              path="/cashflow" 
-              element={
-                <ProtectedRoute requiredModule="cashflow">
-                  <CashFlow userInfo={userInfo} />
-                </ProtectedRoute>
-              } 
-            />
+              {/* Cash Flow View */}
+              <Route 
+                path="/cashflow" 
+                element={
+                  <ProtectedRoute requiredModule="cashflow">
+                    <CashFlow userInfo={userInfo} />
+                  </ProtectedRoute>
+                } 
+              />
 
-            {/* Cash Flow Entry */}
-            <Route 
-              path="/cashflowentry" 
-              element={
-                <ProtectedRoute requiredModule="cashflowentry">
-                  <CashFlowEntry userInfo={userInfo} />
-                </ProtectedRoute>
-              } 
-            />
+              {/* Cash Flow Entry */}
+              <Route 
+                path="/cashflowentry" 
+                element={
+                  <ProtectedRoute requiredModule="cashflowentry">
+                    <CashFlowEntry userInfo={userInfo} />
+                  </ProtectedRoute>
+                } 
+              />
 
-            {/* Transactions Dashboard */}
-            <Route 
-              path="/transactions" 
-              element={
-                <ProtectedRoute requiredModule="transactions">
-                  <InvoicesDashboard userInfo={userInfo} />
-                </ProtectedRoute>
-              } 
-            />
+              {/* Transactions Dashboard */}
+              <Route 
+                path="/transactions" 
+                element={
+                  <ProtectedRoute requiredModule="transactions">
+                    <InvoicesDashboard userInfo={userInfo} />
+                  </ProtectedRoute>
+                } 
+              />
 
-            {/* Tanker Management */}
-            <Route 
-              path="/tanker-management" 
-              element={
-                <ProtectedRoute requiredModule="tanker-management">
-                  <TankerManagement userInfo={userInfo} />
-                </ProtectedRoute>
-              } 
-            />
+              {/* Tanker Management */}
+              <Route 
+                path="/tanker-management" 
+                element={
+                  <ProtectedRoute requiredModule="tanker-management">
+                    <TankerManagement userInfo={userInfo} />
+                  </ProtectedRoute>
+                } 
+              />
 
-            {/* Fallback Route */}
-            <Route 
-              path="*" 
-              element={<Navigate to="/" replace />} 
-            />
-          </Routes>
+              {/* Fallback Route */}
+              <Route 
+                path="*" 
+                element={<Navigate to="/" replace />} 
+              />
+            </Routes>
+          </div>
         </main>
       </div>
     </Router>
