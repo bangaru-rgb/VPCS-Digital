@@ -1,8 +1,12 @@
-// src/App.js - Main Application Component
+// src/App.js - Main Application Component with Navigation
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './components/Login';
-import Dashboard from './components/invoicesDashboard';
+import Navigation from './components/navigation';
+import MaterialCalculator from './components/MaterialCalculator';
+import CashFlow from './components/cashFlow';
+import CashFlowEntry from './components/cashFlowEntry';
+import InvoicesDashboard from './components/invoicesDashboard';
 import TankerManagement from './components/tankerManagement';
 import { signOut, getCurrentSession, hasModuleAccess } from './lib/supabaseClient';
 import './App.css';
@@ -63,6 +67,26 @@ function App() {
     }
   };
 
+  // Get the first available module route for the user
+  const getDefaultRoute = (userInfo) => {
+    if (!userInfo || !userInfo.modules || userInfo.modules.length === 0) {
+      return '/';
+    }
+
+    const firstModule = userInfo.modules[0];
+    
+    // Map module names to routes
+    const moduleRouteMap = {
+      'calculator': '/calculator',
+      'cashflow': '/cashflow',
+      'cashflowentry': '/cashflowentry',
+      'transactions': '/transactions',
+      'tanker-management': '/tanker-management'
+    };
+
+    return moduleRouteMap[firstModule] || '/calculator';
+  };
+
   // Protected Route Component
   const ProtectedRoute = ({ children, requiredModule }) => {
     if (!isAuthenticated) {
@@ -94,36 +118,7 @@ function App() {
   return (
     <Router>
       <div className="App">
-        {isAuthenticated && (
-          <header className="app-header">
-            <div className="header-content">
-              <div className="header-left">
-                <h1>VPCS</h1>
-                <span className="header-subtitle">Vendor Payment & Control System</span>
-              </div>
-              <div className="header-right">
-                <div className="user-info">
-                  {userInfo?.photo && (
-                    <img 
-                      src={userInfo.photo} 
-                      alt={userInfo.name} 
-                      className="user-avatar"
-                    />
-                  )}
-                  <div className="user-details">
-                    <span className="user-name">{userInfo?.name}</span>
-                    <span className="user-role" style={{ color: userInfo?.color }}>
-                      {userInfo?.icon} {userInfo?.displayName}
-                    </span>
-                  </div>
-                </div>
-                <button onClick={handleLogout} className="logout-button">
-                  Sign Out
-                </button>
-              </div>
-            </div>
-          </header>
-        )}
+        {isAuthenticated && <Navigation userInfo={userInfo} onLogout={handleLogout} />}
 
         <main className="app-main">
           <Routes>
@@ -132,22 +127,64 @@ function App() {
               path="/login" 
               element={
                 isAuthenticated ? 
-                  <Navigate to="/" replace /> : 
+                  <Navigate to={getDefaultRoute(userInfo)} replace /> : 
                   <Login onLogin={handleLogin} />
               } 
             />
 
-            {/* Root path - Login or Dashboard */}
+            {/* Root path - Login or redirect to first module */}
             <Route 
               path="/" 
               element={
                 isAuthenticated ? 
-                  <Dashboard userInfo={userInfo} /> :
+                  <Navigate to={getDefaultRoute(userInfo)} replace /> :
                   <Login onLogin={handleLogin} />
               } 
             />
 
-            {/* Protected Routes */}
+            {/* Protected Routes - All Available Modules */}
+            
+            {/* Material Calculator */}
+            <Route 
+              path="/calculator" 
+              element={
+                <ProtectedRoute requiredModule="calculator">
+                  <MaterialCalculator userInfo={userInfo} />
+                </ProtectedRoute>
+              } 
+            />
+
+            {/* Cash Flow View */}
+            <Route 
+              path="/cashflow" 
+              element={
+                <ProtectedRoute requiredModule="cashflow">
+                  <CashFlow userInfo={userInfo} />
+                </ProtectedRoute>
+              } 
+            />
+
+            {/* Cash Flow Entry */}
+            <Route 
+              path="/cashflowentry" 
+              element={
+                <ProtectedRoute requiredModule="cashflowentry">
+                  <CashFlowEntry userInfo={userInfo} />
+                </ProtectedRoute>
+              } 
+            />
+
+            {/* Transactions Dashboard */}
+            <Route 
+              path="/transactions" 
+              element={
+                <ProtectedRoute requiredModule="transactions">
+                  <InvoicesDashboard userInfo={userInfo} />
+                </ProtectedRoute>
+              } 
+            />
+
+            {/* Tanker Management */}
             <Route 
               path="/tanker-management" 
               element={

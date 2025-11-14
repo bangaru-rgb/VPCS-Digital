@@ -1,16 +1,33 @@
-// src/components/TankerManagement.js - Fixed warnings
+// src/components/TankerManagement.js - Industry Standard UI
 import React, { useState, useEffect } from 'react';
 import './tankerManagement.css';
 import { supabase } from '../lib/supabaseClient';
-// Removed unused formatDate import
+import formatDate from '../lib/DD-MMM-YY-DateFromat';
 
 function TankerManagement({ userInfo }) {
+  // Format datetime with time (using your standard date format + time)
+  const formatDateTime = (isoDate) => {
+    if (!isoDate) return 'N/A';
+    const date = new Date(isoDate);
+    if (isNaN(date.getTime())) return 'Invalid date';
+    
+    const datePart = formatDate(isoDate); // DD-MMM-YY
+    const hours = date.getHours();
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12;
+    
+    return `${datePart} ${displayHours}:${minutes} ${ampm}`;
+  };
+
   const [formData, setFormData] = useState({
     transporterName: '',
     tankerNumber: '',
     tankerCapacity: ''
   });
 
+  const [mode, setMode] = useState('create'); // 'create' or 'edit'
+  const [editingItem, setEditingItem] = useState(null);
   const [transporters, setTransporters] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -120,6 +137,15 @@ function TankerManagement({ userInfo }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (mode === 'edit') {
+      await handleUpdate();
+    } else {
+      await handleCreate();
+    }
+  };
+
+  const handleCreate = async () => {
     setIsSubmitting(true);
     setMessage({ type: '', text: '' });
 
@@ -167,12 +193,14 @@ function TankerManagement({ userInfo }) {
         return;
       }
 
-      // Removed unused currentDateTime variable
       const dataToInsert = {
         Transporter_name: formData.transporterName.trim(),
         Tanker_number: formData.tankerNumber.trim().toUpperCase(),
         Tanker_capacity: formData.tankerCapacity.trim() || null,
-        status: 'Active'
+        status: 'Active',
+        created_by_user_id: user.id,
+        updated_by_user_id: user.id,
+        Updated_by: userInfo.name
       };
 
       const { error } = await supabase
@@ -183,29 +211,169 @@ function TankerManagement({ userInfo }) {
       if (error) throw error;
 
       setLastEntry(dataToInsert);
-      setMessage({ type: 'success', text: 'Tanker added successfully!' });
+      setMessage({ 
+        type: 'success', 
+        text: `Tanker ${dataToInsert.Tanker_number} added successfully!` 
+      });
 
-      await fetchTransporters();
-      await fetchExistingTankers(dataToInsert.Transporter_name);
-
+      // Reset form but keep transporter name for quick multiple entries
       setFormData({
-        transporterName: dataToInsert.Transporter_name,
+        transporterName: formData.transporterName,
         tankerNumber: '',
         tankerCapacity: ''
       });
 
+      // Refresh existing tankers list
+      fetchExistingTankers(formData.transporterName);
+      fetchTransporters(); // Update transporters list
+
+      // Clear success message after 5 seconds
       setTimeout(() => {
         setMessage({ type: '', text: '' });
+        setLastEntry(null);
       }, 5000);
 
     } catch (error) {
       console.error('Error adding tanker:', error);
       setMessage({ 
         type: 'error', 
-        text: error.message || 'Failed to add tanker. Please try again.' 
+        text: 'Failed to add tanker. Please try again.' 
       });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleUpdate = async () => {
+    setIsSubmitting(true);
+    setMessage({ type: '', text: '' });
+
+    try {
+      if (!editingItem) {
+        setMessage({ type: 'error', text: 'No tanker selected for editing' });
+        setIsSubmitting(false);
+        return;
+      }
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setMessage({ type: 'error', text: 'Authentication error. Please log in again.' });
+        setIsSubmitting(false);
+        return;
+      }
+
+      const { error } = await supabase
+        .from('Tankers_Info')
+        .update({
+          Tanker_capacity: formData.tankerCapacity.trim() || null,
+          updated_by_user_id: user.id,
+          Updated_by: userInfo.name,
+          updated_at: new Date().toISOString()
+        })
+        .eq('transporter_id', editingItem.transporter_id);
+
+      if (error) throw error;
+
+      setMessage({ 
+        type: 'success', 
+        text: `Tanker ${editingItem.Tanker_number} updated successfully!` 
+      });
+
+      // Reset to create mode
+      setMode('create');
+      setEditingItem(null);
+      setFormData({
+        transporterName: formData.transporterName,
+        tankerNumber: '',
+        tankerCapacity: ''
+      });
+
+      // Refresh existing tankers list
+      fetchExistingTankers(formData.transporterName);
+
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        setMessage({ type: '', text: '' });
+      }, 3000);
+
+    } catch (error) {
+      console.error('Error updating tanker:', error);
+      setMessage({ 
+        type: 'error', 
+        text: 'Failed to update tanker. Please try again.' 
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleEdit = (tanker) => {
+    setMode('edit');
+    setEditingItem(tanker);
+    setFormData({
+      transporterName: tanker.Transporter_name,
+      tankerNumber: tanker.Tanker_number,
+      tankerCapacity: tanker.Tanker_capacity || ''
+    });
+    setMessage({ type: '', text: '' });
+    setLastEntry(null);
+
+    // Scroll to form
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleCancelEdit = () => {
+    setMode('create');
+    setEditingItem(null);
+    setFormData({
+      transporterName: formData.transporterName,
+      tankerNumber: '',
+      tankerCapacity: ''
+    });
+    setMessage({ type: '', text: '' });
+  };
+
+  const handleToggleStatus = async (tanker) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setMessage({ type: 'error', text: 'Authentication error. Please log in again.' });
+        return;
+      }
+
+      const newStatus = tanker.status === 'Active' ? 'Inactive' : 'Active';
+
+      const { error } = await supabase
+        .from('Tankers_Info')
+        .update({
+          status: newStatus,
+          updated_by_user_id: user.id,
+          Updated_by: userInfo.name,
+          updated_at: new Date().toISOString()
+        })
+        .eq('transporter_id', tanker.transporter_id);
+
+      if (error) throw error;
+
+      setMessage({ 
+        type: 'success', 
+        text: `Tanker ${tanker.Tanker_number} marked as ${newStatus}` 
+      });
+
+      // Refresh existing tankers list
+      fetchExistingTankers(formData.transporterName);
+
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        setMessage({ type: '', text: '' });
+      }, 3000);
+
+    } catch (error) {
+      console.error('Error toggling tanker status:', error);
+      setMessage({ 
+        type: 'error', 
+        text: 'Failed to update tanker status. Please try again.' 
+      });
     }
   };
 
@@ -217,22 +385,25 @@ function TankerManagement({ userInfo }) {
     });
     setMessage({ type: '', text: '' });
     setLastEntry(null);
-    setSuggestions([]);
-    setShowSuggestions(false);
     setExistingTankers([]);
     setShowExistingTankers(false);
+    setShowSuggestions(false);
   };
 
   return (
-    <div className="tanker-management-container">
+    <div className="tanker-container">
       <div className="tanker-header">
         <h1>🚚 Tanker Management</h1>
-        <p>Add and manage tanker information</p>
+        <p>Add and manage tanker information efficiently</p>
       </div>
 
       <div className="tanker-content">
+        {/* === FORM SECTION === */}
         <div className="tanker-card">
-          <h2>Add New Tanker</h2>
+          <h2>
+            {mode === 'create' ? '➕ Add New Tanker' : `✏️ Edit: ${editingItem?.Tanker_number}`}
+          </h2>
+          
           <form onSubmit={handleSubmit} className="tanker-form">
             <div className="form-group">
               <label htmlFor="transporterName">
@@ -245,10 +416,11 @@ function TankerManagement({ userInfo }) {
                   name="transporterName"
                   value={formData.transporterName}
                   onChange={handleTransporterChange}
-                  placeholder="Enter transporter name"
+                  placeholder="Start typing transporter name..."
                   required
                   className="form-input"
                   autoComplete="off"
+                  disabled={mode === 'edit'}
                 />
                 {showSuggestions && suggestions.length > 0 && (
                   <div className="suggestions-dropdown">
@@ -276,9 +448,10 @@ function TankerManagement({ userInfo }) {
                 name="tankerNumber"
                 value={formData.tankerNumber}
                 onChange={handleChange}
-                placeholder="Enter tanker number (e.g., AP39T1234)"
+                placeholder="e.g., AP39T1234"
                 required
                 className="form-input tanker-number-input"
+                disabled={mode === 'edit'}
               />
             </div>
 
@@ -292,7 +465,7 @@ function TankerManagement({ userInfo }) {
                 name="tankerCapacity"
                 value={formData.tankerCapacity}
                 onChange={handleChange}
-                placeholder="Enter capacity (e.g., 20000 liters)"
+                placeholder="e.g., 20000 liters"
                 className="form-input"
               />
             </div>
@@ -306,7 +479,7 @@ function TankerManagement({ userInfo }) {
             {lastEntry && message.type === 'success' && (
               <div className="last-entry-display">
                 <div className="last-entry-header">
-                  <strong>Tanker Added:</strong>
+                  ✓ Tanker Added Successfully
                 </div>
                 <div className="entry-detail">
                   <span className="detail-label">Transporter:</span>
@@ -316,63 +489,134 @@ function TankerManagement({ userInfo }) {
                   <span className="detail-label">Tanker Number:</span>
                   <span className="detail-value tanker-badge">{lastEntry.Tanker_number}</span>
                 </div>
+                {lastEntry.Tanker_capacity && (
+                  <div className="entry-detail">
+                    <span className="detail-label">Capacity:</span>
+                    <span className="detail-value">{lastEntry.Tanker_capacity}</span>
+                  </div>
+                )}
               </div>
             )}
 
             <div className="form-actions">
-              <button
-                type="button"
-                onClick={handleReset}
-                className="btn btn-secondary"
-                disabled={isSubmitting}
-              >
-                Reset
-              </button>
-              <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? 'Saving...' : 'Save Tanker'}
-              </button>
+              {mode === 'edit' ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleCancelEdit}
+                    className="btn btn-secondary"
+                    disabled={isSubmitting}
+                  >
+                    ✕ Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? '⏳ Saving...' : '✓ Save Changes'}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleReset}
+                    className="btn btn-secondary"
+                    disabled={isSubmitting}
+                  >
+                    ↻ Reset
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? '⏳ Adding...' : '➕ Add Tanker'}
+                  </button>
+                </>
+              )}
             </div>
           </form>
         </div>
 
+        {/* === EXISTING TANKERS SECTION === */}
         {showExistingTankers && existingTankers.length > 0 && (
           <div className="tanker-card">
-            <h2>📋 Existing Tankers for {formData.transporterName}</h2>
+            <h2>📋 Tankers: {formData.transporterName}</h2>
+            
             <div className="tankers-list">
               {existingTankers.map((tanker) => (
-                <div key={tanker.transporter_id} className="tanker-item">
+                <div 
+                  key={tanker.transporter_id} 
+                  className={`tanker-item ${editingItem?.transporter_id === tanker.transporter_id ? 'editing' : ''} ${tanker.status === 'Inactive' ? 'inactive' : ''}`}
+                >
                   <div className="tanker-item-header">
-                    <span className="tanker-number">{tanker.Tanker_number}</span>
-                    <span className="tanker-capacity">{tanker.Tanker_capacity || 'N/A'}</span>
-                  </div>
-                  <div className="tanker-item-footer">
-                    <span className="updated-info">
-                      {tanker.updated_by ? `Updated: ${tanker.updated_by}` : `Created: ${tanker.created_by || 'No info'}`}
+                    <div className="tanker-header-left">
+                      <span className="tanker-number">{tanker.Tanker_number}</span>
+                      <span className={`status-badge ${tanker.status.toLowerCase()}`}>
+                        {tanker.status}
+                      </span>
+                    </div>
+                    <span className="tanker-capacity">
+                      {tanker.Tanker_capacity || 'Capacity N/A'}
                     </span>
+                  </div>
+                  
+                  <div className="tanker-item-body">
+                    <span className="tanker-info">
+                      {tanker.updated_at && tanker.updated_at !== tanker.created_at
+                        ? `Updated by ${tanker.Updated_by || 'Unknown'} on ${formatDateTime(tanker.updated_at)}`
+                        : `Created on ${formatDateTime(tanker.created_at)}`
+                      }
+                    </span>
+                  </div>
+                  
+                  <div className="tanker-item-actions">
+                    <button
+                      onClick={() => handleEdit(tanker)}
+                      className="btn btn-sm btn-edit"
+                      disabled={mode === 'edit' && editingItem?.transporter_id !== tanker.transporter_id}
+                      title="Edit tanker capacity"
+                    >
+                      ✏️ Edit
+                    </button>
+                    <button
+                      onClick={() => handleToggleStatus(tanker)}
+                      className={`btn btn-sm ${tanker.status === 'Active' ? 'btn-warning' : 'btn-success'}`}
+                      disabled={mode === 'edit'}
+                      title={tanker.status === 'Active' ? 'Mark as Inactive' : 'Mark as Active'}
+                    >
+                      {tanker.status === 'Active' ? '⊗ Deactivate' : '✓ Activate'}
+                    </button>
                   </div>
                 </div>
               ))}
             </div>
+            
             <div className="tankers-count">
-              Total Tankers: <strong>{existingTankers.length}</strong>
+              Total: <strong>{existingTankers.length}</strong> tankers
+              <span className="count-breakdown">
+                (Active: <strong className="active-count">{existingTankers.filter(t => t.status === 'Active').length}</strong>, 
+                Inactive: <strong className="inactive-count">{existingTankers.filter(t => t.status === 'Inactive').length}</strong>)
+              </span>
             </div>
           </div>
         )}
 
+        {/* === INSTRUCTIONS SECTION === */}
         <div className="tanker-card info-box">
           <div className="info-icon">💡</div>
           <div className="info-content">
-            <h3>Instructions</h3>
+            <h3>Quick Guide</h3>
             <ul>
-              <li><strong>Autocomplete:</strong> Start typing transporter name to see suggestions.</li>
-              <li><strong>Existing Tankers:</strong> Select a transporter to view their registered tankers.</li>
-              <li><strong>Duplicate Prevention:</strong> The system prevents duplicate tanker numbers for the same transporter.</li>
-              <li><strong>Auto-tracking:</strong> Your name and timestamp are automatically recorded.</li>
-              <li><strong>Quick Entry:</strong> After adding a tanker, the transporter name stays for easy multiple entries.</li>
+              <li><strong>Autocomplete:</strong> Type transporter name to see suggestions from existing entries</li>
+              <li><strong>View Tankers:</strong> Select a transporter to view all registered tankers</li>
+              <li><strong>Edit Capacity:</strong> Click "Edit" to modify tanker capacity only</li>
+              <li><strong>Manage Status:</strong> Deactivate unused tankers (data preserved) or reactivate when needed</li>
+              <li><strong>Quick Entry:</strong> After adding a tanker, the transporter name stays for faster multiple entries</li>
+              <li><strong>Duplicate Check:</strong> System prevents duplicate tanker numbers per transporter</li>
+              <li><strong>Auto-tracking:</strong> Your name and timestamp are recorded automatically</li>
             </ul>
           </div>
         </div>
