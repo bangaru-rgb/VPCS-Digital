@@ -199,7 +199,10 @@ export const PageHeader = () => {
       <div className="page-header-left">
         {/* Company Branding */}
         <div className="page-brand">
-          <div className="page-brand-icon">VP</div>
+          <div className="page-brand-icon">
+            <div className="icon-top">VP</div>
+            <div className="icon-bottom">CS</div>
+          </div>
           <div className="page-brand-text">
             <div className="page-brand-name">VPCS</div>
             <div className="page-brand-subtitle">chemicals & solvents</div>

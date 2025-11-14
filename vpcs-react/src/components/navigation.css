@@ -318,17 +318,34 @@
 }
 
 .page-brand-icon {
-  width: 44px;
-  height: 44px;
+  width: 56px;
+  height: 56px;
   background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
   color: white;
   border-radius: 10px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 1.1rem;
   box-shadow: 0 4px 12px rgba(0, 123, 255, 0.25);
+  padding: 4px;
+  gap: 1px;
+}
+
+.icon-top {
+  font-size: 1.35rem;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.icon-bottom {
+  font-size: 1.35rem;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: 1px;
+  opacity: 0.98;
 }
 
 .page-brand-text {
@@ -506,9 +523,19 @@
   }
 
   .page-brand-icon {
-    width: 36px;
-    height: 36px;
-    font-size: 0.95rem;
+    width: 48px;
+    height: 48px;
+    padding: 3px;
+  }
+
+  .icon-top {
+    font-size: 1.15rem;
+    letter-spacing: 0.8px;
+  }
+
+  .icon-bottom {
+    font-size: 1.15rem;
+    letter-spacing: 0.8px;
   }
 
   .page-brand-name {
