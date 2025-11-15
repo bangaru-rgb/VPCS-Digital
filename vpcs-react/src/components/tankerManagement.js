@@ -85,7 +85,7 @@ function TankerManagement({ userInfo }) {
         }
         transporterMap[name].tankers.push(tanker);
         transporterMap[name].totalCount++;
-        if (tanker.record_status === 'Active') {
+        if (tanker.status === 'Active') {
           transporterMap[name].activeCount++;
         } else {
           transporterMap[name].inactiveCount++;
@@ -137,7 +137,7 @@ function TankerManagement({ userInfo }) {
       return selectedTankers;
     }
     return selectedTankers.filter(tanker => 
-      tanker.record_status.toLowerCase() === filterStatus
+      tanker.status.toLowerCase() === filterStatus
     );
   };
 
@@ -245,7 +245,7 @@ function TankerManagement({ userInfo }) {
             Transporter_name: formData.transporterName.trim(),
             Tanker_number: formData.tankerNumber.trim().toUpperCase(),
             Tanker_capacity: formData.tankerCapacity.trim() || null,
-            record_status: 'Active',
+            status: 'Active',
             Updated_by: userInfo.name
           }]);
 
@@ -279,14 +279,14 @@ function TankerManagement({ userInfo }) {
 
   // Toggle tanker status
   const handleToggleStatus = async (tanker) => {
-    const newStatus = tanker.record_status === 'Active' ? 'Inactive' : 'Active';
+    const newStatus = tanker.status === 'Active' ? 'Inactive' : 'Active';
     const action = newStatus === 'Active' ? 'activated' : 'deactivated';
 
     try {
       const { error } = await supabase
         .from('Tankers_Info')
         .update({
-          record_status: newStatus,
+          status: newStatus,
           Updated_by: userInfo.name
         })
         .eq('transporter_id', tanker.transporter_id);
@@ -447,13 +447,13 @@ function TankerManagement({ userInfo }) {
                 getFilteredTankers().map((tanker) => (
                   <div 
                     key={tanker.transporter_id}
-                    className={`tanker-detail-card ${tanker.record_status.toLowerCase()}`}
+                    className={`tanker-detail-card ${tanker.status.toLowerCase()}`}
                   >
                     <div className="tanker-detail-header">
                       <div className="tanker-number-section">
                         <span className="tanker-number">{tanker.Tanker_number}</span>
-                        <span className={`status-indicator ${tanker.record_status.toLowerCase()}`}>
-                          {tanker.record_status === 'Active' ? '● Active' : '○ Inactive'}
+                        <span className={`status-indicator ${tanker.status.toLowerCase()}`}>
+                          {tanker.status === 'Active' ? '● Active' : '○ Inactive'}
                         </span>
                       </div>
                       <div className="tanker-actions">
@@ -466,10 +466,10 @@ function TankerManagement({ userInfo }) {
                         </button>
                         <button
                           onClick={() => handleToggleStatus(tanker)}
-                          className={`btn-icon btn-toggle ${tanker.record_status.toLowerCase()}`}
-                          title={tanker.record_status === 'Active' ? 'Deactivate' : 'Activate'}
+                          className={`btn-icon btn-toggle ${tanker.status.toLowerCase()}`}
+                          title={tanker.status === 'Active' ? 'Deactivate' : 'Activate'}
                         >
-                          {tanker.record_status === 'Active' ? '⊗' : '✓'}
+                          {tanker.status === 'Active' ? '⊗' : '✓'}
                         </button>
                       </div>
                     </div>
