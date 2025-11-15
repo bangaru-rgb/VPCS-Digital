@@ -1,17 +1,17 @@
-// src/components/TankerManagement.js - Updated without duplicate header
+// src/components/TankerManagement.js - Modern Master-Detail Pattern
 import React, { useState, useEffect } from 'react';
 import './tankerManagement.css';
 import { supabase } from '../lib/supabaseClient';
 import formatDate from '../lib/DD-MMM-YY-DateFromat';
 
 function TankerManagement({ userInfo }) {
-  // Format datetime with time (using your standard date format + time)
+  // Format datetime with time
   const formatDateTime = (isoDate) => {
     if (!isoDate) return 'N/A';
     const date = new Date(isoDate);
     if (isNaN(date.getTime())) return 'Invalid date';
     
-    const datePart = formatDate(isoDate); // DD-MMM-YY
+    const datePart = formatDate(isoDate);
     const hours = date.getHours();
     const minutes = date.getMinutes().toString().padStart(2, '0');
     const ampm = hours >= 12 ? 'PM' : 'AM';
@@ -20,328 +20,274 @@ function TankerManagement({ userInfo }) {
     return `${datePart} ${displayHours}:${minutes} ${ampm}`;
   };
 
+  // State Management
+  const [allTransporters, setAllTransporters] = useState([]);
+  const [selectedTransporter, setSelectedTransporter] = useState(null);
+  const [selectedTankers, setSelectedTankers] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all'); // all, active, inactive
+  const [isLoading, setIsLoading] = useState(true);
+  const [message, setMessage] = useState({ type: '', text: '' });
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editingTanker, setEditingTanker] = useState(null);
+  const [modalError, setModalError] = useState(''); // For showing errors in modal
+  const [showSuggestions, setShowSuggestions] = useState(false); // NEW: For autocomplete
+  const [filteredSuggestions, setFilteredSuggestions] = useState([]); // NEW: Filtered transporter names
+
+  // Form state for Add/Edit
   const [formData, setFormData] = useState({
     transporterName: '',
     tankerNumber: '',
     tankerCapacity: ''
   });
 
-  const [mode, setMode] = useState('create'); // 'create' or 'edit'
-  const [editingItem, setEditingItem] = useState(null);
-  const [transporters, setTransporters] = useState([]);
-  const [suggestions, setSuggestions] = useState([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [existingTankers, setExistingTankers] = useState([]);
-  const [showExistingTankers, setShowExistingTankers] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [message, setMessage] = useState({ type: '', text: '' });
-  const [lastEntry, setLastEntry] = useState(null);
-  const [searchQuery, setSearchQuery] = useState(''); // New: for search filter
-
-  // Fetch all unique transporter names on component mount
+  // Load all data on mount
   useEffect(() => {
-    fetchTransporters();
+    loadAllData();
   }, []);
 
-  const fetchTransporters = async () => {
+  // Auto-refresh detail panel when allTransporters changes and we have a selection
+  useEffect(() => {
+    if (selectedTransporter && allTransporters.length > 0) {
+      const updatedTransporter = allTransporters.find(t => 
+        t.name === selectedTransporter.name
+      );
+      
+      if (updatedTransporter) {
+        setSelectedTankers(updatedTransporter.tankers);
+      }
+    }
+  }, [allTransporters]);
+
+  // Load all transporters with their tanker counts
+  const loadAllData = async () => {
+    setIsLoading(true);
     try {
       const { data, error } = await supabase
         .from('Tankers_Info')
-        .select('Transporter_name')
+        .select('*')
         .order('Transporter_name', { ascending: true });
 
       if (error) throw error;
 
-      const uniqueTransporters = [...new Set(data.map(item => item.Transporter_name))];
-      setTransporters(uniqueTransporters);
+      // Group tankers by transporter
+      const transporterMap = {};
+      data.forEach(tanker => {
+        const name = tanker.Transporter_name;
+        if (!transporterMap[name]) {
+          transporterMap[name] = {
+            name: name,
+            tankers: [],
+            totalCount: 0,
+            activeCount: 0,
+            inactiveCount: 0
+          };
+        }
+        transporterMap[name].tankers.push(tanker);
+        transporterMap[name].totalCount++;
+        if (tanker.record_status === 'Active') {
+          transporterMap[name].activeCount++;
+        } else {
+          transporterMap[name].inactiveCount++;
+        }
+      });
+
+      const transporterList = Object.values(transporterMap);
+      setAllTransporters(transporterList);
+
     } catch (error) {
-      console.error('Error fetching transporters:', error);
+      console.error('Error loading data:', error);
+      setMessage({ type: 'error', text: 'Failed to load data. Please refresh.' });
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const fetchExistingTankers = async (transporterName) => {
-    if (!transporterName.trim()) {
-      setExistingTankers([]);
-      setShowExistingTankers(false);
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase
-        .from('Tankers_Info')
-        .select('*')
-        .eq('Transporter_name', transporterName)
-        .order('Tanker_number', { ascending: true });
-
-      if (error) throw error;
-
-      if (data && data.length > 0) {
-        setExistingTankers(data);
-        setShowExistingTankers(true);
-        setSearchQuery(''); // Reset search when loading new transporter
-      } else {
-        setExistingTankers([]);
-        setShowExistingTankers(false);
-      }
-    } catch (error) {
-      console.error('Error fetching existing tankers:', error);
-    }
+  // Handle transporter selection
+  const handleSelectTransporter = (transporter) => {
+    setSelectedTransporter(transporter);
+    setSelectedTankers(transporter.tankers);
+    setSearchQuery(''); // Clear search when selecting
   };
 
-  // Filter tankers based on search query (transporter name OR tanker number)
-  const getFilteredTankers = () => {
+  // Get filtered transporters based on search
+  const getFilteredTransporters = () => {
     if (!searchQuery.trim()) {
-      return existingTankers;
+      return allTransporters;
     }
 
     const query = searchQuery.toLowerCase();
-    return existingTankers.filter(tanker => 
-      tanker.Transporter_name.toLowerCase().includes(query) ||
-      tanker.Tanker_number.toLowerCase().includes(query)
+    
+    // Search in both transporter name and vehicle numbers
+    return allTransporters.filter(transporter => {
+      // Match transporter name
+      if (transporter.name.toLowerCase().includes(query)) {
+        return true;
+      }
+      // Match any vehicle number
+      return transporter.tankers.some(tanker => 
+        tanker.Tanker_number.toLowerCase().includes(query)
+      );
+    });
+  };
+
+  // Get filtered tankers based on status filter
+  const getFilteredTankers = () => {
+    if (filterStatus === 'all') {
+      return selectedTankers;
+    }
+    return selectedTankers.filter(tanker => 
+      tanker.record_status.toLowerCase() === filterStatus
     );
   };
 
-  const handleTransporterChange = (e) => {
-    const value = e.target.value;
-    setFormData({ ...formData, transporterName: value });
-
-    if (value.trim()) {
-      const filtered = transporters.filter(name =>
-        name.toLowerCase().includes(value.toLowerCase())
-      );
-      setSuggestions(filtered);
-      setShowSuggestions(filtered.length > 0);
-    } else {
-      setSuggestions([]);
-      setShowSuggestions(false);
-    }
-
-    if (transporters.includes(value)) {
-      fetchExistingTankers(value);
-    } else {
-      setExistingTankers([]);
-      setShowExistingTankers(false);
-    }
-  };
-
-  const handleSuggestionClick = (transporter) => {
-    setFormData({ ...formData, transporterName: transporter });
-    setShowSuggestions(false);
-    fetchExistingTankers(transporter);
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
-
-  const checkDuplicate = async (tankerNumber, transporterName) => {
-    try {
-      const { data } = await supabase
-        .from('Tankers_Info')
-        .select('*')
-        .eq('Tanker_number', tankerNumber)
-        .eq('Transporter_name', transporterName)
-        .single();
-
-      return data !== null;
-    } catch (error) {
-      return false;
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // Handle search - auto-select if vehicle number match
+  const handleSearch = (value) => {
+    setSearchQuery(value);
     
-    if (mode === 'edit') {
-      await handleUpdate();
-    } else {
-      await handleCreate();
-    }
-  };
+    if (!value.trim()) return;
 
-  const handleCreate = async () => {
-    setIsSubmitting(true);
-    setMessage({ type: '', text: '' });
-
-    try {
-      if (!formData.transporterName.trim()) {
-        setMessage({ type: 'error', text: 'Transporter name is required' });
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (!formData.tankerNumber.trim()) {
-        setMessage({ type: 'error', text: 'Tanker number is required' });
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (!userInfo || !userInfo.name || !userInfo.EmpLogin_ID) {
-        setMessage({ 
-          type: 'error', 
-          text: 'User information is incomplete. Please log in again.' 
-        });
-        setIsSubmitting(false);
-        return;
-      }
-
-      const isDuplicate = await checkDuplicate(
-        formData.tankerNumber.trim().toUpperCase(),
-        formData.transporterName.trim()
+    const query = value.toLowerCase();
+    
+    // Check if searching for a specific vehicle number
+    for (const transporter of allTransporters) {
+      const matchingTanker = transporter.tankers.find(tanker =>
+        tanker.Tanker_number.toLowerCase().includes(query)
       );
-
-      if (isDuplicate) {
-        setMessage({ 
-          type: 'error', 
-          text: `Tanker ${formData.tankerNumber.toUpperCase()} already exists for ${formData.transporterName}` 
-        });
-        setIsSubmitting(false);
-        return;
+      
+      if (matchingTanker) {
+        // Auto-select this transporter
+        handleSelectTransporter(transporter);
+        break;
       }
-
-      const dataToInsert = {
-        Transporter_name: formData.transporterName.trim(),
-        Tanker_number: formData.tankerNumber.trim().toUpperCase(),
-        Tanker_capacity: formData.tankerCapacity.trim() || null,
-        status: 'Active',
-        Updated_by: userInfo.name
-        // created_at, updated_at, created_by_user_id, updated_by_user_id
-        // are all set automatically by database trigger
-      };
-
-      const { error } = await supabase
-        .from('Tankers_Info')
-        .insert([dataToInsert])
-        .select();
-
-      if (error) throw error;
-
-      setLastEntry(dataToInsert);
-      setMessage({ 
-        type: 'success', 
-        text: `Tanker ${dataToInsert.Tanker_number} added successfully!` 
-      });
-
-      // Reset form but keep transporter name for quick multiple entries
-      setFormData({
-        transporterName: formData.transporterName,
-        tankerNumber: '',
-        tankerCapacity: ''
-      });
-
-      // Refresh existing tankers list
-      fetchExistingTankers(formData.transporterName);
-      fetchTransporters(); // Update transporters list
-
-      // Clear success message after 5 seconds
-      setTimeout(() => {
-        setMessage({ type: '', text: '' });
-        setLastEntry(null);
-      }, 5000);
-
-    } catch (error) {
-      console.error('Error adding tanker:', error);
-      setMessage({ 
-        type: 'error', 
-        text: 'Failed to add tanker. Please try again.' 
-      });
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
-  const handleUpdate = async () => {
-    setIsSubmitting(true);
-    setMessage({ type: '', text: '' });
-
-    try {
-      if (!editingItem) {
-        setMessage({ type: 'error', text: 'No tanker selected for editing' });
-        setIsSubmitting(false);
-        return;
-      }
-
-      const { error } = await supabase
-        .from('Tankers_Info')
-        .update({
-          Tanker_capacity: formData.tankerCapacity.trim() || null,
-          Updated_by: userInfo.name
-          // updated_at and updated_by_user_id are set automatically by trigger
-        })
-        .eq('transporter_id', editingItem.transporter_id);
-
-      if (error) throw error;
-
-      setMessage({ 
-        type: 'success', 
-        text: `Tanker ${editingItem.Tanker_number} updated successfully!` 
-      });
-
-      // Reset to create mode
-      setMode('create');
-      setEditingItem(null);
-      setFormData({
-        transporterName: formData.transporterName,
-        tankerNumber: '',
-        tankerCapacity: ''
-      });
-
-      // Refresh existing tankers list
-      fetchExistingTankers(formData.transporterName);
-
-      // Clear success message after 3 seconds
-      setTimeout(() => {
-        setMessage({ type: '', text: '' });
-      }, 3000);
-
-    } catch (error) {
-      console.error('Error updating tanker:', error);
-      setMessage({ 
-        type: 'error', 
-        text: 'Failed to update tanker. Please try again.' 
-      });
-    } finally {
-      setIsSubmitting(false);
+  // NEW: Handle transporter name input change with autocomplete
+  const handleTransporterNameChange = (value) => {
+    setFormData({...formData, transporterName: value});
+    
+    // Show suggestions only if at least 3 characters are typed
+    if (value.length >= 3) {
+      const matches = allTransporters
+        .map(t => t.name)
+        .filter(name => name.toLowerCase().includes(value.toLowerCase()))
+        .slice(0, 5); // Limit to 5 suggestions
+      
+      setFilteredSuggestions(matches);
+      setShowSuggestions(matches.length > 0);
+    } else {
+      setShowSuggestions(false);
+      setFilteredSuggestions([]);
     }
   };
 
-  const handleEdit = (tanker) => {
-    setMode('edit');
-    setEditingItem(tanker);
+  // NEW: Handle suggestion selection
+  const handleSelectSuggestion = (suggestion) => {
+    setFormData({...formData, transporterName: suggestion});
+    setShowSuggestions(false);
+    setFilteredSuggestions([]);
+  };
+
+  // Add new tanker
+  const handleAddTanker = () => {
+    setEditingTanker(null);
+    setModalError(''); // Clear any previous errors
+    setShowSuggestions(false); // Clear suggestions
+    setFilteredSuggestions([]);
+    setFormData({
+      transporterName: selectedTransporter?.name || '',
+      tankerNumber: '',
+      tankerCapacity: ''
+    });
+    setShowAddModal(true);
+  };
+
+  // Edit tanker
+  const handleEditTanker = (tanker) => {
+    setEditingTanker(tanker);
+    setModalError(''); // Clear any previous errors
+    setShowSuggestions(false);
+    setFilteredSuggestions([]);
     setFormData({
       transporterName: tanker.Transporter_name,
       tankerNumber: tanker.Tanker_number,
       tankerCapacity: tanker.Tanker_capacity || ''
     });
-    setMessage({ type: '', text: '' });
-    setLastEntry(null);
-
-    // Scroll to form
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setShowAddModal(true);
   };
 
-  const handleCancelEdit = () => {
-    setMode('create');
-    setEditingItem(null);
-    setFormData({
-      transporterName: formData.transporterName,
-      tankerNumber: '',
-      tankerCapacity: ''
-    });
+  // Save tanker (add or update)
+  const handleSaveTanker = async (e) => {
+    e.preventDefault();
     setMessage({ type: '', text: '' });
-  };
+    setModalError(''); // Clear modal error
 
-  const handleToggleStatus = async (tanker) => {
     try {
-      const newStatus = tanker.status === 'Active' ? 'Inactive' : 'Active';
+      if (editingTanker) {
+        // Update existing tanker
+        const { error } = await supabase
+          .from('Tankers_Info')
+          .update({
+            Tanker_capacity: formData.tankerCapacity.trim() || null,
+            Updated_by: userInfo.name
+          })
+          .eq('transporter_id', editingTanker.transporter_id);
 
+        if (error) throw error;
+        setMessage({ type: 'success', text: 'Tanker updated successfully!' });
+        setShowAddModal(false);
+      } else {
+        // Add new tanker
+        const { error } = await supabase
+          .from('Tankers_Info')
+          .insert([{
+            Transporter_name: formData.transporterName.trim(),
+            Tanker_number: formData.tankerNumber.trim().toUpperCase(),
+            Tanker_capacity: formData.tankerCapacity.trim() || null,
+            record_status: 'Active',
+            Updated_by: userInfo.name
+          }]);
+
+        if (error) {
+          // Check if it's a duplicate error
+          if (error.code === '23505') {
+            setModalError('This tanker number already exists. Please use a different number.');
+          } else {
+            setModalError('Failed to save tanker. Please try again.');
+          }
+          return; // Don't close modal, keep it open to show error
+        }
+        
+        setMessage({ type: 'success', text: 'Tanker added successfully!' });
+        setShowAddModal(false);
+      }
+
+      // Reload data to reflect changes
+      await loadAllData();
+
+      // Auto-hide success message after 3 seconds
+      setTimeout(() => {
+        setMessage({ type: '', text: '' });
+      }, 3000);
+
+    } catch (error) {
+      console.error('Error saving tanker:', error);
+      setModalError('Failed to save tanker. Please try again.');
+    }
+  };
+
+  // Toggle tanker status
+  const handleToggleStatus = async (tanker) => {
+    const newStatus = tanker.record_status === 'Active' ? 'Inactive' : 'Active';
+    const action = newStatus === 'Active' ? 'activated' : 'deactivated';
+
+    try {
       const { error } = await supabase
         .from('Tankers_Info')
         .update({
-          status: newStatus,
+          record_status: newStatus,
           Updated_by: userInfo.name
-          // updated_at and updated_by_user_id are set automatically by trigger
         })
         .eq('transporter_id', tanker.transporter_id);
 
@@ -349,307 +295,327 @@ function TankerManagement({ userInfo }) {
 
       setMessage({ 
         type: 'success', 
-        text: `Tanker ${tanker.Tanker_number} marked as ${newStatus}` 
+        text: `Tanker ${tanker.Tanker_number} ${action} successfully!` 
       });
 
-      // Refresh existing tankers list
-      fetchExistingTankers(formData.transporterName);
+      // Reload data
+      await loadAllData();
 
-      // Clear success message after 3 seconds
+      // Auto-hide message
       setTimeout(() => {
         setMessage({ type: '', text: '' });
       }, 3000);
 
     } catch (error) {
-      console.error('Error toggling tanker status:', error);
-      setMessage({ 
-        type: 'error', 
-        text: 'Failed to update tanker status. Please try again.' 
-      });
+      console.error('Error toggling status:', error);
+      setMessage({ type: 'error', text: 'Failed to update status. Please try again.' });
     }
-  };
-
-  const handleReset = () => {
-    setFormData({
-      transporterName: '',
-      tankerNumber: '',
-      tankerCapacity: ''
-    });
-    setMessage({ type: '', text: '' });
-    setLastEntry(null);
-    setExistingTankers([]);
-    setShowExistingTankers(false);
-    setShowSuggestions(false);
   };
 
   return (
     <div className="tanker-container">
-      {/* REMOVED: Page header - now handled by PageHeader component */}
-
-      <div className="tanker-content">
-        {/* === FORM SECTION === */}
-        <div className="tanker-card">
-          <h2>
-            {mode === 'create' ? '➕ Add New Tanker' : `✏️ Edit: ${editingItem?.Tanker_number}`}
-          </h2>
-          
-          <form onSubmit={handleSubmit} className="tanker-form">
-            <div className="form-group">
-              <label htmlFor="transporterName">
-                Transporter Name <span className="required">*</span>
-              </label>
-              <div className="autocomplete-wrapper">
-                <input
-                  type="text"
-                  id="transporterName"
-                  name="transporterName"
-                  value={formData.transporterName}
-                  onChange={handleTransporterChange}
-                  placeholder="Start typing transporter name..."
-                  required
-                  className="form-input"
-                  autoComplete="off"
-                  disabled={mode === 'edit'}
-                />
-                {showSuggestions && suggestions.length > 0 && (
-                  <div className="suggestions-dropdown">
-                    {suggestions.map((transporter, index) => (
-                      <div
-                        key={index}
-                        className="suggestion-item"
-                        onClick={() => handleSuggestionClick(transporter)}
-                      >
-                        {transporter}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="tankerNumber">
-                Tanker Number <span className="required">*</span>
-              </label>
-              <input
-                type="text"
-                id="tankerNumber"
-                name="tankerNumber"
-                value={formData.tankerNumber}
-                onChange={handleChange}
-                placeholder="e.g., AP39T1234"
-                required
-                className="form-input tanker-number-input"
-                disabled={mode === 'edit'}
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="tankerCapacity">
-                Tanker Capacity <span className="optional">(Optional)</span>
-              </label>
-              <input
-                type="text"
-                id="tankerCapacity"
-                name="tankerCapacity"
-                value={formData.tankerCapacity}
-                onChange={handleChange}
-                placeholder="e.g., 20000 liters"
-                className="form-input"
-              />
-            </div>
-
-            {message.text && (
-              <div className={`message ${message.type}`}>
-                {message.text}
-              </div>
+      {/* TOP BAR - Search and Filters */}
+      <div className="tanker-top-bar">
+        <div className="search-section">
+          <div className="search-box-wrapper">
+            <span className="search-icon">🔍</span>
+            <input
+              type="text"
+              className="unified-search-input"
+              placeholder="Search by transporter name or tanker number..."
+              value={searchQuery}
+              onChange={(e) => handleSearch(e.target.value)}
+            />
+            {searchQuery && (
+              <button 
+                className="clear-search"
+                onClick={() => {
+                  setSearchQuery('');
+                }}
+                title="Clear search"
+              >
+                ✕
+              </button>
             )}
-
-            {lastEntry && message.type === 'success' && (
-              <div className="last-entry-display">
-                <div className="last-entry-header">
-                  ✓ Tanker Added Successfully
-                </div>
-                <div className="entry-detail">
-                  <span className="detail-label">Transporter:</span>
-                  <span className="detail-value">{lastEntry.Transporter_name}</span>
-                </div>
-                <div className="entry-detail">
-                  <span className="detail-label">Tanker Number:</span>
-                  <span className="detail-value tanker-badge">{lastEntry.Tanker_number}</span>
-                </div>
-                {lastEntry.Tanker_capacity && (
-                  <div className="entry-detail">
-                    <span className="detail-label">Capacity:</span>
-                    <span className="detail-value">{lastEntry.Tanker_capacity}</span>
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div className="form-actions">
-              {mode === 'edit' ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={handleCancelEdit}
-                    className="btn btn-secondary"
-                    disabled={isSubmitting}
-                  >
-                    ✕ Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="btn btn-primary"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? '⏳ Saving...' : '✓ Save Changes'}
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    type="button"
-                    onClick={handleReset}
-                    className="btn btn-secondary"
-                    disabled={isSubmitting}
-                  >
-                    ↻ Reset
-                  </button>
-                  <button
-                    type="submit"
-                    className="btn btn-primary"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? '⏳ Adding...' : '➕ Add Tanker'}
-                  </button>
-                </>
-              )}
-            </div>
-          </form>
+          </div>
         </div>
 
-        {/* === EXISTING TANKERS SECTION === */}
-        {showExistingTankers && existingTankers.length > 0 && (
-          <div className="tanker-card">
-            <h2>📋 Tankers: {formData.transporterName}</h2>
-            
-            {/* Search Box */}
-            <div className="tanker-search-box">
-              <input
-                type="text"
-                placeholder="🔍 Search by transporter name or vehicle number..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="search-input"
-              />
-              {searchQuery && (
-                <button 
-                  onClick={() => setSearchQuery('')}
-                  className="clear-search-btn"
-                  title="Clear search"
-                >
-                  ✕
-                </button>
-              )}
-            </div>
+        <div className="action-bar">
+          <select 
+            className="filter-dropdown"
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+          >
+            <option value="all">All Status</option>
+            <option value="active">Active Only</option>
+            <option value="inactive">Inactive Only</option>
+          </select>
+        </div>
+      </div>
 
-            <div className="tankers-list">
-              {getFilteredTankers().length > 0 ? (
-                getFilteredTankers().map((tanker) => (
-                  <div 
-                    key={tanker.transporter_id} 
-                    className={`tanker-item ${editingItem?.transporter_id === tanker.transporter_id ? 'editing' : ''} ${tanker.status === 'Inactive' ? 'inactive' : ''}`}
-                  >
-                  <div className="tanker-item-header">
-                    <div className="tanker-header-left">
-                      <span className="tanker-number">{tanker.Tanker_number}</span>
-                      <span className={`status-badge ${tanker.status.toLowerCase()}`}>
-                        {tanker.status}
+      {/* MESSAGE BANNER */}
+      {message.text && (
+        <div className={`message-banner ${message.type}`}>
+          {message.text}
+        </div>
+      )}
+
+      {/* MASTER-DETAIL CONTAINER */}
+      <div className="master-detail-container">
+        {/* LEFT: Master Panel - Transporters */}
+        <div className="master-panel">
+          <div className="panel-header">
+            <h3>Transporters</h3>
+            <span className="count-badge">{getFilteredTransporters().length}</span>
+          </div>
+
+          <div className="transporter-list">
+            {isLoading ? (
+              <div className="loading-state">Loading transporters...</div>
+            ) : getFilteredTransporters().length === 0 ? (
+              <div className="empty-state">
+                <p>No transporters found</p>
+              </div>
+            ) : (
+              getFilteredTransporters().map((transporter, index) => (
+                <div
+                  key={index}
+                  className={`transporter-card ${selectedTransporter?.name === transporter.name ? 'selected' : ''}`}
+                  onClick={() => handleSelectTransporter(transporter)}
+                >
+                  <div className="transporter-card-header">
+                    <span className="transporter-icon">🚛</span>
+                    <span className="transporter-name">{transporter.name}</span>
+                    <span className="vehicle-badge">📦 {transporter.totalCount}</span>
+                  </div>
+                  <div className="transporter-card-stats">
+                    <span className="stat-item active">
+                      ✓ {transporter.activeCount} active
+                    </span>
+                    {transporter.inactiveCount > 0 && (
+                      <span className="stat-item inactive">
+                        ✗ {transporter.inactiveCount} inactive
                       </span>
-                    </div>
-                    <span className="tanker-capacity">
-                      {tanker.Tanker_capacity || 'Capacity N/A'}
-                    </span>
-                  </div>
-                  
-                  <div className="tanker-item-body">
-                    <span className="tanker-info">
-                      {tanker.updated_at && tanker.updated_at !== tanker.created_at
-                        ? `Updated by ${tanker.Updated_by || 'Unknown'} on ${formatDateTime(tanker.updated_at)}`
-                        : `Created by ${tanker.Updated_by || 'Unknown'} on ${formatDateTime(tanker.created_at)}`
-                      }
-                    </span>
-                  </div>
-                  
-                  <div className="tanker-item-actions">
-                    <button
-                      onClick={() => handleEdit(tanker)}
-                      className="btn btn-sm btn-edit"
-                      disabled={mode === 'edit' && editingItem?.transporter_id !== tanker.transporter_id}
-                      title="Edit tanker capacity"
-                    >
-                      ✏️ Edit
-                    </button>
-                    <button
-                      onClick={() => handleToggleStatus(tanker)}
-                      className={`btn btn-sm ${tanker.status === 'Active' ? 'btn-warning' : 'btn-success'}`}
-                      disabled={mode === 'edit'}
-                      title={tanker.status === 'Active' ? 'Mark as Inactive' : 'Mark as Active'}
-                    >
-                      {tanker.status === 'Active' ? '⊗ Deactivate' : '✓ Activate'}
-                    </button>
+                    )}
                   </div>
                 </div>
               ))
-              ) : (
-                <div className="no-search-results">
-                  <p>🔍 No tankers found matching "{searchQuery}"</p>
-                  <button 
-                    onClick={() => setSearchQuery('')}
-                    className="btn btn-secondary btn-sm"
-                  >
-                    Clear Search
-                  </button>
-                </div>
-              )}
-            </div>
-            
-            <div className="tankers-count">
-              {searchQuery ? (
-                <>
-                  Showing: <strong>{getFilteredTankers().length}</strong> of <strong>{existingTankers.length}</strong> tankers
-                </>
-              ) : (
-                <>
-                  Total: <strong>{existingTankers.length}</strong> tankers
-                  <span className="count-breakdown">
-                    (Active: <strong className="active-count">{existingTankers.filter(t => t.status === 'Active').length}</strong>, 
-                    Inactive: <strong className="inactive-count">{existingTankers.filter(t => t.status === 'Inactive').length}</strong>)
-                  </span>
-                </>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* === INSTRUCTIONS SECTION === */}
-        <div className="tanker-card info-box">
-          <div className="info-icon">💡</div>
-          <div className="info-content">
-            <h3>Quick Guide</h3>
-            <ul>
-              <li><strong>Autocomplete:</strong> Type transporter name to see suggestions from existing entries</li>
-              <li><strong>View Tankers:</strong> Select a transporter to view all registered tankers</li>
-              <li><strong>Edit Capacity:</strong> Click "Edit" to modify tanker capacity only</li>
-              <li><strong>Manage Status:</strong> Deactivate unused tankers (data preserved) or reactivate when needed</li>
-              <li><strong>Quick Entry:</strong> After adding a tanker, the transporter name stays for faster multiple entries</li>
-              <li><strong>Duplicate Check:</strong> System prevents duplicate tanker numbers per transporter</li>
-              <li><strong>Auto-tracking:</strong> Your name and timestamp are recorded automatically</li>
-            </ul>
+            )}
           </div>
         </div>
+
+        {/* RIGHT: Detail Panel - Tankers */}
+        <div className="detail-panel">
+          {/* Header with Add Tanker button - always visible */}
+          <div className="panel-header">
+            <div className="header-left">
+              {selectedTransporter ? (
+                <>
+                  <h3>{selectedTransporter.name}</h3>
+                  <div className="header-stats">
+                    <span>{selectedTransporter.totalCount} tankers</span>
+                    <span className="separator">•</span>
+                    <span className="active-text">{selectedTransporter.activeCount} active</span>
+                    {selectedTransporter.inactiveCount > 0 && (
+                      <>
+                        <span className="separator">•</span>
+                        <span className="inactive-text">{selectedTransporter.inactiveCount} inactive</span>
+                      </>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <h3>Tankers</h3>
+              )}
+            </div>
+            <button 
+              onClick={handleAddTanker}
+              className="btn btn-sm btn-primary"
+            >
+              ➕ Add Tanker
+            </button>
+          </div>
+
+          {/* Content area */}
+          {selectedTransporter ? (
+            <div className="tanker-details-list">
+              {getFilteredTankers().length === 0 ? (
+                <div className="empty-state">
+                  <p>No tankers match the current filter</p>
+                </div>
+              ) : (
+                getFilteredTankers().map((tanker) => (
+                  <div 
+                    key={tanker.transporter_id}
+                    className={`tanker-detail-card ${tanker.record_status.toLowerCase()}`}
+                  >
+                    <div className="tanker-detail-header">
+                      <div className="tanker-number-section">
+                        <span className="tanker-number">{tanker.Tanker_number}</span>
+                        <span className={`status-indicator ${tanker.record_status.toLowerCase()}`}>
+                          {tanker.record_status === 'Active' ? '● Active' : '○ Inactive'}
+                        </span>
+                      </div>
+                      <div className="tanker-actions">
+                        <button
+                          onClick={() => handleEditTanker(tanker)}
+                          className="btn-icon"
+                          title="Edit capacity"
+                        >
+                          ✏️
+                        </button>
+                        <button
+                          onClick={() => handleToggleStatus(tanker)}
+                          className={`btn-icon btn-toggle ${tanker.record_status.toLowerCase()}`}
+                          title={tanker.record_status === 'Active' ? 'Deactivate' : 'Activate'}
+                        >
+                          {tanker.record_status === 'Active' ? '⊗' : '✓'}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="tanker-detail-body">
+                      <div className="detail-row">
+                        <span className="detail-label">Capacity:</span>
+                        <span className="detail-value">
+                          {tanker.Tanker_capacity || 'Not specified'}
+                        </span>
+                      </div>
+                      <div className="detail-row">
+                        <span className="detail-label">Info:</span>
+                        <span className="detail-value audit-info">
+                          {tanker.updated_at && tanker.updated_at !== tanker.created_at
+                            ? `Updated by ${tanker.Updated_by || 'Unknown'} on ${formatDateTime(tanker.updated_at)}`
+                            : `Created by ${tanker.Updated_by || 'Unknown'} on ${formatDateTime(tanker.created_at)}`
+                          }
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          ) : (
+            <div className="empty-detail-state">
+              <div className="empty-icon">🚚</div>
+              <h3>Select a Transporter</h3>
+              <p>Choose a transporter from the list to view and manage their tankers</p>
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Add/Edit Modal */}
+      {showAddModal && (
+        <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>{editingTanker ? 'Edit Tanker' : 'Add New Tanker'}</h3>
+              <button 
+                onClick={() => setShowAddModal(false)}
+                className="modal-close"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveTanker} className="modal-form">
+              {/* Show error in modal if present */}
+              {modalError && (
+                <div className="modal-error-banner">
+                  ⚠️ {modalError}
+                </div>
+              )}
+
+              <div className="form-group">
+                <label>
+                  Transporter Name <span className="required">*</span>
+                </label>
+                <div className="autocomplete-wrapper">
+                  <input
+                    type="text"
+                    value={formData.transporterName}
+                    onChange={(e) => handleTransporterNameChange(e.target.value)}
+                    onBlur={() => {
+                      // Delay hiding to allow click on suggestion
+                      setTimeout(() => setShowSuggestions(false), 200);
+                    }}
+                    onFocus={() => {
+                      if (formData.transporterName.length >= 3 && filteredSuggestions.length > 0) {
+                        setShowSuggestions(true);
+                      }
+                    }}
+                    placeholder="Enter transporter name (min 3 chars for suggestions)"
+                    required
+                    disabled={editingTanker}
+                    className="form-input"
+                  />
+                  {showSuggestions && filteredSuggestions.length > 0 && (
+                    <div className="suggestions-dropdown">
+                      {filteredSuggestions.map((suggestion, index) => (
+                        <div
+                          key={index}
+                          className="suggestion-item"
+                          onMouseDown={(e) => {
+                            e.preventDefault(); // Prevent blur
+                            handleSelectSuggestion(suggestion);
+                          }}
+                        >
+                          {suggestion}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>
+                  Tanker Number <span className="required">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.tankerNumber}
+                  onChange={(e) => setFormData({...formData, tankerNumber: e.target.value})}
+                  placeholder="e.g., AP39T1234"
+                  required
+                  disabled={editingTanker}
+                  className="form-input tanker-number-input"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>
+                  Tanker Capacity <span className="optional">(Optional)</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.tankerCapacity}
+                  onChange={(e) => setFormData({...formData, tankerCapacity: e.target.value})}
+                  placeholder="e.g., 20000 liters"
+                  className="form-input"
+                />
+              </div>
+
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="btn btn-secondary"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                >
+                  {editingTanker ? 'Save Changes' : 'Add Tanker'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
