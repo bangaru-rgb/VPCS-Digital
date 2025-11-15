@@ -43,7 +43,7 @@ const ROLE_CONFIG = {
 const MODULE_ACCESS = {
   'Administrator': ['calculator', 'cashflow', 'cashflowentry', 'transactions', 'tanker-management'],
   'Supervisor': ['tanker-management'],
-  'Management': ['calculator', 'cashflow']
+  'Management': ['calculator', 'cashflow','tanker-management']
 };
 
 /**

@@ -36,6 +36,7 @@ function TankerManagement({ userInfo }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [lastEntry, setLastEntry] = useState(null);
+  const [searchQuery, setSearchQuery] = useState(''); // New: for search filter
 
   // Fetch all unique transporter names on component mount
   useEffect(() => {
@@ -77,6 +78,7 @@ function TankerManagement({ userInfo }) {
       if (data && data.length > 0) {
         setExistingTankers(data);
         setShowExistingTankers(true);
+        setSearchQuery(''); // Reset search when loading new transporter
       } else {
         setExistingTankers([]);
         setShowExistingTankers(false);
@@ -84,6 +86,19 @@ function TankerManagement({ userInfo }) {
     } catch (error) {
       console.error('Error fetching existing tankers:', error);
     }
+  };
+
+  // Filter tankers based on search query (transporter name OR tanker number)
+  const getFilteredTankers = () => {
+    if (!searchQuery.trim()) {
+      return existingTankers;
+    }
+
+    const query = searchQuery.toLowerCase();
+    return existingTankers.filter(tanker => 
+      tanker.Transporter_name.toLowerCase().includes(query) ||
+      tanker.Tanker_number.toLowerCase().includes(query)
+    );
   };
 
   const handleTransporterChange = (e) => {
@@ -171,14 +186,6 @@ function TankerManagement({ userInfo }) {
         return;
       }
 
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (!user) {
-        setMessage({ type: 'error', text: 'Authentication error. Please log in again.' });
-        setIsSubmitting(false);
-        return;
-      }
-
       const isDuplicate = await checkDuplicate(
         formData.tankerNumber.trim().toUpperCase(),
         formData.transporterName.trim()
@@ -198,9 +205,9 @@ function TankerManagement({ userInfo }) {
         Tanker_number: formData.tankerNumber.trim().toUpperCase(),
         Tanker_capacity: formData.tankerCapacity.trim() || null,
         status: 'Active',
-        created_by_user_id: user.id,
-        updated_by_user_id: user.id,
         Updated_by: userInfo.name
+        // created_at, updated_at, created_by_user_id, updated_by_user_id
+        // are all set automatically by database trigger
       };
 
       const { error } = await supabase
@@ -255,20 +262,12 @@ function TankerManagement({ userInfo }) {
         return;
       }
 
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setMessage({ type: 'error', text: 'Authentication error. Please log in again.' });
-        setIsSubmitting(false);
-        return;
-      }
-
       const { error } = await supabase
         .from('Tankers_Info')
         .update({
           Tanker_capacity: formData.tankerCapacity.trim() || null,
-          updated_by_user_id: user.id,
-          Updated_by: userInfo.name,
-          updated_at: new Date().toISOString()
+          Updated_by: userInfo.name
+          // updated_at and updated_by_user_id are set automatically by trigger
         })
         .eq('transporter_id', editingItem.transporter_id);
 
@@ -335,21 +334,14 @@ function TankerManagement({ userInfo }) {
 
   const handleToggleStatus = async (tanker) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setMessage({ type: 'error', text: 'Authentication error. Please log in again.' });
-        return;
-      }
-
       const newStatus = tanker.status === 'Active' ? 'Inactive' : 'Active';
 
       const { error } = await supabase
         .from('Tankers_Info')
         .update({
           status: newStatus,
-          updated_by_user_id: user.id,
-          Updated_by: userInfo.name,
-          updated_at: new Date().toISOString()
+          Updated_by: userInfo.name
+          // updated_at and updated_by_user_id are set automatically by trigger
         })
         .eq('transporter_id', tanker.transporter_id);
 
@@ -542,12 +534,33 @@ function TankerManagement({ userInfo }) {
           <div className="tanker-card">
             <h2>📋 Tankers: {formData.transporterName}</h2>
             
-            <div className="tankers-list">
-              {existingTankers.map((tanker) => (
-                <div 
-                  key={tanker.transporter_id} 
-                  className={`tanker-item ${editingItem?.transporter_id === tanker.transporter_id ? 'editing' : ''} ${tanker.status === 'Inactive' ? 'inactive' : ''}`}
+            {/* Search Box */}
+            <div className="tanker-search-box">
+              <input
+                type="text"
+                placeholder="🔍 Search by transporter name or vehicle number..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="search-input"
+              />
+              {searchQuery && (
+                <button 
+                  onClick={() => setSearchQuery('')}
+                  className="clear-search-btn"
+                  title="Clear search"
                 >
+                  ✕
+                </button>
+              )}
+            </div>
+
+            <div className="tankers-list">
+              {getFilteredTankers().length > 0 ? (
+                getFilteredTankers().map((tanker) => (
+                  <div 
+                    key={tanker.transporter_id} 
+                    className={`tanker-item ${editingItem?.transporter_id === tanker.transporter_id ? 'editing' : ''} ${tanker.status === 'Inactive' ? 'inactive' : ''}`}
+                  >
                   <div className="tanker-item-header">
                     <div className="tanker-header-left">
                       <span className="tanker-number">{tanker.Tanker_number}</span>
@@ -564,7 +577,7 @@ function TankerManagement({ userInfo }) {
                     <span className="tanker-info">
                       {tanker.updated_at && tanker.updated_at !== tanker.created_at
                         ? `Updated by ${tanker.Updated_by || 'Unknown'} on ${formatDateTime(tanker.updated_at)}`
-                        : `Created on ${formatDateTime(tanker.created_at)}`
+                        : `Created by ${tanker.Updated_by || 'Unknown'} on ${formatDateTime(tanker.created_at)}`
                       }
                     </span>
                   </div>
@@ -588,15 +601,34 @@ function TankerManagement({ userInfo }) {
                     </button>
                   </div>
                 </div>
-              ))}
+              ))
+              ) : (
+                <div className="no-search-results">
+                  <p>🔍 No tankers found matching "{searchQuery}"</p>
+                  <button 
+                    onClick={() => setSearchQuery('')}
+                    className="btn btn-secondary btn-sm"
+                  >
+                    Clear Search
+                  </button>
+                </div>
+              )}
             </div>
             
             <div className="tankers-count">
-              Total: <strong>{existingTankers.length}</strong> tankers
-              <span className="count-breakdown">
-                (Active: <strong className="active-count">{existingTankers.filter(t => t.status === 'Active').length}</strong>, 
-                Inactive: <strong className="inactive-count">{existingTankers.filter(t => t.status === 'Inactive').length}</strong>)
-              </span>
+              {searchQuery ? (
+                <>
+                  Showing: <strong>{getFilteredTankers().length}</strong> of <strong>{existingTankers.length}</strong> tankers
+                </>
+              ) : (
+                <>
+                  Total: <strong>{existingTankers.length}</strong> tankers
+                  <span className="count-breakdown">
+                    (Active: <strong className="active-count">{existingTankers.filter(t => t.status === 'Active').length}</strong>, 
+                    Inactive: <strong className="inactive-count">{existingTankers.filter(t => t.status === 'Inactive').length}</strong>)
+                  </span>
+                </>
+              )}
             </div>
           </div>
         )}
