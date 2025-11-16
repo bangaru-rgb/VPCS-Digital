@@ -33,6 +33,11 @@ const Navigation = ({ userInfo, onLogout }) => {
       name: 'Tanker Management',
       icon: '🚚',
       path: '/tanker-management'
+    },
+    'base-company-management': {
+      name: 'Base Company',
+      icon: '🏢',
+      path: '/base-company-management'
     }
   };
 
@@ -185,6 +190,11 @@ export const PageHeader = () => {
       title: 'Tanker Management',
       icon: '🚚',
       description: 'Add and manage tanker information'
+    },
+    '/base-company-management': {
+      title: 'Base Company Management',
+      icon: '🏢',
+      description: 'Manage company information and details'
     }
   };
 

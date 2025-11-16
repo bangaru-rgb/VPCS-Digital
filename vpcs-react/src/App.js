@@ -8,6 +8,7 @@ import CashFlow from './components/cashFlow';
 import CashFlowEntry from './components/cashFlowEntry';
 import InvoicesDashboard from './components/invoicesDashboard';
 import TankerManagement from './components/tankerManagement';
+import BaseCompanyManagement from './components/baseCompanyManagement';
 import { signOut, getCurrentSession, hasModuleAccess } from './lib/supabaseClient';
 import './App.css';
 
@@ -81,7 +82,8 @@ function App() {
       'cashflow': '/cashflow',
       'cashflowentry': '/cashflowentry',
       'transactions': '/transactions',
-      'tanker-management': '/tanker-management'
+      'tanker-management': '/tanker-management',
+      'base-company-management': '/base-company-management'
     };
 
     return moduleRouteMap[firstModule] || '/calculator';
@@ -197,6 +199,16 @@ function App() {
                 element={
                   <ProtectedRoute requiredModule="tanker-management">
                     <TankerManagement userInfo={userInfo} />
+                  </ProtectedRoute>
+                } 
+              />
+
+              {/* Base Company Management */}
+              <Route 
+                path="/base-company-management" 
+                element={
+                  <ProtectedRoute requiredModule="base-company-management">
+                    <BaseCompanyManagement userInfo={userInfo} />
                   </ProtectedRoute>
                 } 
               />

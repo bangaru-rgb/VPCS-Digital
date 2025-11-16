@@ -1,4 +1,4 @@
-// src/lib/supabaseClient.js - Updated with Dynamic Redirect
+// src/lib/supabaseClient.js - Production Version with Database Function
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = 'https://dgalxobdjjvxbrogghhk.supabase.co';
@@ -20,7 +20,7 @@ const ROLE_CONFIG = {
   'Administrator': {
     displayName: 'Administrator',
     color: '#667eea',
-    icon: '🔑',
+    icon: '🔐',
     description: 'Full system access'
   },
   'Supervisor': {
@@ -41,9 +41,9 @@ const ROLE_CONFIG = {
  * Module definitions (what each role can access)
  */
 const MODULE_ACCESS = {
-  'Administrator': ['calculator', 'cashflow', 'cashflowentry', 'transactions', 'tanker-management'],
+  'Administrator': ['calculator', 'cashflow', 'cashflowentry', 'transactions', 'tanker-management', 'base-company-management'],
   'Supervisor': ['tanker-management'],
-  'Management': ['calculator', 'cashflow','tanker-management']
+  'Management': ['calculator', 'cashflow', 'tanker-management', 'base-company-management']
 };
 
 /**
@@ -116,19 +116,51 @@ export const checkApprovedUser = async (session) => {
       .single();
 
     if (error || !data) {
+      console.error('Error querying Approved_Users:', error);
       return null;
     }
 
-    // Update user's last login and Google user ID
-    await supabase
-      .from('Approved_Users')
-      .update({ 
+    console.log('✅ User authenticated:', userEmail);
+
+    // Try using database function first (more reliable, bypasses RLS)
+    const { error: funcError } = await supabase.rpc('update_user_login_data', {
+      p_email: userEmail,
+      p_google_user_id: googleUserId,
+      p_last_login: new Date().toISOString(),
+      p_full_name: session.user.user_metadata?.full_name || null,
+      p_profile_photo_url: session.user.user_metadata?.avatar_url || null
+    });
+
+    if (funcError) {
+      console.warn('Database function failed, trying direct update:', funcError.message);
+      
+      // Fallback to direct update
+      const updateData = {
         last_login: new Date().toISOString(),
-        google_user_id: googleUserId,
-        full_name: session.user.user_metadata?.full_name || data.full_name,
-        profile_photo_url: session.user.user_metadata?.avatar_url || data.profile_photo_url
-      })
-      .eq('id', data.id);
+        google_user_id: googleUserId
+      };
+
+      if (session.user.user_metadata?.full_name) {
+        updateData.full_name = session.user.user_metadata.full_name;
+      }
+      if (session.user.user_metadata?.avatar_url) {
+        updateData.profile_photo_url = session.user.user_metadata.avatar_url;
+      }
+
+      const { error: updateError } = await supabase
+        .from('Approved_Users')
+        .update(updateData)
+        .eq('id', data.id);
+
+      if (updateError) {
+        console.error('❌ Failed to update user login data:', updateError);
+        console.error('This may cause issues with user tracking features.');
+      } else {
+        console.log('✅ User login data updated via direct update');
+      }
+    } else {
+      console.log('✅ User login data updated via database function');
+    }
 
     // Log the login
     await logLogin(userEmail, session.user.user_metadata?.full_name || data.full_name, true);

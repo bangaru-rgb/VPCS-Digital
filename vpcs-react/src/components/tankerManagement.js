@@ -57,6 +57,7 @@ function TankerManagement({ userInfo }) {
         setSelectedTankers(updatedTransporter.tankers);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allTransporters]);
 
   // Load all transporters with their tanker counts
