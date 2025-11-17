@@ -38,6 +38,11 @@ const Navigation = ({ userInfo, onLogout }) => {
       name: 'Base Company',
       icon: '🏢',
       path: '/base-company-management'
+    },
+    'user-management': {
+      name: 'User Management',
+      icon: '🔐',
+      path: '/user-management'
     }
   };
 
@@ -195,6 +200,11 @@ export const PageHeader = () => {
       title: 'Base Company Management',
       icon: '🏢',
       description: 'Manage company information and details'
+    },
+    '/user-management': {
+      title: 'User Management',
+      icon: '🔐',
+      description: 'Manage system users and permissions'
     }
   };
 

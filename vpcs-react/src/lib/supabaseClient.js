@@ -1,4 +1,4 @@
-// src/lib/supabaseClient.js - Production Version with Database Function
+// src/lib/supabaseClient.js - Fixed for ENUM status column
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = 'https://dgalxobdjjvxbrogghhk.supabase.co';
@@ -12,6 +12,21 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
     flowType: 'pkce'
   }
 });
+
+// ============================================================================
+// ⚠️ IMPORTANT: Update these values to match your enum!
+// ============================================================================
+// Run this SQL first to see your enum values:
+// SELECT enumlabel FROM pg_enum WHERE enumtypid = 'record_status'::regtype;
+//
+// Then update these constants to match EXACTLY (including capitalization):
+// ============================================================================
+
+const STATUS_ACTIVE = 'Active';      // ⚠️ CHANGE THIS to match your enum
+const STATUS_INACTIVE = 'Inactive';  // ⚠️ CHANGE THIS to match your enum
+const STATUS_SUSPENDED = 'Suspended'; // ⚠️ CHANGE THIS to match your enum
+const STATUS_Decommissioned = 'Decommissioned';    // ⚠️ CHANGE THIS to match your enum
+
 
 /**
  * Role configuration mapping
@@ -41,7 +56,7 @@ const ROLE_CONFIG = {
  * Module definitions (what each role can access)
  */
 const MODULE_ACCESS = {
-  'Administrator': ['calculator', 'cashflow', 'cashflowentry', 'transactions', 'tanker-management', 'base-company-management'],
+  'Administrator': ['calculator', 'cashflow', 'cashflowentry', 'transactions', 'tanker-management', 'base-company-management', 'user-management'],
   'Supervisor': ['tanker-management'],
   'Management': ['calculator', 'cashflow', 'tanker-management', 'base-company-management']
 };
@@ -107,12 +122,14 @@ export const checkApprovedUser = async (session) => {
     const userEmail = session.user.email;
     const googleUserId = session.user.id;
 
-    // Query Approved_Users table
+    console.log('🔍 Checking approval for:', userEmail);
+
+    // Query Approved_Users table - NOW USING THE CORRECT ENUM VALUE
     const { data, error } = await supabase
       .from('Approved_Users')
       .select('*')
       .eq('email', userEmail)
-      .eq('status', 'active')
+      .eq('status', STATUS_ACTIVE)  // ✅ Using the constant that matches your enum
       .single();
 
     if (error || !data) {
@@ -293,7 +310,7 @@ export const addApprovedUser = async (email, role, fullName, approvedBy, notes =
         full_name: fullName,
         approved_by: approvedBy,
         notes,
-        status: 'active'
+        status: STATUS_ACTIVE  // ✅ Using the constant that matches your enum
       }])
       .select()
       .single();
@@ -311,6 +328,12 @@ export const addApprovedUser = async (email, role, fullName, approvedBy, notes =
  */
 export const updateUserStatus = async (userId, status) => {
   try {
+    // Validate status value matches enum
+    const validStatuses = [STATUS_ACTIVE, STATUS_INACTIVE, STATUS_SUSPENDED, STATUS_Decommissioned];
+    if (!validStatuses.includes(status)) {
+      throw new Error(`Invalid status. Must be one of: ${validStatuses.join(', ')}`);
+    }
+
     const { data, error } = await supabase
       .from('Approved_Users')
       .update({ status })
