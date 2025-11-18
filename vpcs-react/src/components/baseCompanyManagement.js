@@ -47,12 +47,18 @@ const BaseCompanyManagement = ({ userInfo }) => {
   // Form state
   const [formData, setFormData] = useState({
     base_company_name: '',
+    nickname: '',
     gst_number: '',
     address: '',
     contact_person: '',
     phones: [''],
     emails: ['']
   });
+  
+  // Nickname validation state
+  const [nicknameStatus, setNicknameStatus] = useState('idle'); // 'idle', 'checking', 'available', 'taken', 'invalid'
+  const [nicknameMessage, setNicknameMessage] = useState('');
+  const [nicknameCheckTimer, setNicknameCheckTimer] = useState(null);
 
   useEffect(() => {
     fetchCompanies();
@@ -118,6 +124,94 @@ const BaseCompanyManagement = ({ userInfo }) => {
       ...prev,
       [name]: value
     }));
+    
+    // Handle nickname validation with debouncing
+    if (name === 'nickname') {
+      handleNicknameChange(value);
+    }
+  };
+  
+  const handleNicknameChange = (value) => {
+    // Clear previous timer
+    if (nicknameCheckTimer) {
+      clearTimeout(nicknameCheckTimer);
+    }
+    
+    // Reset status
+    setNicknameStatus('idle');
+    setNicknameMessage('');
+    
+    // Validate format
+    const trimmedValue = value.trim();
+    if (trimmedValue === '') {
+      return;
+    }
+    
+    // Check length
+    if (trimmedValue.length < 2) {
+      setNicknameStatus('invalid');
+      setNicknameMessage('Nickname must be at least 2 characters');
+      return;
+    }
+    
+    if (trimmedValue.length > 20) {
+      setNicknameStatus('invalid');
+      setNicknameMessage('Nickname must be 20 characters or less');
+      return;
+    }
+    
+    // Check for valid characters (alphanumeric, hyphens, underscores)
+    if (!/^[a-zA-Z0-9_-]+$/.test(trimmedValue)) {
+      setNicknameStatus('invalid');
+      setNicknameMessage('Only letters, numbers, hyphens, and underscores allowed');
+      return;
+    }
+    
+    // Set checking status
+    setNicknameStatus('checking');
+    setNicknameMessage('Checking availability...');
+    
+    // Debounce the API call
+    const timer = setTimeout(() => {
+      checkNicknameAvailability(trimmedValue);
+    }, 500); // 500ms delay
+    
+    setNicknameCheckTimer(timer);
+  };
+  
+  const checkNicknameAvailability = async (nickname) => {
+    try {
+      let query = supabase
+        .from('Base_Company')
+        .select('base_company_id, nickname')
+        .eq('nickname', nickname);
+      
+      // If editing, exclude current company from check
+      if (editingCompany) {
+        query = query.neq('base_company_id', editingCompany.base_company_id);
+      }
+      
+      const { data, error } = await query;
+      
+      if (error) {
+        console.error('Error checking nickname:', error);
+        setNicknameStatus('invalid');
+        setNicknameMessage('Error checking availability');
+        return;
+      }
+      
+      if (data && data.length > 0) {
+        setNicknameStatus('taken');
+        setNicknameMessage('This nickname is already taken');
+      } else {
+        setNicknameStatus('available');
+        setNicknameMessage('Nickname is available!');
+      }
+    } catch (error) {
+      console.error('Error checking nickname:', error);
+      setNicknameStatus('invalid');
+      setNicknameMessage('Error checking availability');
+    }
   };
 
   const handleArrayInputChange = (e, index, field) => {
@@ -152,6 +246,7 @@ const BaseCompanyManagement = ({ userInfo }) => {
   const resetForm = () => {
     setFormData({
       base_company_name: '',
+      nickname: '',
       gst_number: '',
       address: '',
       contact_person: '',
@@ -161,6 +256,11 @@ const BaseCompanyManagement = ({ userInfo }) => {
     setEditingCompany(null);
     setShowForm(false);
     setError('');
+    setNicknameStatus('idle');
+    setNicknameMessage('');
+    if (nicknameCheckTimer) {
+      clearTimeout(nicknameCheckTimer);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -172,10 +272,31 @@ const BaseCompanyManagement = ({ userInfo }) => {
       setError('Company name is required');
       return;
     }
+    
+    if (!formData.nickname.trim()) {
+      setError('Nickname is required');
+      return;
+    }
+    
+    if (nicknameStatus === 'taken') {
+      setError('Please choose a different nickname - this one is already taken');
+      return;
+    }
+    
+    if (nicknameStatus === 'invalid') {
+      setError('Please fix the nickname: ' + nicknameMessage);
+      return;
+    }
+    
+    if (nicknameStatus === 'checking') {
+      setError('Please wait while we check nickname availability');
+      return;
+    }
 
     try {
       const dataToSubmit = {
         ...formData,
+        nickname: formData.nickname.trim(),
         phones: formData.phones.filter(phone => phone.trim() !== ''),
         emails: formData.emails.filter(email => email.trim() !== ''),
       };
@@ -216,7 +337,12 @@ const BaseCompanyManagement = ({ userInfo }) => {
       setTimeout(() => setSuccess(''), 3000);
     } catch (error) {
       console.error('Error saving company:', error);
-      setError(error.message || 'Failed to save company');
+      if (error.code === '23505') {
+        // Unique constraint violation
+        setError('This nickname is already taken. Please choose a different one.');
+      } else {
+        setError(error.message || 'Failed to save company');
+      }
     }
   };
 
@@ -224,6 +350,7 @@ const BaseCompanyManagement = ({ userInfo }) => {
     setEditingCompany(company);
     setFormData({
       base_company_name: company.base_company_name || '',
+      nickname: company.nickname || '',
       gst_number: company.gst_number || '',
       address: company.address || '',
       contact_person: company.contact_person || '',
@@ -232,6 +359,8 @@ const BaseCompanyManagement = ({ userInfo }) => {
     });
     setShowForm(true);
     setError('');
+    setNicknameStatus('idle');
+    setNicknameMessage('');
   };
 
   const toggleStatus = async (company) => {
@@ -276,6 +405,7 @@ const BaseCompanyManagement = ({ userInfo }) => {
     const searchLower = searchTerm.toLowerCase();
     return (
       company.base_company_name?.toLowerCase().includes(searchLower) ||
+      company.nickname?.toLowerCase().includes(searchLower) ||
       company.gst_number?.toLowerCase().includes(searchLower) ||
       company.contact_person?.toLowerCase().includes(searchLower)
     );
@@ -338,6 +468,33 @@ const BaseCompanyManagement = ({ userInfo }) => {
                     placeholder="Enter company name"
                     required
                   />
+                </div>
+
+                <div className="bcm-form-group bcm-full-width">
+                  <label className="bcm-label">
+                    Short Name / Nickname <span className="bcm-required">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="nickname"
+                    value={formData.nickname}
+                    onChange={handleInputChange}
+                    className={`bcm-input ${nicknameStatus === 'taken' || nicknameStatus === 'invalid' ? 'bcm-input-error' : ''} ${nicknameStatus === 'available' ? 'bcm-input-success' : ''}`}
+                    placeholder="e.g., ABC or MyCompany"
+                    maxLength="20"
+                    required
+                  />
+                  {nicknameStatus !== 'idle' && (
+                    <div className={`bcm-nickname-feedback bcm-nickname-${nicknameStatus}`}>
+                      {nicknameStatus === 'checking' && '⏳ '}
+                      {nicknameStatus === 'available' && '✓ '}
+                      {(nicknameStatus === 'taken' || nicknameStatus === 'invalid') && '✕ '}
+                      {nicknameMessage}
+                    </div>
+                  )}
+                  <small className="bcm-input-help">
+                    2-20 characters. Letters, numbers, hyphens, and underscores only.
+                  </small>
                 </div>
 
                 <div className="bcm-form-group">
@@ -494,7 +651,7 @@ const BaseCompanyManagement = ({ userInfo }) => {
           <input
             type="text"
             className="bcm-search-input"
-            placeholder="Search companies by name, GST, or contact person..."
+            placeholder="Search companies by name, nickname, GST, or contact person..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -545,6 +702,13 @@ const BaseCompanyManagement = ({ userInfo }) => {
                 </div>
 
                 <div className="bcm-card-body">
+                  {company.nickname && (
+                    <div className="bcm-card-row">
+                      <span className="bcm-card-label">Short Name:</span>
+                      <span className="bcm-card-value" style={{fontWeight: 600, color: '#007bff'}}>{company.nickname}</span>
+                    </div>
+                  )}
+                  
                   {company.gst_number && (
                     <div className="bcm-card-row">
                       <span className="bcm-card-label">GST:</span>

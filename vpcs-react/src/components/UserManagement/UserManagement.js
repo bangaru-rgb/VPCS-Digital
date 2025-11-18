@@ -63,57 +63,67 @@ const UserManagement = ({ userInfo }) => {
 
   return (
     <div className="user-management-container">
-      {/* Header Section */}
-      <div className="management-header">
-        <div className="header-info">
-          <h1>🔐 User Management</h1>
-          <p className="header-subtitle">
-            Manage system access and user permissions
-          </p>
-        </div>
-        <div className="header-stats">
-          <div className="stat-card">
-            <div className="stat-value">{users.length}</div>
-            <div className="stat-label">Total Users</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-value">
-              {users.filter(u => u.status === 'Active').length}
-            </div>
-            <div className="stat-label">Active</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-value">
-              {users.filter(u => u.role === 'Administrator').length}
-            </div>
-            <div className="stat-label">Admins</div>
-          </div>
-        </div>
+      {/* Page Header */}
+      <div className="header-info">
+        <h1>🔐 User Management</h1>
+        <p className="header-subtitle">
+          Manage system access and user permissions
+        </p>
       </div>
 
-      {/* Error Message */}
-      {error && (
-        <div className="error-banner">
-          <span className="error-icon">⚠️</span>
-          <span>{error}</span>
-          <button onClick={fetchUsers} className="retry-button">
-            Retry
-          </button>
+      {/* Main Content Layout */}
+      <div className="user-management-layout">
+        {/* --- Left Column: Add User Form --- */}
+        <div className="layout-left-column">
+          <AddUserForm 
+            userInfo={userInfo} 
+            onUserAdded={fetchUsers} 
+          />
         </div>
-      )}
 
-      {/* Add User Form */}
-      <AddUserForm 
-        userInfo={userInfo} 
-        onUserAdded={fetchUsers} 
-      />
+        {/* --- Right Column: User List and Stats --- */}
+        <div className="layout-right-column">
+          {/* Header Stats */}
+          <div className="management-header">
+            <div className="header-stats">
+              <div className="stat-card">
+                <div className="stat-value">{users.length}</div>
+                <div className="stat-label">Total Users</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-value">
+                  {users.filter(u => u.status === 'Active').length}
+                </div>
+                <div className="stat-label">Active</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-value">
+                  {users.filter(u => u.role === 'Administrator').length}
+                </div>
+                <div className="stat-label">Admins</div>
+              </div>
+            </div>
+          </div>
 
-      {/* User List */}
-      <UserList 
-        users={users} 
-        loading={loading} 
-        onUpdateStatus={handleUpdateStatus} 
-      />
+          {/* Error Message */}
+          {error && (
+            <div className="error-banner">
+              <span className="error-icon">⚠️</span>
+              <span>{error}</span>
+              <button onClick={fetchUsers} className="retry-button">
+                Retry
+              </button>
+            </div>
+          )}
+
+          {/* User List */}
+          <UserList 
+            users={users} 
+            loading={loading} 
+            onUpdateStatus={handleUpdateStatus} 
+          />
+        </div>
+      </div>
     </div>
   );
 };

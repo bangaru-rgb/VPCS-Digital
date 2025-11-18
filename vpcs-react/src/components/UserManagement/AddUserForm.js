@@ -70,36 +70,34 @@ const AddUserForm = ({ userInfo, onUserAdded }) => {
       </div>
       
       <form onSubmit={handleAddUser}>
-        <div className="form-row">
-          <div className="form-group">
-            <label htmlFor="email">
-              Email Address <span className="required">*</span>
-            </label>
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="user@example.com"
-              required
-              disabled={loading}
-            />
-          </div>
+        <div className="form-group">
+          <label htmlFor="fullName">
+            Full Name <span className="required">*</span>
+          </label>
+          <input
+            type="text"
+            id="fullName"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            placeholder="John Doe"
+            required
+            disabled={loading}
+          />
+        </div>
 
-          <div className="form-group">
-            <label htmlFor="fullName">
-              Full Name <span className="required">*</span>
-            </label>
-            <input
-              type="text"
-              id="fullName"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              placeholder="John Doe"
-              required
-              disabled={loading}
-            />
-          </div>
+        <div className="form-group">
+          <label htmlFor="email">
+            Email Address <span className="required">*</span>
+          </label>
+          <input
+            type="email"
+            id="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="user@example.com"
+            required
+            disabled={loading}
+          />
         </div>
 
         <div className="form-row">

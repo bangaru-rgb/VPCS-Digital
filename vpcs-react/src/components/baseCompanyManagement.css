@@ -316,6 +316,55 @@
   color: #9ca3af;
 }
 
+/* Nickname validation styles */
+.bcm-input-error {
+  border-color: #dc2626 !important;
+  background: #fef2f2;
+}
+
+.bcm-input-success {
+  border-color: #16a34a !important;
+  background: #f0fdf4;
+}
+
+.bcm-nickname-feedback {
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-top: 6px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bcm-nickname-checking {
+  background: #eff6ff;
+  color: #1e40af;
+  border: 1px solid #dbeafe;
+}
+
+.bcm-nickname-available {
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
+}
+
+.bcm-nickname-taken,
+.bcm-nickname-invalid {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.bcm-input-help {
+  display: block;
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin-top: 6px;
+  font-style: italic;
+}
+
 /* Styles for dynamic array inputs */
 .bcm-array-input-group {
   display: flex;
