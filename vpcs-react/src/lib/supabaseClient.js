@@ -56,9 +56,9 @@ const ROLE_CONFIG = {
  * Module definitions (what each role can access)
  */
 const MODULE_ACCESS = {
-  'Administrator': ['calculator', 'cashflow', 'cashflowentry', 'transactions', 'tanker-management', 'base-company-management', 'user-management'],
+  'Administrator': ['calculator', 'cashflow', 'cashflowentry', 'transactions', 'tanker-management', 'base-company-management', 'user-management', 'parties'],
   'Supervisor': ['tanker-management'],
-  'Management': ['calculator', 'cashflow', 'tanker-management', 'base-company-management']
+  'Management': ['calculator', 'cashflow', 'tanker-management', 'base-company-management', 'parties']
 };
 
 /**
@@ -345,6 +345,63 @@ export const updateUserStatus = async (userId, status) => {
     return { success: true, data };
   } catch (error) {
     console.error('Error updating user status:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Get all parties
+ */
+export const getAllParties = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('Parties')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error fetching parties:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Add new party
+ */
+export const addParty = async (partyData) => {
+  try {
+    const { data, error } = await supabase
+      .from('Parties')
+      .insert([partyData])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error adding party:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Update party
+ */
+export const updateParty = async (partyId, updatedData) => {
+  try {
+    const { data, error } = await supabase
+      .from('Parties')
+      .update(updatedData)
+      .eq('party_id', partyId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error updating party:', error);
     return { success: false, error: error.message };
   }
 };

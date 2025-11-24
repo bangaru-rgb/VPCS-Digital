@@ -10,6 +10,7 @@ import InvoicesDashboard from './components/invoicesDashboard';
 import TankerManagement from './components/tankerManagement';
 import BaseCompanyManagement from './components/baseCompanyManagement';
 import UserManagement from './components/UserManagement/UserManagement';
+import Parties from './components/Parties/Parties';
 import { signOut, getCurrentSession, hasModuleAccess } from './lib/supabaseClient';
 import './App.css';
 
@@ -85,7 +86,8 @@ function App() {
       'transactions': '/transactions',
       'tanker-management': '/tanker-management',
       'base-company-management': '/base-company-management',
-        'user-management': '/user-management'
+      'user-management': '/user-management',
+      'parties': '/parties'
     };
 
     return moduleRouteMap[firstModule] || '/calculator';
@@ -222,7 +224,15 @@ function App() {
       <UserManagement userInfo={userInfo} />
     </ProtectedRoute>
   }
-/>   
+/>
+<Route 
+  path="/parties"
+  element={
+    <ProtectedRoute requiredModule="parties">
+      <Parties userInfo={userInfo} />
+    </ProtectedRoute>
+  }
+/>
               {/* Fallback Route */}
               <Route 
                 path="*" 

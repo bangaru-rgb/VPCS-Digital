@@ -4,11 +4,12 @@ import { addApprovedUser } from '../../lib/supabaseClient';
 const AddUserForm = ({ userInfo, onUserAdded }) => {
   const [email, setEmail] = useState('');
   const [fullName, setFullName] = useState('');
-  const [role, setRole] = useState('Supervisor');
+  const [role, setRole] = useState('');
   const [notes, setNotes] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  
 
   const handleAddUser = async (e) => {
     e.preventDefault();
@@ -46,7 +47,7 @@ const AddUserForm = ({ userInfo, onUserAdded }) => {
       setSuccess(`✅ User ${fullName} added successfully with ${role} role.`);
       setEmail('');
       setFullName('');
-      setRole('Supervisor');
+      setRole('');
       setNotes('');
       
       if (onUserAdded) {
@@ -79,7 +80,7 @@ const AddUserForm = ({ userInfo, onUserAdded }) => {
             id="fullName"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-            placeholder="John Doe"
+            placeholder="Bangaru naidu"
             required
             disabled={loading}
           />
@@ -111,6 +112,7 @@ const AddUserForm = ({ userInfo, onUserAdded }) => {
               onChange={(e) => setRole(e.target.value)}
               disabled={loading}
             >
+                <option value="">Select role</option>
               <option value="Administrator">Administrator - Full system access</option>
               <option value="Supervisor">Supervisor - Operations management</option>
               <option value="Management">Management - Financial oversight</option>

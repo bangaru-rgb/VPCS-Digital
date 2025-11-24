@@ -43,6 +43,11 @@ const Navigation = ({ userInfo, onLogout }) => {
       name: 'User Management',
       icon: '🔐',
       path: '/user-management'
+    },
+    'parties': {
+      name: 'Parties',
+      icon: '👥',
+      path: '/parties'
     }
   };
 
@@ -205,6 +210,11 @@ export const PageHeader = () => {
       title: 'User Management',
       icon: '🔐',
       description: 'Manage system users and permissions'
+    },
+    '/parties': {
+      title: 'Parties',
+      icon: '👥',
+      description: 'Manage suppliers, customers, and other business parties'
     }
   };
 
