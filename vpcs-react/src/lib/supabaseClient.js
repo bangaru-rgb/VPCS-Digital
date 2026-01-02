@@ -56,9 +56,9 @@ const ROLE_CONFIG = {
  * Module definitions (what each role can access)
  */
 const MODULE_ACCESS = {
-  'Administrator': ['calculator', 'cashflow', 'cashflowentry', 'transactions', 'tanker-management', 'base-company-management', 'user-management', 'parties'],
+  'Administrator': ['calculator', 'cashflow', 'cashflowentry', 'transactions', 'tanker-management', 'base-company-management', 'user-management', 'parties', 'material-management'],
   'Supervisor': ['tanker-management'],
-  'Management': ['calculator', 'cashflow', 'tanker-management', 'base-company-management', 'parties']
+  'Management': ['calculator', 'cashflow', 'tanker-management', 'base-company-management', 'parties', 'material-management']
 };
 
 /**
@@ -402,6 +402,119 @@ export const updateParty = async (partyId, updatedData) => {
     return { success: true, data };
   } catch (error) {
     console.error('Error updating party:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Update party status
+ */
+export const updatePartyStatus = async (partyId, status) => {
+  try {
+    // Validate status value matches enum
+    const validStatuses = [STATUS_ACTIVE, STATUS_INACTIVE, STATUS_SUSPENDED, STATUS_Decommissioned];
+    if (!validStatuses.includes(status)) {
+      throw new Error(`Invalid status. Must be one of: ${validStatuses.join(', ')}`);
+    }
+
+    const { data, error } = await supabase
+      .from('Parties')
+      .update({ status })
+      .eq('party_id', partyId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error updating party status:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+// ============================================================================
+// MATERIALS MANAGEMENT FUNCTIONS
+// ============================================================================
+
+/**
+ * Get all materials
+ */
+export const getAllMaterials = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('Materials')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error fetching materials:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Add new material
+ */
+export const addMaterial = async (materialData) => {
+  try {
+    const { data, error } = await supabase
+      .from('Materials')
+      .insert([materialData])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error adding material:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Update material
+ */
+export const updateMaterial = async (materialId, updatedData) => {
+  try {
+    const { data, error } = await supabase
+      .from('Materials')
+      .update(updatedData)
+      .eq('material_id', materialId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error updating material:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Update material status
+ */
+export const updateMaterialStatus = async (materialId, status) => {
+  try {
+    // Validate status value matches enum
+    const validStatuses = [STATUS_ACTIVE, STATUS_INACTIVE, STATUS_SUSPENDED, STATUS_Decommissioned];
+    if (!validStatuses.includes(status)) {
+      throw new Error(`Invalid status. Must be one of: ${validStatuses.join(', ')}`);
+    }
+
+    const { data, error } = await supabase
+      .from('Materials')
+      .update({ status })
+      .eq('material_id', materialId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error updating material status:', error);
     return { success: false, error: error.message };
   }
 };

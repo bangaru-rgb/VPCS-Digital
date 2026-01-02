@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { addParty } from '../../lib/supabaseClient';
 
-const AddPartyForm = ({ userInfo, onPartyAdded }) => {
+const AddPartyForm = ({ userInfo, onPartyAdded, onCancel }) => {
   const [partyName, setPartyName] = useState('');
   const [nickname, setNickname] = useState('');
   const [address, setAddress] = useState('');
@@ -71,11 +71,13 @@ const AddPartyForm = ({ userInfo, onPartyAdded }) => {
 
   return (
     <div className="add-user-form"> {/* Reusing CSS class for now */}
-      <div className="form-header">
-        <h2>➕ Add New Party</h2>
-        <p className="form-subtitle">Add a new supplier, customer, or business party</p>
-      </div>
-      
+      {!onCancel && (
+        <div className="form-header">
+          <h2>➕ Add New Party</h2>
+          <p className="form-subtitle">Add a new supplier, customer, or business party</p>
+        </div>
+      )}
+
       <form onSubmit={handleAddParty}>
         <div className="form-group">
           <label htmlFor="partyName">
@@ -194,19 +196,45 @@ const AddPartyForm = ({ userInfo, onPartyAdded }) => {
           </div>
         )}
 
-        <button type="submit" disabled={loading} className="submit-button">
-          {loading ? (
-            <>
-              <span className="spinner-small"></span>
-              <span>Adding Party...</span>
-            </>
-          ) : (
-            <>
-              <span>➕</span>
-              <span>Add Party</span>
-            </>
-          )}
-        </button>
+        {onCancel ? (
+          <div className="modal-actions">
+            <button
+              type="button"
+              onClick={onCancel}
+              className="cancel-button"
+              disabled={loading}
+            >
+              Cancel
+            </button>
+            <button type="submit" disabled={loading} className="submit-button">
+              {loading ? (
+                <>
+                  <span className="spinner-small"></span>
+                  <span>Adding...</span>
+                </>
+              ) : (
+                <>
+                  <span>➕</span>
+                  <span>Add Party</span>
+                </>
+              )}
+            </button>
+          </div>
+        ) : (
+          <button type="submit" disabled={loading} className="submit-button">
+            {loading ? (
+              <>
+                <span className="spinner-small"></span>
+                <span>Adding Party...</span>
+              </>
+            ) : (
+              <>
+                <span>➕</span>
+                <span>Add Party</span>
+              </>
+            )}
+          </button>
+        )}
       </form>
     </div>
   );

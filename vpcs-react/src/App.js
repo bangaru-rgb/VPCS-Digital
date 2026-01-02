@@ -11,6 +11,7 @@ import TankerManagement from './components/tankerManagement';
 import BaseCompanyManagement from './components/baseCompanyManagement';
 import UserManagement from './components/UserManagement/UserManagement';
 import Parties from './components/Parties/Parties';
+import MaterialManagement from './components/Materials/MaterialManagement';
 import { signOut, getCurrentSession, hasModuleAccess } from './lib/supabaseClient';
 import './App.css';
 
@@ -87,7 +88,8 @@ function App() {
       'tanker-management': '/tanker-management',
       'base-company-management': '/base-company-management',
       'user-management': '/user-management',
-      'parties': '/parties'
+      'parties': '/parties',
+      'material-management': '/material-management'
     };
 
     return moduleRouteMap[firstModule] || '/calculator';
@@ -225,11 +227,19 @@ function App() {
     </ProtectedRoute>
   }
 />
-<Route 
+<Route
   path="/parties"
   element={
     <ProtectedRoute requiredModule="parties">
       <Parties userInfo={userInfo} />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/material-management"
+  element={
+    <ProtectedRoute requiredModule="material-management">
+      <MaterialManagement userInfo={userInfo} />
     </ProtectedRoute>
   }
 />

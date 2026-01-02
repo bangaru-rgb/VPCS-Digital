@@ -48,6 +48,11 @@ const Navigation = ({ userInfo, onLogout }) => {
       name: 'Parties',
       icon: '👥',
       path: '/parties'
+    },
+    'material-management': {
+      name: 'Material Management',
+      icon: '📦',
+      path: '/material-management'
     }
   };
 
@@ -215,6 +220,11 @@ export const PageHeader = () => {
       title: 'Parties',
       icon: '👥',
       description: 'Manage suppliers, customers, and other business parties'
+    },
+    '/material-management': {
+      title: 'Material Management',
+      icon: '📦',
+      description: 'Manage materials and inventory'
     }
   };
 
