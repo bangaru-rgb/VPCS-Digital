@@ -113,6 +113,8 @@ export const signInWithGoogle = async () => {
 /**
  * Check if user is approved and get their access configuration
  */
+// In supabase.js, modify the checkApprovedUser function
+
 export const checkApprovedUser = async (session) => {
   try {
     if (!session?.user) {
@@ -124,12 +126,12 @@ export const checkApprovedUser = async (session) => {
 
     console.log('🔍 Checking approval for:', userEmail);
 
-    // Query Approved_Users table - NOW USING THE CORRECT ENUM VALUE
+    // Query Approved_Users table
     const { data, error } = await supabase
       .from('Approved_Users')
       .select('*')
       .eq('email', userEmail)
-      .eq('status', STATUS_ACTIVE)  // ✅ Using the constant that matches your enum
+      .eq('status', STATUS_ACTIVE)
       .single();
 
     if (error || !data) {
@@ -139,49 +141,36 @@ export const checkApprovedUser = async (session) => {
 
     console.log('✅ User authenticated:', userEmail);
 
-    // Try using database function first (more reliable, bypasses RLS)
-    const { error: funcError } = await supabase.rpc('update_user_login_data', {
-      p_email: userEmail,
-      p_google_user_id: googleUserId,
-      p_last_login: new Date().toISOString(),
-      p_full_name: session.user.user_metadata?.full_name || null,
-      p_profile_photo_url: session.user.user_metadata?.avatar_url || null
-    });
+    // Update last login and other user data
+    const updateData = {
+      last_login: new Date().toISOString(),
+      google_user_id: googleUserId,
+      updated_by_user_id: googleUserId  // Track who last updated the record
+    };
 
-    if (funcError) {
-      console.warn('Database function failed, trying direct update:', funcError.message);
-      
-      // Fallback to direct update
-      const updateData = {
-        last_login: new Date().toISOString(),
-        google_user_id: googleUserId
-      };
+    if (session.user.user_metadata?.full_name) {
+      updateData.full_name = session.user.user_metadata.full_name;
+    }
+    if (session.user.user_metadata?.avatar_url) {
+      updateData.profile_photo_url = session.user.user_metadata.avatar_url;
+    }
 
-      if (session.user.user_metadata?.full_name) {
-        updateData.full_name = session.user.user_metadata.full_name;
-      }
-      if (session.user.user_metadata?.avatar_url) {
-        updateData.profile_photo_url = session.user.user_metadata.avatar_url;
-      }
+    // Update the user record
+    const { error: updateError } = await supabase
+      .from('Approved_Users')
+      .update(updateData)
+      .eq('id', data.id);
 
-      const { error: updateError } = await supabase
-        .from('Approved_Users')
-        .update(updateData)
-        .eq('id', data.id);
-
-      if (updateError) {
-        console.error('❌ Failed to update user login data:', updateError);
-        console.error('This may cause issues with user tracking features.');
-      } else {
-        console.log('✅ User login data updated via direct update');
-      }
+    if (updateError) {
+      console.error('❌ Failed to update user login data:', updateError);
     } else {
-      console.log('✅ User login data updated via database function');
+      console.log('✅ User login data updated successfully');
     }
 
     // Log the login
     await logLogin(userEmail, session.user.user_metadata?.full_name || data.full_name, true);
 
+    // Return user info (rest of the function remains the same)
     const roleConfig = ROLE_CONFIG[data.role] || {};
     const modules = MODULE_ACCESS[data.role] || [];
 
@@ -284,9 +273,14 @@ export const hasModuleAccess = (userInfo, moduleName) => {
  */
 export const getAllApprovedUsers = async () => {
   try {
+    // Get all users with creator/updater details
     const { data, error } = await supabase
       .from('Approved_Users')
-      .select('*')
+      .select(`
+        *,
+        creator:created_by_user_id(email, full_name),
+        updater:updated_by_user_id(email, full_name)
+      `)
       .order('approved_at', { ascending: false });
 
     if (error) throw error;
