@@ -117,7 +117,7 @@ const UserList = ({ users, loading, onUpdateStatus }) => {
         </div>
       </div>
 
-      {/* User Table */}
+      {/* Desktop Table View */}
       <div className="table-container">
         <table className="user-table">
           <thead>
@@ -180,6 +180,68 @@ const UserList = ({ users, loading, onUpdateStatus }) => {
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile Card View */}
+      <div className="user-cards">
+        {filteredUsers.map((user) => (
+          <div key={user.id} className="user-card">
+            <div className="user-card-header">
+              {user.profile_photo_url ? (
+                <img 
+                  src={user.profile_photo_url} 
+                  alt={user.full_name} 
+                  className="user-card-avatar"
+                />
+              ) : (
+                <div className="user-card-avatar-placeholder">
+                  {user.full_name?.charAt(0)?.toUpperCase() || '?'}
+                </div>
+              )}
+              <div className="user-card-info">
+                <h3 className="user-card-name">{user.full_name || 'N/A'}</h3>
+                <p className="user-card-email">{user.email}</p>
+              </div>
+            </div>
+
+            <div className="user-card-body">
+              <div className="user-card-row">
+                <span className="user-card-label">Role</span>
+                <span className={`role-badge ${getRoleBadgeClass(user.role)}`}>
+                  {user.role}
+                </span>
+              </div>
+
+              <div className="user-card-row">
+                <span className="user-card-label">Status</span>
+                <span className={`status-badge status-${user.status?.toLowerCase()}`}>
+                  {user.status}
+                </span>
+              </div>
+
+              <div className="user-card-row">
+                <span className="user-card-label">Last Login</span>
+                <span className="user-card-value">
+                  {formatDate(user.last_login)}
+                </span>
+              </div>
+            </div>
+
+            <div className="user-card-actions">
+              <select
+                className="status-select"
+                value={user.status}
+                onChange={(e) => handleStatusChange(user.id, e.target.value)}
+                title="Change user status"
+              >
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+                <option value="Suspended">Suspended</option>
+                <option value="Decommissioned">Decommissioned</option>
+              </select>
+            </div>
+          </div>
+        ))}
       </div>
 
       {filteredUsers.length === 0 && (

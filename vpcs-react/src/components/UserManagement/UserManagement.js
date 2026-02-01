@@ -66,7 +66,7 @@ const UserManagement = ({ userInfo }) => {
     <div className="user-management-container">
       {/* Page Header */}
       <div className="header-info">
-        <h1>🔐 User Management</h1>
+        <h1>🔑 User Management</h1>
         <p className="header-subtitle">
           Manage system access and user permissions
         </p>
@@ -91,48 +91,35 @@ const UserManagement = ({ userInfo }) => {
         </div>
       )}
 
-      {/* User List */}
-      <div className="user-management-layout">
-        {/* Header Stats */}
-        <div className="management-header">
-          <div className="header-stats">
-            <div className="stat-card">
-              <div className="stat-value">{users.length}</div>
-              <div className="stat-label">Total Users</div>
+      {/* Header Stats */}
+      <div className="management-header">
+        <div className="header-stats">
+          <div className="stat-card">
+            <div className="stat-value">{users.length}</div>
+            <div className="stat-label">Total Users</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-value">
+              {users.filter(u => u.status === 'Active').length}
             </div>
-            <div className="stat-card">
-              <div className="stat-value">
-                {users.filter(u => u.status === 'Active').length}
-              </div>
-              <div className="stat-label">Active</div>
+            <div className="stat-label">Active</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-value">
+              {users.filter(u => u.status === 'Inactive').length}
             </div>
-            <div className="stat-card">
-              <div className="stat-value">
-                {users.filter(u => u.status === 'Inactive').length}
-              </div>
-              <div className="stat-label">Inactive</div>
-            </div>
+            <div className="stat-label">Inactive</div>
           </div>
         </div>
+      </div>
 
-        {/* User List */}
-        {loading ? (
-          <div className="loading-state">
-            <div className="loading-spinner"></div>
-            <p>Loading users...</p>
-          </div>
-        ) : users.length === 0 ? (
-          <div className="empty-state">
-            <p className="empty-icon">👥</p>
-            <p className="empty-text">No users found</p>
-            <p className="empty-subtext">Click "Add New User" to create one</p>
-          </div>
-        ) : (
-          <UserList 
-            users={users}
-            onStatusChange={handleUpdateStatus}
-          />
-        )}
+      {/* User List - Fixed: Now renders properly */}
+      <div className="user-management-layout">
+        <UserList 
+          users={users}
+          loading={loading}
+          onUpdateStatus={handleUpdateStatus}
+        />
       </div>
 
       {/* Add User Modal */}
