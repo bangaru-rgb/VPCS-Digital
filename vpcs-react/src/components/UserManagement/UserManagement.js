@@ -166,34 +166,3 @@ const UserManagement = ({ userInfo }) => {
 };
 
 export default UserManagement;
-                  {users.filter(u => u.role === 'Administrator').length}
-                </div>
-                <div className="stat-label">Admins</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Error Message */}
-          {error && (
-            <div className="error-banner">
-              <span className="error-icon">⚠️</span>
-              <span>{error}</span>
-              <button onClick={fetchUsers} className="retry-button">
-                Retry
-              </button>
-            </div>
-          )}
-
-          {/* User List */}
-          <UserList 
-            users={users} 
-            loading={loading} 
-            onUpdateStatus={handleUpdateStatus} 
-          />
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default UserManagement;
