@@ -66,6 +66,8 @@ function App() {
       setUserInfo(null);
       localStorage.removeItem('userRole');
       localStorage.removeItem('lastLoginTime');
+      // Redirect to login page after logout
+      window.location.href = '/';
     } catch (error) {
       console.error('Logout error:', error);
     }
