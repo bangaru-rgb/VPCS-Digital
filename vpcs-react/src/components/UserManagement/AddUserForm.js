@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { addApprovedUser } from '../../lib/supabaseClient';
 
-const AddUserForm = ({ userInfo, onUserAdded }) => {
+const AddUserForm = ({ userInfo, onUserAdded, onCancel }) => {
   const [email, setEmail] = useState('');
   const [fullName, setFullName] = useState('');
   const [role, setRole] = useState('');
@@ -64,90 +64,85 @@ const AddUserForm = ({ userInfo, onUserAdded }) => {
   };
 
   return (
-    <div className="add-user-form">
-      <div className="form-header">
-        <h2>➕ Add New User</h2>
-        <p className="form-subtitle">Grant access to new team members</p>
+    <form onSubmit={handleAddUser} className="add-user-form-inline">
+      <div className="form-group">
+        <label htmlFor="fullName">
+          Full Name <span className="required">*</span>
+        </label>
+        <input
+          type="text"
+          id="fullName"
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
+          placeholder="Bangaru naidu"
+          required
+          disabled={loading}
+        />
       </div>
+
+      <div className="form-group">
+        <label htmlFor="email">
+          Email Address <span className="required">*</span>
+        </label>
+        <input
+          type="email"
+          id="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="user@example.com"
+          required
+          disabled={loading}
+        />
+      </div>
+
+      <div className="form-row">
+        <div className="form-group">
+          <label htmlFor="role">
+            Role <span className="required">*</span>
+          </label>
+          <select 
+            id="role" 
+            value={role} 
+            onChange={(e) => setRole(e.target.value)}
+            disabled={loading}
+          >
+              <option value="">Select role</option>
+            <option value="Administrator">Administrator - Full system access</option>
+            <option value="Supervisor">Supervisor - Operations management</option>
+            <option value="Management">Management - Financial oversight</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="notes">
+          Notes <span className="optional">(Optional)</span>
+        </label>
+        <textarea
+          id="notes"
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="Add any additional notes about this user..."
+          rows="3"
+          disabled={loading}
+        />
+      </div>
+
+      {error && (
+        <div className="error-message">
+          <span className="icon">⚠️</span>
+          <span>{error}</span>
+        </div>
+      )}
       
-      <form onSubmit={handleAddUser}>
-        <div className="form-group">
-          <label htmlFor="fullName">
-            Full Name <span className="required">*</span>
-          </label>
-          <input
-            type="text"
-            id="fullName"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            placeholder="Bangaru naidu"
-            required
-            disabled={loading}
-          />
+      {success && (
+        <div className="success-message">
+          <span className="icon">✓</span>
+          <span>{success}</span>
         </div>
+      )}
 
-        <div className="form-group">
-          <label htmlFor="email">
-            Email Address <span className="required">*</span>
-          </label>
-          <input
-            type="email"
-            id="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="user@example.com"
-            required
-            disabled={loading}
-          />
-        </div>
-
-        <div className="form-row">
-          <div className="form-group">
-            <label htmlFor="role">
-              Role <span className="required">*</span>
-            </label>
-            <select 
-              id="role" 
-              value={role} 
-              onChange={(e) => setRole(e.target.value)}
-              disabled={loading}
-            >
-                <option value="">Select role</option>
-              <option value="Administrator">Administrator - Full system access</option>
-              <option value="Supervisor">Supervisor - Operations management</option>
-              <option value="Management">Management - Financial oversight</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="notes">
-            Notes <span className="optional">(Optional)</span>
-          </label>
-          <textarea
-            id="notes"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Add any additional notes about this user..."
-            rows="3"
-            disabled={loading}
-          />
-        </div>
-
-        {error && (
-          <div className="error-message">
-            <span className="icon">⚠️</span>
-            <span>{error}</span>
-          </div>
-        )}
-        
-        {success && (
-          <div className="success-message">
-            <span className="icon">✓</span>
-            <span>{success}</span>
-          </div>
-        )}
-
+      <div className="form-button-group">
         <button type="submit" disabled={loading} className="submit-button">
           {loading ? (
             <>
@@ -161,8 +156,18 @@ const AddUserForm = ({ userInfo, onUserAdded }) => {
             </>
           )}
         </button>
-      </form>
-    </div>
+        {onCancel && (
+          <button 
+            type="button" 
+            onClick={onCancel} 
+            disabled={loading}
+            className="cancel-button"
+          >
+            Cancel
+          </button>
+        )}
+      </div>
+    </form>
   );
 };
 
