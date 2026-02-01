@@ -54,30 +54,8 @@ const UserList = ({ users, loading, onUpdateStatus }) => {
     }
   };
 
-  // Format date
-  const formatDate = (dateString) => {
-    if (!dateString) return 'Never';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
   return (
     <div className="user-list">
-      <div className="list-header">
-        <div className="header-content">
-          <h2>👥 User Directory</h2>
-          <p className="list-subtitle">
-            Showing {filteredUsers.length} of {users.length} users
-          </p>
-        </div>
-      </div>
-
       {/* Filters */}
       <div className="list-filters">
         <div className="search-box">
@@ -126,7 +104,6 @@ const UserList = ({ users, loading, onUpdateStatus }) => {
               <th>Email</th>
               <th>Role</th>
               <th>Status</th>
-              <th>Last Login</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -159,9 +136,6 @@ const UserList = ({ users, loading, onUpdateStatus }) => {
                   <span className={`status-badge status-${user.status?.toLowerCase()}`}>
                     {user.status}
                   </span>
-                </td>
-                <td className="date-cell">
-                  {formatDate(user.last_login)}
                 </td>
                 <td className="actions-cell">
                   <select
@@ -216,13 +190,6 @@ const UserList = ({ users, loading, onUpdateStatus }) => {
                 <span className="user-card-label">Status</span>
                 <span className={`status-badge status-${user.status?.toLowerCase()}`}>
                   {user.status}
-                </span>
-              </div>
-
-              <div className="user-card-row">
-                <span className="user-card-label">Last Login</span>
-                <span className="user-card-value">
-                  {formatDate(user.last_login)}
                 </span>
               </div>
             </div>

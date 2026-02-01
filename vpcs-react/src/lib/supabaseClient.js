@@ -273,14 +273,9 @@ export const hasModuleAccess = (userInfo, moduleName) => {
  */
 export const getAllApprovedUsers = async () => {
   try {
-    // Get all users with creator/updater details
     const { data, error } = await supabase
       .from('Approved_Users')
-      .select(`
-        *,
-        creator:created_by_user_id(email, full_name),
-        updater:updated_by_user_id(email, full_name)
-      `)
+      .select('*')
       .order('approved_at', { ascending: false });
 
     if (error) throw error;

@@ -73,7 +73,14 @@
   transform: translateX(0);
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
-
+/* Add this new style: */
+.nav-items {
+  list-style: none;
+  padding: 20px 16px;
+  margin: 0;
+  flex: 1;
+  overflow-y: auto; /* Move scroll to nav-items instead */
+}
 /* Custom Scrollbar */
 .nav-menu::-webkit-scrollbar {
   width: 6px;

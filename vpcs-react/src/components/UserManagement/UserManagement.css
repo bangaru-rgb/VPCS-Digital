@@ -486,24 +486,6 @@
   overflow: hidden;
 }
 
-.list-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 20px 24px;
-}
-
-.header-content h2 {
-  font-size: 20px;
-  font-weight: 700;
-  margin: 0 0 4px 0;
-}
-
-.list-subtitle {
-  font-size: 13px;
-  margin: 0;
-  opacity: 0.9;
-}
-
 /* === FILTERS === */
 .list-filters {
   padding: 20px;
@@ -960,10 +942,6 @@
     width: auto;
     min-width: 150px;
   }
-
-  .list-header {
-    padding: 20px 32px;
-  }
 }
 
 /* === RESPONSIVE: MOBILE === */
@@ -1010,10 +988,6 @@
 
   .stat-value {
     font-size: 24px;
-  }
-
-  .list-header {
-    padding: 16px 20px;
   }
 }
 
