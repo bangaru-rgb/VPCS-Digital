@@ -65,19 +65,19 @@ const MODULE_ACCESS = {
  * Get the correct redirect URL based on environment
  */
 const getRedirectUrl = () => {
+  // For production on GitHub Pages - ALWAYS use this URL
+  if (window.location.hostname.includes('github.io')) {
+    return 'https://bangaru-rgb.github.io/VPCS-Digital';
+  }
+  
   // Use environment variable if set
   if (process.env.REACT_APP_SITE_URL) {
     return process.env.REACT_APP_SITE_URL;
   }
   
-  // For development, use root URL
-  if (process.env.NODE_ENV === 'development') {
+  // For development, use localhost
+  if (process.env.NODE_ENV === 'development' || window.location.hostname === 'localhost') {
     return 'http://localhost:3000';
-  }
-  
-  // For production on GitHub Pages
-  if (window.location.hostname.includes('github.io')) {
-    return 'https://bangaru-rgb.github.io/VPCS-Digital';
   }
   
   // Fallback to origin
