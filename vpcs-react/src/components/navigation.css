@@ -378,7 +378,7 @@
 
 /* Page Title Section */
 .page-title-section {
-  display: flex;
+  display: none;
   flex-direction: column;
   gap: 4px;
   min-width: 0;
