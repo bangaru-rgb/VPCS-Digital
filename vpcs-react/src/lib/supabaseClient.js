@@ -168,7 +168,8 @@ export const checkApprovedUser = async (session) => {
     }
 
     // Log the login
-    await logLogin(userEmail, session.user.user_metadata?.full_name || data.full_name, true);
+    // await logLogin(userEmail, session.user.user_metadata?.full_name || data.full_name, true);
+    // Note: Login_Audit table disabled - uncomment above when table is created
 
     // Return user info (rest of the function remains the same)
     const roleConfig = ROLE_CONFIG[data.role] || {};
@@ -192,25 +193,6 @@ export const checkApprovedUser = async (session) => {
   } catch (error) {
     console.error('Error checking approved user:', error);
     return null;
-  }
-};
-
-/**
- * Log login attempt
- */
-const logLogin = async (email, name, success) => {
-  try {
-    await supabase
-      .from('Login_Audit')
-      .insert([{
-        user_email: email,
-        user_name: name,
-        success: success,
-        user_agent: navigator.userAgent
-      }]);
-  } catch (error) {
-    console.error('Failed to log login:', error);
-    // Don't fail login if logging fails
   }
 };
 
