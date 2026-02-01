@@ -26,6 +26,7 @@
   transition: all 0.2s ease;
   font-family: inherit;
   white-space: nowrap;
+  min-height: 44px; /* Minimum touch target */
 }
 
 .bcm-btn-primary {
@@ -54,6 +55,7 @@
 .bcm-btn-small {
   padding: 8px 16px;
   font-size: 0.85rem;
+  min-height: 40px;
 }
 
 .bcm-btn-edit {
@@ -160,6 +162,8 @@
   border-radius: 6px;
   opacity: 0.7;
   transition: all 0.2s ease;
+  min-width: 32px;
+  min-height: 32px;
 }
 
 .bcm-alert-close:hover {
@@ -234,8 +238,8 @@
 .bcm-modal-close {
   background: #f3f4f6;
   border: none;
-  width: 36px;
-  height: 36px;
+  width: 40px; /* Increased from 36px */
+  height: 40px;
   border-radius: 8px;
   font-size: 1.3rem;
   cursor: pointer;
@@ -244,6 +248,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .bcm-modal-close:hover {
@@ -297,6 +302,7 @@
   transition: all 0.2s ease;
   background: white;
   color: #1f2937;
+  min-height: 48px; /* Better touch target */
 }
 
 .bcm-input:focus,
@@ -308,7 +314,7 @@
 
 .bcm-textarea {
   resize: vertical;
-  min-height: 80px;
+  min-height: 100px; /* Increased from 80px */
 }
 
 .bcm-input::placeholder,
@@ -369,18 +375,18 @@
 .bcm-array-input-group {
   display: flex;
   gap: 8px;
-  margin-bottom: 8px; /* Space between multiple inputs of the same type */
+  margin-bottom: 8px;
   align-items: center;
 }
 
 .bcm-array-input-group .bcm-input {
   flex-grow: 1;
-  margin-bottom: 0; /* Override default margin-bottom from bcm-input */
+  margin-bottom: 0;
 }
 
 .bcm-btn-icon-only {
-  width: 38px;
-  height: 38px;
+  width: 44px; /* Increased from 38px for better touch target */
+  height: 44px;
   padding: 0;
   border-radius: 8px;
   font-size: 1.2rem;
@@ -403,6 +409,7 @@
   margin-top: 5px;
   padding: 8px 16px;
   font-size: 0.85rem;
+  min-height: 40px;
 }
 
 .bcm-form-actions {
@@ -453,6 +460,7 @@
   transition: all 0.2s ease;
   font-family: inherit;
   white-space: nowrap;
+  min-height: 44px; /* Better touch target */
 }
 
 .bcm-filter-tab:hover {
@@ -495,6 +503,7 @@
   font-family: inherit;
   transition: all 0.2s ease;
   background: #fafbfc;
+  min-height: 48px; /* Better touch target */
 }
 
 .bcm-search-input:focus {
@@ -511,8 +520,8 @@
   transform: translateY(-50%);
   background: #f3f4f6;
   border: none;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border-radius: 6px;
   font-size: 1rem;
   cursor: pointer;
@@ -675,7 +684,7 @@
 }
 
 .bcm-block-link {
-  display: block; /* Make each link display on its own line */
+  display: block;
 }
 
 .bcm-card-footer {
@@ -780,10 +789,12 @@
   .bcm-filter-tab {
     flex: 1;
     min-width: fit-content;
+    padding: 12px 16px; /* Increased padding for better touch */
   }
 
   .bcm-btn {
     width: 100%;
+    min-height: 48px; /* Increased from 44px */
   }
 
   .bcm-form-grid {
@@ -794,6 +805,7 @@
   .bcm-modal {
     max-height: 95vh;
     margin: 10px;
+    border-radius: 12px; /* Slightly reduced for mobile */
   }
 
   .bcm-modal-header {
@@ -801,7 +813,13 @@
   }
 
   .bcm-modal-header h2 {
-    font-size: 1.2rem;
+    font-size: 1.25rem; /* Slightly larger for mobile readability */
+  }
+
+  .bcm-modal-close {
+    width: 44px; /* Increased for better touch target */
+    height: 44px;
+    font-size: 1.4rem;
   }
 
   .bcm-form {
@@ -826,6 +844,21 @@
 
   .bcm-search-wrapper {
     max-width: 100%;
+  }
+
+  .bcm-search-input {
+    font-size: 1rem; /* Prevent iOS zoom on focus */
+  }
+
+  /* Improved touch targets for mobile */
+  .bcm-btn-icon-only {
+    width: 48px;
+    height: 48px;
+  }
+
+  .bcm-search-clear {
+    width: 36px;
+    height: 36px;
   }
 }
 
@@ -857,6 +890,18 @@
 
   .bcm-empty-state {
     padding: 40px 16px;
+  }
+
+  .bcm-modal {
+    margin: 8px;
+  }
+
+  .bcm-modal-header {
+    padding: 16px;
+  }
+
+  .bcm-form {
+    padding: 16px;
   }
 }
 

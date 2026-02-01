@@ -127,27 +127,29 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 6px 0;
+    padding: 8px 0; /* Increased from 6px for better touch target */
     font-size: 1rem;
     font-weight: 500;
     color: #444;
+    gap: 12px; /* Added gap for better spacing */
 }
 
 .copy-button {
     background: none;
     border: 1px solid #007bff;
     border-radius: 4px;
-    padding: 4px 8px;
+    padding: 8px 12px; /* Increased padding for better touch target */
     cursor: pointer;
     font-size: 0.9rem;
     color: #007bff;
     transition: all 0.2s ease;
-    min-width: 32px;
-    height: 32px;
+    min-width: 40px; /* Increased from 32px */
+    height: 40px; /* Increased from 32px for better touch target */
     display: flex;
     align-items: center;
     justify-content: center;
     -webkit-tap-highlight-color: transparent;
+    flex-shrink: 0;
 }
 
 .copy-button:hover {
@@ -222,6 +224,85 @@
 /* 📱 Mobile Responsive */
 @media (max-width: 768px) {
     .calculator-container {
+        padding: 12px; /* Slightly increased for better spacing */
+    }
+
+    .calculator-title {
+        font-size: 1.6rem; /* Increased from 1.5rem */
+        margin-bottom: 20px;
+    }
+
+    .input-section {
+        gap: 18px; /* Increased from 16px */
+        padding: 16px; /* Increased from 12px */
+    }
+
+    .input-group label {
+        font-size: 0.95rem; /* Kept larger for readability */
+    }
+
+    .input-group select,
+    .input-group input {
+        height: 52px; /* Increased from 44px for better touch target */
+        font-size: 1rem; /* Kept at 1rem instead of reducing to 0.95rem */
+        padding: 12px 14px;
+    }
+
+    /* Larger touch target for select arrows on mobile */
+    .input-group select {
+        background-size: 18px; /* Increased from 16px */
+        padding-right: 40px;
+    }
+
+    .input-comment {
+        font-size: 0.8rem; /* Increased from 0.75rem */
+    }
+
+    .summary-card {
+        padding: 16px; /* Increased from 14px */
+        margin-top: 16px;
+    }
+
+    .summary-card h2 {
+        font-size: 1.25rem; /* Increased from 1.2rem */
+    }
+
+    .summary-item {
+        font-size: 1rem; /* Increased from 0.95rem */
+        padding: 10px 0; /* Increased for better spacing */
+    }
+
+    .summary-item .label {
+        max-width: 55%; /* Reduced from 60% to give more space to value */
+    }
+
+    .summary-item .value {
+        font-size: 1rem; /* Kept at 1rem */
+        max-width: 45%; /* Increased from 40% */
+    }
+
+    .copy-button {
+        min-width: 44px; /* Increased to meet minimum touch target of 44px */
+        height: 44px;
+        padding: 10px 14px;
+    }
+
+    .card-label {
+        font-size: 1rem; /* Increased from 0.95rem */
+    }
+
+    .card-value {
+        font-size: 1.2rem; /* Increased from 1.1rem */
+    }
+
+    .card-comment {
+        font-size: 0.85rem; /* Increased from 0.8rem */
+    }
+}
+
+/* Extra small mobile devices */
+@media (max-width: 480px) {
+    .calculator-container {
         padding: 10px;
     }
 
@@ -230,27 +311,18 @@
     }
 
     .input-section {
+        padding: 14px;
         gap: 16px;
-        padding: 12px;
-    }
-
-    .input-group label {
-        font-size: 0.9rem;
     }
 
     .input-group select,
     .input-group input {
-        height: 44px;
+        height: 50px; /* Still keeping good touch target */
         font-size: 0.95rem;
-    }
-
-    .input-comment {
-        font-size: 0.75rem;
     }
 
     .summary-card {
         padding: 14px;
-        margin-top: 12px;
     }
 
     .summary-card h2 {
@@ -259,26 +331,6 @@
 
     .summary-item {
         font-size: 0.95rem;
-    }
-
-    .summary-item .label {
-        max-width: 60%;
-    }
-
-    .summary-item .value {
-        font-size: 0.95rem;
-        max-width: 40%;
-    }
-
-    .card-label {
-        font-size: 0.95rem;
-    }
-
-    .card-value {
-        font-size: 1.1rem;
-    }
-
-    .card-comment {
-        font-size: 0.8rem;
+        padding: 8px 0;
     }
 }

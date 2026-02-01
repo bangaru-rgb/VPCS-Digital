@@ -502,7 +502,7 @@
   /* Adjust page header for mobile */
   .page-header {
     padding: 16px 20px;
-    padding-left: 80px; /* Space for hamburger button */
+    padding-left: 90px; /* Increased from 80px to prevent overlap */
     flex-direction: row;
     align-items: center;
     gap: 12px;
@@ -528,28 +528,29 @@
   }
 
   .page-brand-icon {
-    width: 48px;
-    height: 48px;
+    width: 64px;  /* Increased from 48px */
+    height: 64px; /* Increased from 48px */
     padding: 3px;
     flex-shrink: 0;
   }
 
   .icon-top {
-    font-size: 1.15rem;
-    letter-spacing: 0.8px;
+    font-size: 1.5rem; /* Increased from 1.15rem */
+    letter-spacing: 1px;
   }
 
   .icon-bottom {
-    font-size: 1.15rem;
-    letter-spacing: 0.8px;
+    font-size: 1.5rem; /* Increased from 1.15rem */
+    letter-spacing: 1px;
   }
 
   .page-brand-name {
-    font-size: 1.2rem;
+    font-size: 1.6rem; /* Increased from 1.2rem */
+    font-weight: 800;  /* Made bolder */
   }
 
   .page-brand-subtitle {
-    font-size: 0.75rem;
+    font-size: 0.95rem; /* Increased from 0.75rem */
   }
 
   .page-title {
@@ -588,11 +589,26 @@
 
   .page-header {
     padding: 14px 16px;
-    padding-left: 65px;
+    padding-left: 90px; /* Keep increased padding */
+  }
+
+  .page-brand-icon {
+    width: 60px;  /* Slightly smaller for very small screens */
+    height: 60px;
+  }
+
+  .icon-top,
+  .icon-bottom {
+    font-size: 1.4rem;
   }
 
   .page-brand-name {
-    font-size: 1rem;
+    font-size: 1.5rem; /* Increased from 1rem */
+    font-weight: 800;
+  }
+
+  .page-brand-subtitle {
+    font-size: 0.9rem; /* Increased */
   }
 
   .page-title {
