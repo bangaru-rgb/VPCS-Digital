@@ -1,0 +1,336 @@
+/* --- Material Calculator Styles --- */
+
+.calculator-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 15px;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.calculator-title {
+    text-align: center;
+    margin-bottom: 24px;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #007bff;
+    letter-spacing: 0.5px;
+}
+
+/* 🔹 Input Section */
+.input-section {
+    background-color: #f0f7ff;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
+    margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    border: 1px solid rgba(0, 123, 255, 0.2);
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+.input-group label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #333;
+    text-align: left;
+    width: 100%;
+}
+
+/* General styles for inputs and selects */
+.input-group select,
+.input-group input {
+    display: block;
+    width: 100%;
+    height: 48px;
+    padding: 10px 14px;
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: normal;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background-color: #fff;
+    color: #333;
+    box-sizing: border-box;
+    appearance: none;
+    text-align: left;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Number inputs aligned right */
+.input-group input[type="number"] {
+    text-align: right;
+}
+
+/* Custom arrow for selects */
+.input-group select {
+    background-image: url("data:image/svg+xml;utf8,<svg fill='gray' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 36px;
+    min-width: 0;
+    flex-shrink: 1;
+}
+
+/* Input comment/hint text */
+.input-comment {
+    font-size: 0.8rem;
+    color: #666;
+    font-style: italic;
+    margin-top: -4px;
+}
+
+/* Focus states */
+.input-group input:focus,
+.input-group select:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+/* 🔹 Summary Section */
+.summary-card {
+    background-color: #eef7ff;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 20px;
+    margin-top: 16px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    border-left: 4px solid #007bff;
+}
+
+.summary-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.summary-card h2 {
+    margin: 0;
+    font-size: 1.3rem;
+    color: #007bff;
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0; /* Increased from 6px for better touch target */
+    font-size: 1rem;
+    font-weight: 500;
+    color: #444;
+    gap: 12px; /* Added gap for better spacing */
+}
+
+.copy-button {
+    background: none;
+    border: 1px solid #007bff;
+    border-radius: 4px;
+    padding: 8px 12px; /* Increased padding for better touch target */
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: #007bff;
+    transition: all 0.2s ease;
+    min-width: 40px; /* Increased from 32px */
+    height: 40px; /* Increased from 32px for better touch target */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+    flex-shrink: 0;
+}
+
+.copy-button:hover {
+    background-color: #007bff;
+    color: white;
+}
+
+.copy-button:active {
+    transform: scale(0.95);
+}
+
+.copy-button:focus {
+    outline: none;
+}
+
+.summary-item .label {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.summary-item .value {
+    font-weight: bold;
+    color: #007bff;
+    text-align: right;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+/* 🔹 Card-style Results */
+.results-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 1.5rem;
+}
+
+.result-card {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 12px 16px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.result-card.highlight {
+    background-color: #eef7ff;
+    border-left: 4px solid #007bff;
+}
+
+.card-label {
+    font-weight: 600;
+    font-size: 1rem;
+    color: #333;
+}
+
+.card-value {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #007bff;
+    margin-top: 4px;
+}
+
+.card-comment {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 6px;
+}
+
+/* 📱 Mobile Responsive */
+@media (max-width: 768px) {
+    .calculator-container {
+        padding: 12px; /* Slightly increased for better spacing */
+    }
+
+    .calculator-title {
+        font-size: 1.6rem; /* Increased from 1.5rem */
+        margin-bottom: 20px;
+    }
+
+    .input-section {
+        gap: 18px; /* Increased from 16px */
+        padding: 16px; /* Increased from 12px */
+    }
+
+    .input-group label {
+        font-size: 0.95rem; /* Kept larger for readability */
+    }
+
+    .input-group select,
+    .input-group input {
+        height: 52px; /* Increased from 44px for better touch target */
+        font-size: 1rem; /* Kept at 1rem instead of reducing to 0.95rem */
+        padding: 12px 14px;
+    }
+
+    /* Larger touch target for select arrows on mobile */
+    .input-group select {
+        background-size: 18px; /* Increased from 16px */
+        padding-right: 40px;
+    }
+
+    .input-comment {
+        font-size: 0.8rem; /* Increased from 0.75rem */
+    }
+
+    .summary-card {
+        padding: 16px; /* Increased from 14px */
+        margin-top: 16px;
+    }
+
+    .summary-card h2 {
+        font-size: 1.25rem; /* Increased from 1.2rem */
+    }
+
+    .summary-item {
+        font-size: 1rem; /* Increased from 0.95rem */
+        padding: 10px 0; /* Increased for better spacing */
+    }
+
+    .summary-item .label {
+        max-width: 55%; /* Reduced from 60% to give more space to value */
+    }
+
+    .summary-item .value {
+        font-size: 1rem; /* Kept at 1rem */
+        max-width: 45%; /* Increased from 40% */
+    }
+
+    .copy-button {
+        min-width: 44px; /* Increased to meet minimum touch target of 44px */
+        height: 44px;
+        padding: 10px 14px;
+    }
+
+    .card-label {
+        font-size: 1rem; /* Increased from 0.95rem */
+    }
+
+    .card-value {
+        font-size: 1.2rem; /* Increased from 1.1rem */
+    }
+
+    .card-comment {
+        font-size: 0.85rem; /* Increased from 0.8rem */
+    }
+}
+
+/* Extra small mobile devices */
+@media (max-width: 480px) {
+    .calculator-container {
+        padding: 10px;
+    }
+
+    .calculator-title {
+        font-size: 1.5rem;
+    }
+
+    .input-section {
+        padding: 14px;
+        gap: 16px;
+    }
+
+    .input-group select,
+    .input-group input {
+        height: 50px; /* Still keeping good touch target */
+        font-size: 0.95rem;
+    }
+
+    .summary-card {
+        padding: 14px;
+    }
+
+    .summary-card h2 {
+        font-size: 1.2rem;
+    }
+
+    .summary-item {
+        font-size: 0.95rem;
+        padding: 8px 0;
+    }
+}

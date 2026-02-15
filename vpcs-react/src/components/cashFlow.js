@@ -1,0 +1,294 @@
+// src/components/cashFlow.js
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import './cashFlow.css';
+import { supabase } from '../lib/supabaseClient';
+import formatCurrency from '../lib/INDcurrencyFormat'; // Changed to default import
+import formatDate from '../lib/DD-MMM-YY-DateFromat'; // Added date formatter import
+
+const CashFlow = () => {
+  // State for transactions
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // State for filters
+  const [typeFilter, setTypeFilter] = useState('All');
+  const [partyFilter, setPartyFilter] = useState('All');
+
+  // Fetch transactions from Supabase - now using useCallback
+  const fetchTransactions = useCallback(async () => {
+    try {
+      setError(null);
+      console.log('Fetching transactions...');
+      
+      // Fetch data from Supabase cashflow table
+      const { data, error } = await supabase
+        .from('cashflow')
+        .select('*')
+        .order('date', { ascending: false }); // Order by date descending
+      
+      if (error) {
+        throw error;
+      }
+      
+      if (data) {
+        console.log('Data fetched:', data);
+        // Process the data to convert strings to numbers and format dates
+        let processedData = data.map(item => ({
+          ...item,
+          inflow: parseFloat(item.inflow) || 0,
+          outflow: parseFloat(item.outflow) || 0,
+          displayDate: formatDate(item.date) // Using imported date formatter
+        }));
+        
+        // Calculate running balance
+        // First, sort by date ascending (oldest first)
+        const sortedAsc = [...processedData].sort((a, b) => new Date(a.date) - new Date(b.date));
+        
+        // Calculate running balance from oldest to newest
+        let runningBalance = 0;
+        const withRunningBalance = sortedAsc.map(transaction => {
+          runningBalance += transaction.inflow - transaction.outflow;
+          return {
+            ...transaction,
+            runningBalance
+          };
+        });
+        
+        // Sort back to descending (newest first) for display
+        const sortedDesc = withRunningBalance.reverse();
+        setTransactions(sortedDesc);
+        console.log('Processed transactions:', sortedDesc);
+      }
+    } catch (error) {
+      console.error('Error fetching transactions:', error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+      console.log('Fetch completed, loading set to false');
+    }
+  }, []); // Empty dependency array as it doesn't depend on any state
+
+  // Effect to fetch transactions on component mount
+  useEffect(() => {
+    fetchTransactions();
+  }, [fetchTransactions]);
+
+  // Effect for real-time subscription
+  useEffect(() => {
+    // Set up real-time subscription for updates
+    const subscription = supabase
+      .channel('cashflow-changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'cashflow' }, 
+        (payload) => {
+          console.log('Change received!', payload);
+          fetchTransactions(); // Refresh data when changes occur
+        }
+      )
+      .subscribe();
+      
+    // Clean up subscription on unmount
+    return () => {
+      supabase.removeChannel(subscription);
+    };
+  }, [fetchTransactions]);
+
+  // Get unique parties for filter dropdown
+  const uniqueParties = useMemo(() => {
+    if (transactions.length === 0) return ['All'];
+    return ['All', ...new Set(transactions.map(t => t.party))];
+  }, [transactions]);
+
+  // Apply filters
+  const filteredTransactions = useMemo(() => {
+    return transactions.filter(transaction => {
+      return (typeFilter === 'All' || transaction.type === typeFilter) &&
+        (partyFilter === 'All' || transaction.party === partyFilter);
+    });
+  }, [transactions, typeFilter, partyFilter]);
+
+  // Calculate totals
+  const { totalInflow, totalOutflow, cashInHand } = useMemo(() => {
+    const totalInflow = transactions.reduce((sum, t) => sum + t.inflow, 0);
+    const totalOutflow = transactions.reduce((sum, t) => sum + t.outflow, 0);
+    return {
+      totalInflow,
+      totalOutflow,
+      cashInHand: totalInflow - totalOutflow
+    };
+  }, [transactions]);
+
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="cashflow-container">
+        <h1>Cash Flow</h1>
+        <div className="loading">Loading transactions...</div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="cashflow-container">
+        <h1>Cash Flow</h1>
+        <div className="error">Error: {error}</div>
+      </div>
+    );
+  }
+
+  // Render cashflow details if authenticated and not loading and no error
+  return (
+    <div className="cashflow-container">
+      <div className="cashflow-header">
+        <h1>Cash Flow</h1>
+      </div>
+  
+      <div className="summary-cards">
+        <div className="card">
+          <h3>Cash Inflow</h3>
+          <p>{formatCurrency(totalInflow)}</p>
+        </div>
+        <div className="card">
+          <h3>Cash Outflow</h3>
+          <p>{formatCurrency(totalOutflow)}</p>
+        </div>
+        <div className="card">
+          <h3>Cash in hand</h3>
+          <p>{formatCurrency(cashInHand)}</p>
+        </div>
+      </div>
+
+      <div className="cashflow-table-container">
+        {/* Filter dropdowns */}
+        <div className="filters-container">
+          <div className="filter-group">
+            <label htmlFor="type-filter">Type:</label>
+            <select
+              id="type-filter"
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+            >
+              <option value="All">All</option>
+              <option value="Inflow">Inflow</option>
+              <option value="Outflow">Outflow</option>
+            </select>
+          </div>
+
+          <div className="filter-group">
+            <label htmlFor="party-filter">Party:</label>
+            <select
+              id="party-filter"
+              value={partyFilter}
+              onChange={(e) => setPartyFilter(e.target.value)}
+            >
+              {uniqueParties.map(party => (
+                <option key={party} value={party}>{party}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="cashflow-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Party</th>
+                <th>Amount</th>
+                <th>Running balance</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredTransactions.length > 0 ? (
+                filteredTransactions.map((transaction) => (
+                  <tr key={transaction.id}>
+                    <td>{transaction.displayDate}</td>
+                    <td className={transaction.type === 'Inflow' ? 'inflow-type' : 'outflow-type'}>
+                      {transaction.type}
+                    </td>
+                    <td>{transaction.party}</td>
+                    <td className={transaction.type === 'Inflow' ? 'amount inflow' : 'amount outflow'}>
+                      {formatCurrency(transaction.type === 'Inflow' ? transaction.inflow : transaction.outflow)}
+                    </td>
+                    <td className="balance">{formatCurrency(transaction.runningBalance)}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="5">No transactions available</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Mobile cards view */}
+      <div className="mobile-cards-view">
+        {filteredTransactions.length > 0 ? (
+          filteredTransactions.map((transaction) => (
+            <div
+              key={transaction.id}
+              className={`transaction-card ${transaction.type === 'Inflow' ? 'inflow-card' : 'outflow-card'}`}
+            >
+              <div className="card-header">
+                <div className="date">{transaction.displayDate}</div>
+                <div className={`type ${transaction.type === 'Inflow' ? 'inflow-type' : 'outflow-type'}`}>
+                  {transaction.type}
+                </div>
+              </div>
+              <div className="party">{transaction.party}</div>
+              <div className="amounts">
+                {transaction.type === 'Inflow' ? (
+                  <>
+                    <div className="amount-group">
+                      <div className="amount-label">Recieved:</div>
+                      <div className="inflow amount-value">
+                        {formatCurrency(transaction.inflow)}
+                      </div>
+                    </div>
+                    <div className="amount-group">
+                      <div className="amount-label">Running balance:</div>
+                      <div className="balance amount-value">
+                        {formatCurrency(transaction.runningBalance)}
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="amount-group">
+                      <div className="amount-label">Given:</div>
+                      <div className="outflow amount-value">
+                        {formatCurrency(transaction.outflow)}
+                      </div>
+                    </div>
+                    <div className="amount-group">
+                      <div className="amount-label">Running balance:</div>
+                      <div className="balance amount-value">
+                        {formatCurrency(transaction.runningBalance)}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+              {transaction.comments && (
+                <div className="comments">
+                  <strong>Notes:</strong> {transaction.comments}
+                </div>
+              )}
+            </div>
+          ))
+        ) : (
+          <div className="no-transactions">No transactions available</div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default CashFlow;
