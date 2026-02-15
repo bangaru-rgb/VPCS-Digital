@@ -215,12 +215,14 @@ export const signOut = async () => {
     
     console.log('User signed out successfully');
     
-    // For GitHub Pages, use the full path
+    // Use window.location.pathname to get the base path and navigate to root
     const hostname = window.location.hostname;
     if (hostname.includes('github.io')) {
-      window.location.href = '/VPCS-Digital/';
+      // For GitHub Pages - navigate to the base path root
+      window.location.href = window.location.origin + '/VPCS-Digital/';
     } else {
-      window.location.href = '/';
+      // For localhost
+      window.location.href = window.location.origin + '/';
     }
     
     return { success: true };
@@ -230,9 +232,9 @@ export const signOut = async () => {
     // Force redirect even if error
     const hostname = window.location.hostname;
     if (hostname.includes('github.io')) {
-      window.location.href = '/VPCS-Digital/';
+      window.location.href = window.location.origin + '/VPCS-Digital/';
     } else {
-      window.location.href = '/';
+      window.location.href = window.location.origin + '/';
     }
     
     return { success: false, error: error.message };
