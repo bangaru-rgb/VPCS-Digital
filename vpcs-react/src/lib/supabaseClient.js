@@ -65,22 +65,19 @@ const MODULE_ACCESS = {
  * Get the correct redirect URL based on environment
  */
 const getRedirectUrl = () => {
-  // For production on GitHub Pages - ALWAYS use this URL
+  // For production on GitHub Pages
   if (window.location.hostname.includes('github.io')) {
-    return 'https://bangaru-rgb.github.io/VPCS-Digital';
+    return 'https://bangaru-rgb.github.io/VPCS-Digital/';  // Added trailing slash
   }
   
-  // Use environment variable if set
   if (process.env.REACT_APP_SITE_URL) {
     return process.env.REACT_APP_SITE_URL;
   }
   
-  // For development, use localhost
   if (process.env.NODE_ENV === 'development' || window.location.hostname === 'localhost') {
     return 'http://localhost:3000';
   }
   
-  // Fallback to origin
   return window.location.origin;
 };
 
@@ -204,6 +201,10 @@ export const signOut = async () => {
     await supabase.auth.signOut();
     localStorage.removeItem('userRole');
     localStorage.removeItem('lastLoginTime');
+    
+    // Redirect to home after logout
+    window.location.href = getRedirectUrl();
+    
     console.log('User signed out successfully');
     return { success: true };
   } catch (error) {
