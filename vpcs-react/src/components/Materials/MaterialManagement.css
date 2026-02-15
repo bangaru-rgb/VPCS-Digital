@@ -693,6 +693,12 @@
     grid-template-columns: 1fr; /* Ensure form fields are stacked on mobile */
   }
   
+  /* Ensure table container is visible on mobile despite global styles */
+  .table-container {
+    display: block !important;
+    overflow-x: auto;
+  }
+  
   /* Stack table on mobile */
   .user-table,
   .user-table thead,
@@ -737,12 +743,11 @@
     text-transform: uppercase;
   }
   
-  .user-table td.user-cell:before { content: "Party"; }
-  .user-table td:nth-of-type(2):before { content: "Contact"; }
-  .user-table td:nth-of-type(3):before { content: "Address"; }
-  .user-table td:nth-of-type(4):before { content: "City"; }
-  .user-table td:nth-of-type(5):before { content: "Phone"; }
-  .user-table td:nth-of-type(6):before { content: "Email"; }
+  .user-table td.user-cell:before { content: "Material"; }
+  .user-table td:nth-of-type(2):before { content: "Description"; }
+  .user-table td:nth-of-type(3):before { content: "Category"; }
+  .user-table td:nth-of-type(4):before { content: "Unit"; }
+  .user-table td:nth-of-type(5):before { content: "Rate"; }
   .user-table td.date-cell:before { content: "Added/Updated"; }
   .user-table td.actions-cell:before { content: "Actions"; }
   
@@ -998,7 +1003,7 @@
   }
 
   .user-table {
-    min-width: 800px; /* Ensure table doesn't collapse */
+    width: 100%;
   }
 
   .btn-icon,

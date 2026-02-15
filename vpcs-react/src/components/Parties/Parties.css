@@ -693,6 +693,12 @@
     grid-template-columns: 1fr; /* Ensure form fields are stacked on mobile */
   }
   
+  /* Ensure table container is visible on mobile despite global styles */
+  .table-container {
+    display: block !important;
+    overflow-x: auto;
+  }
+  
   /* Stack table on mobile */
   .user-table,
   .user-table thead,
@@ -998,7 +1004,7 @@
   }
 
   .user-table {
-    min-width: 800px; /* Ensure table doesn't collapse */
+    width: 100%;
   }
 
   .btn-icon,
