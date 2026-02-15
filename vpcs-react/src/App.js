@@ -1,6 +1,6 @@
 // src/App.js - Main Application Component with Modern Navigation
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './components/Login';
 import Navigation, { PageHeader } from './components/navigation';
 import MaterialCalculator from './components/MaterialCalculator';
@@ -125,8 +125,11 @@ function App() {
     );
   }
 
+  // Set basename for GitHub Pages
+  const basename = window.location.hostname.includes('github.io') ? '/VPCS-Digital' : '';
+
   return (
-    <Router>
+    <BrowserRouter basename={basename}>
       <div className="App">
         {/* Navigation Sidebar - Only show when authenticated */}
         {isAuthenticated && <Navigation userInfo={userInfo} onLogout={handleLogout} />}
@@ -220,31 +223,37 @@ function App() {
                   </ProtectedRoute>
                 } 
               />
-{/* User Management - ADD THIS ENTIRE BLOCK */}
-<Route 
-  path="/user-management" 
-  element={
-    <ProtectedRoute requiredModule="user-management">
-      <UserManagement userInfo={userInfo} />
-    </ProtectedRoute>
-  }
-/>
-<Route
-  path="/parties"
-  element={
-    <ProtectedRoute requiredModule="parties">
-      <Parties userInfo={userInfo} />
-    </ProtectedRoute>
-  }
-/>
-<Route
-  path="/material-management"
-  element={
-    <ProtectedRoute requiredModule="material-management">
-      <MaterialManagement userInfo={userInfo} />
-    </ProtectedRoute>
-  }
-/>
+
+              {/* User Management */}
+              <Route 
+                path="/user-management" 
+                element={
+                  <ProtectedRoute requiredModule="user-management">
+                    <UserManagement userInfo={userInfo} />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Parties */}
+              <Route
+                path="/parties"
+                element={
+                  <ProtectedRoute requiredModule="parties">
+                    <Parties userInfo={userInfo} />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Material Management */}
+              <Route
+                path="/material-management"
+                element={
+                  <ProtectedRoute requiredModule="material-management">
+                    <MaterialManagement userInfo={userInfo} />
+                  </ProtectedRoute>
+                }
+              />
+
               {/* Fallback Route */}
               <Route 
                 path="*" 
@@ -254,7 +263,7 @@ function App() {
           </div>
         </main>
       </div>
-    </Router>
+    </BrowserRouter>
   );
 }
 

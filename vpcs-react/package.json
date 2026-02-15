@@ -1,7 +1,7 @@
 {
-  "name": "vpcs-react",
-  "homepage": "https://bangaru-rgb.github.io/VPCS-Digital/",
-   "version": "0.1.0",
+   "name": "vpcs-react",
+  "homepage": "https://bangaru-rgb.github.io/VPCS-Digital",
+  "version": "0.1.0",
   "private": true,
   "dependencies": {
     "@hcaptcha/react-hcaptcha": "^1.14.0",

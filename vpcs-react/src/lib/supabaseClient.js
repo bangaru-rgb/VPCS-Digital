@@ -203,23 +203,38 @@ export const checkApprovedUser = async (session) => {
  */
 export const signOut = async () => {
   try {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
-    
+    // Clear storage first
     localStorage.removeItem('userRole');
     localStorage.removeItem('lastLoginTime');
     
+    // Sign out from Supabase
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error('Supabase signout error:', error);
+    }
+    
     console.log('User signed out successfully');
     
-    // Get clean redirect URL without hash or query params
-    const redirectUrl = getRedirectUrl();
-    
-    // Use replace to avoid 404 - clears hash/query params
-    window.location.href = redirectUrl;
+    // For GitHub Pages, use the full path
+    const hostname = window.location.hostname;
+    if (hostname.includes('github.io')) {
+      window.location.href = '/VPCS-Digital/';
+    } else {
+      window.location.href = '/';
+    }
     
     return { success: true };
   } catch (error) {
     console.error('Sign out error:', error);
+    
+    // Force redirect even if error
+    const hostname = window.location.hostname;
+    if (hostname.includes('github.io')) {
+      window.location.href = '/VPCS-Digital/';
+    } else {
+      window.location.href = '/';
+    }
+    
     return { success: false, error: error.message };
   }
 };
