@@ -29,14 +29,14 @@
     "workbox-streams": "^6.6.0"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "GENERATE_SOURCEMAP=false react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d build",
-    "build:ci": "cross-env CI=true GENERATE_SOURCEMAP=false react-scripts build"
-  },
+  "start": "react-scripts start",
+  "build": "cross-env GENERATE_SOURCEMAP=false react-scripts build",
+  "test": "react-scripts test",
+  "eject": "react-scripts eject",
+  "predeploy": "npm run build",
+  "deploy": "gh-pages -d build",
+  "build:ci": "cross-env CI=true GENERATE_SOURCEMAP=false react-scripts build"
+},
   "eslintConfig": {
     "extends": [
       "react-app",

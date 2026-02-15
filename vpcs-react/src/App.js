@@ -60,18 +60,17 @@ function App() {
   };
 
   const handleLogout = async () => {
-    try {
-      await signOut();
-      setIsAuthenticated(false);
-      setUserInfo(null);
-      localStorage.removeItem('userRole');
-      localStorage.removeItem('lastLoginTime');
-      // Redirect to login page after logout
-      window.location.href = '/';
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
-  };
+  try {
+    await signOut();
+    setIsAuthenticated(false);
+    setUserInfo(null);
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('lastLoginTime');
+    // Don't add window.location.href here - signOut already handles it
+  } catch (error) {
+    console.error('Logout error:', error);
+  }
+};
 
   // Get the first available module route for the user
   const getDefaultRoute = (userInfo) => {
