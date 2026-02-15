@@ -201,7 +201,6 @@ export const checkApprovedUser = async (session) => {
 /**
  * Sign out current user
  */
-// Update signOut function
 export const signOut = async () => {
   try {
     const { error } = await supabase.auth.signOut();
@@ -212,9 +211,11 @@ export const signOut = async () => {
     
     console.log('User signed out successfully');
     
-    // Force clean redirect to login page
+    // Get clean redirect URL without hash or query params
     const redirectUrl = getRedirectUrl();
-    window.location.replace(redirectUrl);
+    
+    // Use replace to avoid 404 - clears hash/query params
+    window.location.href = redirectUrl;
     
     return { success: true };
   } catch (error) {

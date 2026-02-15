@@ -50,57 +50,58 @@ function Login({ onLogin }) {
 
   // Initialize authentication and set up listeners
   useEffect(() => {
-    let mounted = true;
+  let mounted = true;
 
-    const initAuth = async () => {
-      try {
-        // Check if we have OAuth callback parameters
-        const hasOAuthCallback = window.location.hash.includes('access_token') || 
-                                  window.location.search.includes('code=');
-        
-        if (hasOAuthCallback) {
-          // Give Supabase a moment to process the OAuth callback
-          await new Promise(resolve => setTimeout(resolve, 500));
-        }
-        
-        const session = await getCurrentSession();
-        
-        if (session?.user && mounted) {
-          await handleAuthSuccess(session);
-        }
-      } catch (error) {
-        console.error('Auth initialization error:', error);
-      } finally {
-        if (mounted) {
-          setCheckingSession(false);
-        }
+  const initAuth = async () => {
+    try {
+      // Clean up OAuth hash from URL after processing
+      if (window.location.hash) {
+        const cleanUrl = window.location.pathname + window.location.search;
+        window.history.replaceState({}, document.title, cleanUrl);
       }
-    };
-
-    initAuth();
-
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (!mounted) return;
-
-        // Ignore initial session event
-        if (event === 'INITIAL_SESSION') return;
-
-        if (event === 'SIGNED_IN' && session) {
-          await handleAuthSuccess(session);
-        } else if (event === 'SIGNED_OUT') {
-          localStorage.removeItem('userRole');
-          setCheckingSession(false);
-        }
+      
+      const hasOAuthCallback = window.location.hash.includes('access_token') || 
+                                window.location.search.includes('code=');
+      
+      if (hasOAuthCallback) {
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
-    );
+      
+      const session = await getCurrentSession();
+      
+      if (session?.user && mounted) {
+        await handleAuthSuccess(session);
+      }
+    } catch (error) {
+      console.error('Auth initialization error:', error);
+    } finally {
+      if (mounted) {
+        setCheckingSession(false);
+      }
+    }
+  };
 
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
-  }, [handleAuthSuccess]);
+  initAuth();
+
+  const { data: { subscription } } = supabase.auth.onAuthStateChange(
+    async (event, session) => {
+      if (!mounted) return;
+      if (event === 'INITIAL_SESSION') return;
+
+      if (event === 'SIGNED_IN' && session) {
+        await handleAuthSuccess(session);
+      } else if (event === 'SIGNED_OUT') {
+        localStorage.removeItem('userRole');
+        setCheckingSession(false);
+      }
+    }
+  );
+
+  return () => {
+    mounted = false;
+    subscription.unsubscribe();
+  };
+}, [handleAuthSuccess]);
 
   const handleGoogleLogin = async () => {
     try {
