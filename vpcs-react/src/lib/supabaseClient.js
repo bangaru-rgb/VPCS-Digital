@@ -64,29 +64,34 @@ const MODULE_ACCESS = {
 /**
  * Get the correct redirect URL based on environment
  */
+c// Replace the getRedirectUrl function
 const getRedirectUrl = () => {
-  // For production on GitHub Pages
-  if (window.location.hostname.includes('github.io')) {
-    return 'https://bangaru-rgb.github.io/VPCS-Digital/';  // Added trailing slash
+  const hostname = window.location.hostname;
+  const isGithubPages = hostname.includes('github.io');
+  const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+  
+  // For GitHub Pages - MUST match your Supabase auth settings
+  if (isGithubPages) {
+    return 'https://bangaru-rgb.github.io/VPCS-Digital';
   }
   
-  if (process.env.REACT_APP_SITE_URL) {
-    return process.env.REACT_APP_SITE_URL;
-  }
-  
-  if (process.env.NODE_ENV === 'development' || window.location.hostname === 'localhost') {
+  // For localhost development
+  if (isLocalhost) {
     return 'http://localhost:3000';
   }
   
+  // Fallback
   return window.location.origin;
 };
 
 /**
  * Sign in with Google OAuth
  */
+// Update signInWithGoogle function
 export const signInWithGoogle = async () => {
   try {
     const redirectUrl = getRedirectUrl();
+    console.log('🔗 Redirect URL:', redirectUrl); // Debug log
     
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -196,16 +201,21 @@ export const checkApprovedUser = async (session) => {
 /**
  * Sign out current user
  */
+// Update signOut function
 export const signOut = async () => {
   try {
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+    
     localStorage.removeItem('userRole');
     localStorage.removeItem('lastLoginTime');
     
-    // Redirect to home after logout
-    window.location.href = getRedirectUrl();
-    
     console.log('User signed out successfully');
+    
+    // Force clean redirect to login page
+    const redirectUrl = getRedirectUrl();
+    window.location.replace(redirectUrl);
+    
     return { success: true };
   } catch (error) {
     console.error('Sign out error:', error);
