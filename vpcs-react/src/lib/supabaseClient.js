@@ -64,7 +64,7 @@ const MODULE_ACCESS = {
 /**
  * Get the correct redirect URL based on environment
  */
-c// Replace the getRedirectUrl function
+// Replace the getRedirectUrl function
 const getRedirectUrl = () => {
   const hostname = window.location.hostname;
   const isGithubPages = hostname.includes('github.io');
