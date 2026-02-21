@@ -24,6 +24,7 @@ const MaterialCalculator = () => {
 
   const GST = 0.18;
   const TCS = 0.01;
+  const CUSTOMS_TAX_RATE = 0.11;
 
   useEffect(() => {
     if (vendor && material) {
@@ -40,6 +41,14 @@ const MaterialCalculator = () => {
     }
   }, [vendor, material]);
 
+  // Auto-calculate customs tax for ETP when hetero rate changes
+  useEffect(() => {
+    if (material === "ETP" && heteroRate !== "") {
+      const calculatedCustomsTax = parseFloat(heteroRate) * CUSTOMS_TAX_RATE;
+      setCustomsTax(calculatedCustomsTax.toFixed(2));
+    }
+  }, [heteroRate, material]);
+
   const getDefaultValues = (vendor, material) => {
     let heteroRate = 0;
     let customsTax = 0;
@@ -49,10 +58,9 @@ const MaterialCalculator = () => {
     if (vendor === "Genetique") {
       if (material === "ETP") {
         heteroRate = 18.0;
-       // customsTax = heteroRate * 0.11;
+        customsTax = 0;
         pcbCharges = 2.0;
         apemclCharges = 0.07;
-        customsTax = 0.0;
       } else if (material === "Stripper") {
         heteroRate = 4.0;
         customsTax = 0.0;
@@ -62,10 +70,9 @@ const MaterialCalculator = () => {
     } else if (vendor === "Godavari") {
       if (material === "ETP") {
         heteroRate = 18.0;
-       // customsTax = heteroRate * 0.11;
+        customsTax = 0;
         pcbCharges = 2.0;
         apemclCharges = 0;
-        customsTax = 0.0;
       } else if (material === "Stripper") {
         heteroRate = 4.0;
         customsTax = 0.0;
@@ -75,10 +82,9 @@ const MaterialCalculator = () => {
     } else if (vendor === "Balaji") {
       if (material === "ETP") {
         heteroRate = 18.0;
-        //customsTax = heteroRate * 0.11;
+        customsTax = 0;
         pcbCharges = 2.0;
         apemclCharges = 0;
-        customsTax = 0.0;
       } else if (material === "Stripper") {
         heteroRate = 4.0;
         customsTax = 0.0;
@@ -617,7 +623,7 @@ const MaterialCalculator = () => {
                   onBlur={() => setEditingField(null)}
                   placeholder="0.00"
                 />
-                <span className="input-hint">Vendor customs tax</span>
+                <span className="input-hint">Auto-calculated for ETP (11% of Hetero Rate)</span>
               </div>
 
               <div className="input-field">
