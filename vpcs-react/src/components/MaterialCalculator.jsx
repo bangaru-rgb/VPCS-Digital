@@ -49,9 +49,10 @@ const MaterialCalculator = () => {
     if (vendor === "Genetique") {
       if (material === "ETP") {
         heteroRate = 18.0;
-        customsTax = heteroRate * 0.11;
+       // customsTax = heteroRate * 0.11;
         pcbCharges = 2.0;
         apemclCharges = 0.07;
+        customsTax = 0.0;
       } else if (material === "Stripper") {
         heteroRate = 4.0;
         customsTax = 0.0;
@@ -61,9 +62,10 @@ const MaterialCalculator = () => {
     } else if (vendor === "Godavari") {
       if (material === "ETP") {
         heteroRate = 18.0;
-        customsTax = heteroRate * 0.11;
+       // customsTax = heteroRate * 0.11;
         pcbCharges = 2.0;
         apemclCharges = 0;
+        customsTax = 0.0;
       } else if (material === "Stripper") {
         heteroRate = 4.0;
         customsTax = 0.0;
@@ -73,9 +75,10 @@ const MaterialCalculator = () => {
     } else if (vendor === "Balaji") {
       if (material === "ETP") {
         heteroRate = 18.0;
-        customsTax = heteroRate * 0.11;
+        //customsTax = heteroRate * 0.11;
         pcbCharges = 2.0;
         apemclCharges = 0;
+        customsTax = 0.0;
       } else if (material === "Stripper") {
         heteroRate = 4.0;
         customsTax = 0.0;
