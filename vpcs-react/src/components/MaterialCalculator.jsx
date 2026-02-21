@@ -24,6 +24,7 @@ const MaterialCalculator = () => {
 
   const GST = 0.18;
   const TCS = 0.01;
+  const CUSTOMS_TAX_RATE = 0.11;
 
   useEffect(() => {
     if (vendor && material) {
@@ -40,6 +41,14 @@ const MaterialCalculator = () => {
     }
   }, [vendor, material]);
 
+  // Auto-calculate customs tax for ETP when hetero rate changes
+  useEffect(() => {
+    if (material === "ETP" && heteroRate !== "") {
+      const calculatedCustomsTax = parseFloat(heteroRate) * CUSTOMS_TAX_RATE;
+      setCustomsTax(calculatedCustomsTax.toFixed(2));
+    }
+  }, [heteroRate, material]);
+
   const getDefaultValues = (vendor, material) => {
     let heteroRate = 0;
     let customsTax = 0;
@@ -49,7 +58,7 @@ const MaterialCalculator = () => {
     if (vendor === "Genetique") {
       if (material === "ETP") {
         heteroRate = 18.0;
-        customsTax = heteroRate * 0.11;
+        customsTax = 0;
         pcbCharges = 2.0;
         apemclCharges = 0.07;
       } else if (material === "Stripper") {
@@ -57,11 +66,16 @@ const MaterialCalculator = () => {
         customsTax = 0.0;
         pcbCharges = 1.0;
         apemclCharges = 0.07;
+      } else if (material === "Other Material") {
+        heteroRate = 0;
+        customsTax = 0;
+        pcbCharges = 0;
+        apemclCharges = 0.07;
       }
     } else if (vendor === "Godavari") {
       if (material === "ETP") {
         heteroRate = 18.0;
-        customsTax = heteroRate * 0.11;
+        customsTax = 0;
         pcbCharges = 2.0;
         apemclCharges = 0;
       } else if (material === "Stripper") {
@@ -69,16 +83,43 @@ const MaterialCalculator = () => {
         customsTax = 0.0;
         pcbCharges = heteroRate < 15.0 ? 1.5 : 2.0;
         apemclCharges = 0;
+      } else if (material === "Other Material") {
+        heteroRate = 0;
+        customsTax = 0;
+        pcbCharges = 0;
+        apemclCharges = 0;
       }
     } else if (vendor === "Balaji") {
       if (material === "ETP") {
         heteroRate = 18.0;
-        customsTax = heteroRate * 0.11;
+        customsTax = 0;
         pcbCharges = 2.0;
         apemclCharges = 0;
       } else if (material === "Stripper") {
         heteroRate = 4.0;
         customsTax = 0.0;
+        pcbCharges = 1.5;
+        apemclCharges = 0;
+      } else if (material === "Other Material") {
+        heteroRate = 0;
+        customsTax = 0;
+        pcbCharges = 0;
+        apemclCharges = 0;
+      }
+    } else if (vendor === "Vishakha") {
+      if (material === "ETP") {
+        heteroRate = 18.0;
+        customsTax = 0;
+        pcbCharges = 1.5;
+        apemclCharges = 0;
+      } else if (material === "Stripper") {
+        heteroRate = 4.0;
+        customsTax = 0.0;
+        pcbCharges = 1.0;
+        apemclCharges = 0;
+      } else if (material === "Other Material") {
+        heteroRate = 0;
+        customsTax = 0;
         pcbCharges = 1.5;
         apemclCharges = 0;
       }
@@ -100,6 +141,10 @@ const MaterialCalculator = () => {
       toHetero: "Sri Balaji to Hetero",
       toVendor: "VPCS to Sri Balaji",
     },
+    Vishakha: {
+      toHetero: "Vishakha to Hetero",
+      toVendor: "VPCS to Vishakha",
+    },
   };
 
   const selectedLabels = vendorLabels[vendor] || {
@@ -111,6 +156,7 @@ const MaterialCalculator = () => {
     Genetique: "Genetique Pro",
     Godavari: "Godavari Fine Chem",
     Balaji: "Sri Balaji Industries",
+    Vishakha: "Vishakha Solvents",
   };
 
   const currentVendorName = vendorDisplayNames[vendor] || "Vendor";
@@ -125,7 +171,7 @@ const MaterialCalculator = () => {
   const materialPriceHetero = materialCost * weightNum;
   const gstHetero = materialPriceHetero * GST;
   const materialPriceGst = materialPriceHetero + gstHetero;
-  const tcs = materialPriceGst * TCS;
+  const tcs = vendor === "Vishakha" ? 0 : materialPriceGst * TCS;
   const genetiqueToHetero = materialPriceGst + tcs;
 
   const genetiqueMaterialCost = heteroRateNum + customsTaxNum + pcbChargesNum + apemclChargesNum;
@@ -546,6 +592,7 @@ const MaterialCalculator = () => {
                   <option value="Genetique">Genetique Pro</option>
                   <option value="Godavari">Godavari Fine Chem</option>
                   <option value="Balaji">Sri Balaji Industries</option>
+                  <option value="Vishakha">Vishakha Solvents</option>
                 </select>
               </div>
 
@@ -555,6 +602,7 @@ const MaterialCalculator = () => {
                   <option value="">Select Material</option>
                   <option value="ETP">ETP</option>
                   <option value="Stripper">Stripper</option>
+                  <option value="Other Material">Other Material</option>
                 </select>
               </div>
             </div>
@@ -614,7 +662,7 @@ const MaterialCalculator = () => {
                   onBlur={() => setEditingField(null)}
                   placeholder="0.00"
                 />
-                <span className="input-hint">Vendor customs tax</span>
+                <span className="input-hint">Auto-calculated for ETP (11% of Hetero Rate)</span>
               </div>
 
               <div className="input-field">
