@@ -141,7 +141,7 @@ export const checkApprovedUser = async (session) => {
       return null;
     }
 
-    console.log('✅ User authenticated:', userEmail);
+    console.log('✅ User authenticated successfully:', userEmail);
 
     // Update last login and other user data
     const updateData = {

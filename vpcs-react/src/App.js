@@ -29,7 +29,7 @@ function App() {
     const session = await getCurrentSession();
 
     if (session) {
-      // 🔥 ALWAYS fetch fresh user data - don't use cached localStorage
+      // 🔥 ALWAYS fetch fresh user data - don't use cached localStorage.
       const userConfig = await checkApprovedUser(session);
       
       if (userConfig && session.user.email === userConfig.email) {
