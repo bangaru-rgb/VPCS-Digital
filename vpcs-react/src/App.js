@@ -12,7 +12,7 @@ import BaseCompanyManagement from './components/baseCompanyManagement';
 import UserManagement from './components/UserManagement/UserManagement';
 import Parties from './components/Parties/Parties';
 import MaterialManagement from './components/Materials/MaterialManagement';
-import { signOut, getCurrentSession, hasModuleAccess } from './lib/supabaseClient';
+import { signOut, getCurrentSession, hasModuleAccess, checkApprovedUser } from './lib/supabaseClient';
 import './App.css';
 
 function App() {
