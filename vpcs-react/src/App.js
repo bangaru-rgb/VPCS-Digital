@@ -25,34 +25,37 @@ function App() {
   }, []);
 
   const checkSession = async () => {
-    try {
-      const session = await getCurrentSession();
-      const savedUserInfo = localStorage.getItem('userRole');
+  try {
+    const session = await getCurrentSession();
 
-      if (session && savedUserInfo) {
-        const userConfig = JSON.parse(savedUserInfo);
-        
-        // Verify the session user matches saved user
-        if (session.user.email === userConfig.email) {
-          setUserInfo(userConfig);
-          setIsAuthenticated(true);
-        } else {
-          localStorage.removeItem('userRole');
-          setIsAuthenticated(false);
-          setUserInfo(null);
-        }
+    if (session) {
+      // 🔥 ALWAYS fetch fresh user data - don't use cached localStorage
+      const userConfig = await checkApprovedUser(session);
+      
+      if (userConfig && session.user.email === userConfig.email) {
+        setUserInfo(userConfig);
+        setIsAuthenticated(true);
+        // 🔥 Update localStorage with fresh data
+        localStorage.setItem('userRole', JSON.stringify(userConfig));
       } else {
+        localStorage.removeItem('userRole');
         setIsAuthenticated(false);
         setUserInfo(null);
       }
-    } catch (error) {
-      console.error('Session check error:', error);
+    } else {
       setIsAuthenticated(false);
       setUserInfo(null);
-    } finally {
-      setLoading(false);
+      localStorage.removeItem('userRole');
     }
-  };
+  } catch (error) {
+    console.error('Session check error:', error);
+    setIsAuthenticated(false);
+    setUserInfo(null);
+    localStorage.removeItem('userRole');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleLogin = (userConfig) => {
     setUserInfo(userConfig);

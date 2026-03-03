@@ -128,7 +128,7 @@ export const checkApprovedUser = async (session) => {
 
     console.log('🔍 Checking approval for:', userEmail);
 
-    // Query Approved_Users table
+    // 🔥 ALWAYS fetch fresh data from database - don't trust localStorage
     const { data, error } = await supabase
       .from('Approved_Users')
       .select('*')
