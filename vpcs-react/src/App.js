@@ -14,6 +14,7 @@ import Parties from './components/Parties/Parties';
 import MaterialManagement from './components/Materials/MaterialManagement';
 import { signOut, getCurrentSession, hasModuleAccess, checkApprovedUser } from './lib/supabaseClient';
 import './App.css';
+import VPCSAgent from './agent/VPCSAgent';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
