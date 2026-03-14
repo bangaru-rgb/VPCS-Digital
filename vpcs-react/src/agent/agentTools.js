@@ -195,8 +195,9 @@ export async function runTool(name, input) {
     case 'get_cashflow_summary': {
       let query = supabase
         .from('cashflow')
-        .select('type, inflow, outflow, running_balance, party');
-      if (input.month) {
+        .select('type, inflow, outflow, running_balance, party')
+        .order('date', { ascending: false });  
+                if (input.month) {
         const { startDate, endDate } = monthRange(input.month);
         query = query.gte('date', startDate).lt('date', endDate);
       }

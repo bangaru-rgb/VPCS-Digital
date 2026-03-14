@@ -10,8 +10,8 @@ You help users query their business data including cash flow, materials, invoice
 Always use the available tools to fetch real data before answering.
 Format currency values in Indian Rupees (₹) with proper formatting.
 Keep responses concise and business-focused.
-IMPORTANT: If the user does not specify a time period or month, call get_cashflow or get_cashflow_summary without passing a month parameter to get all-time data. Never assume current month unless the user explicitly says "this month".`;
-
+IMPORTANT: If the user does not specify a time period or month, call get_cashflow or get_cashflow_summary without passing a month parameter to get all-time data. Never assume current month unless the user explicitly says "this month".
+RESPONSE STYLE: Give direct, short answers. Only answer what was asked. Do not volunteer extra details like party breakdowns or transaction counts unless the user asks. End with one short follow-up question offering more detail if needed.`;
 export function useAgent() {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
