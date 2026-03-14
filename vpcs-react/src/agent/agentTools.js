@@ -32,13 +32,13 @@ export const toolDefinitions = [
   },
   {
     name: 'get_cashflow_summary',
-    description: 'Get financial summary: total inflow, outflow, net balance, and running balance for a month.',
-    input_schema: {
-      type: 'object',
-      properties: {
-        month: { type: 'string', description: 'Month in YYYY-MM format. Defaults to current month.' },
-      },
-    },
+description: 'Get financial summary: total inflow, outflow, net balance, and running balance. If no month is provided, returns all-time totals.',
+input_schema: {
+  type: 'object',
+  properties: {
+    month: { type: 'string', description: 'Month in YYYY-MM format. Optional - if not provided, returns all-time data.' },
+  },
+},
   },
   {
     name: 'get_materials',
