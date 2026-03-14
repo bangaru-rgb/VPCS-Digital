@@ -5,18 +5,22 @@ import { toolDefinitions, runTool } from './agentTools';
 const EDGE_FUNCTION_URL = 'https://dgalxobdjjvxbrogghhk.supabase.co/functions/v1/VPCS-AI-smart-endpoint';
 const MODEL = 'claude-sonnet-4-20250514';
 
-const SYSTEM_PROMPT = `You are a helpful business assistant for VPCS (Vishnu Prasad Chemicals and Solvents).
-You help users query their business data including cash flow, materials, invoices, shipments, transactions, parties, vendors, tankers, and more.
-Always use the available tools to fetch real data before answering.
-Format currency values in Indian Rupees (₹) with proper formatting.
-Keep responses concise and business-focused.
-IMPORTANT: If the user does not specify a time period or month, call get_cashflow or get_cashflow_summary without passing a month parameter to get all-time data. Never assume current month unless the user explicitly says "this month".
-RESPONSE STYLE: Give direct, short answers. Only answer what was asked. Do not volunteer extra details like party breakdowns or transaction counts unless the user asks. End with one short follow-up question offering more detail if needed.`;
 export function useAgent() {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const sendMessage = useCallback(async (userText) => {
+    const today = new Date().toISOString().slice(0, 7);
+
+    const SYSTEM_PROMPT = `You are a helpful business assistant for VPCS (Vishnu Prasad Chemicals and Solvents).
+Today's date is ${today}. Current month is ${today}.
+You help users query their business data including cash flow, materials, invoices, shipments, transactions, parties, vendors, tankers, and more.
+Always use the available tools to fetch real data before answering.
+Format currency values in Indian Rupees (₹) with proper formatting.
+Keep responses concise and business-focused.
+IMPORTANT: If the user does not specify a time period or month, call get_cashflow or get_cashflow_summary without passing a month parameter to get all-time data. If the user says "this month" or "current month", use ${today} as the month parameter.
+RESPONSE STYLE: Give direct, short answers. Only answer what was asked. Do not volunteer extra details like party breakdowns or transaction counts unless the user asks. End with one short follow-up question offering more detail if needed.`;
+
     const newUserMsg = { role: 'user', content: userText };
     const updatedMessages = [...messages, newUserMsg];
     setMessages(updatedMessages);
@@ -28,11 +32,10 @@ export function useAgent() {
       while (true) {
         const response = await fetch(EDGE_FUNCTION_URL, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json',  
-
-             'Authorization': `Bearer ${process.env.REACT_APP_SUPABASE_ANON_KEY}`,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.REACT_APP_SUPABASE_ANON_KEY}`,
           },
-        
           body: JSON.stringify({
             provider: 'claude',
             payload: {
