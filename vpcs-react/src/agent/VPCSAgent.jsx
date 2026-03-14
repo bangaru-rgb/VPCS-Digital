@@ -1,7 +1,6 @@
 // src/agent/VPCSAgent.jsx
 import React, { useState, useRef, useEffect } from 'react';
 import { useAgent } from './useAgent';
-import formatCurrency from '../lib/INDcurrencyFormat';
 import './VPCSAgent.css';
 
 function MessageBubble({ msg }) {
