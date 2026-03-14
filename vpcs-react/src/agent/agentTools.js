@@ -21,24 +21,24 @@ export const toolDefinitions = [
   },
   {
     name: 'get_cashflow',
-    description: 'Get cash flow entries for a specific month and/or type (Inflow/Outflow). Also has running_balance.',
+    description: 'Get cash flow entries filtered by type (Inflow/Outflow). If no month is provided, returns all-time entries.',
     input_schema: {
       type: 'object',
       properties: {
-        month: { type: 'string', description: 'Month in YYYY-MM format. Defaults to current month.' },
+        month: { type: 'string', description: 'Month in YYYY-MM format. Optional - if not provided, returns all-time data.' },
         type: { type: 'string', enum: ['Inflow', 'Outflow', 'all'], description: 'Filter by type. Default all.' },
       },
     },
   },
   {
     name: 'get_cashflow_summary',
-description: 'Get financial summary: total inflow, outflow, net balance, and running balance. If no month is provided, returns all-time totals.',
-input_schema: {
-  type: 'object',
-  properties: {
-    month: { type: 'string', description: 'Month in YYYY-MM format. Optional - if not provided, returns all-time data.' },
-  },
-},
+    description: 'Get financial summary: total inflow, outflow, net balance, and running balance. If no month is provided, returns all-time totals.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        month: { type: 'string', description: 'Month in YYYY-MM format. Optional - if not provided, returns all-time data.' },
+      },
+    },
   },
   {
     name: 'get_materials',
@@ -150,10 +150,6 @@ function monthRange(month) {
   return { startDate, endDate: end.toISOString().slice(0, 10) };
 }
 
-function currentMonth() {
-  return new Date().toISOString().slice(0, 7);
-}
-
 // ── Tool Implementations ───────────────────────────────────────────────────
 export async function runTool(name, input) {
   switch (name) {
@@ -182,28 +178,29 @@ export async function runTool(name, input) {
     }
 
     case 'get_cashflow': {
-      const month = input.month || currentMonth();
-      const { startDate, endDate } = monthRange(month);
       let query = supabase
         .from('cashflow')
         .select('date, type, party, inflow, outflow, running_balance, comments')
-        .gte('date', startDate)
-        .lt('date', endDate)
         .order('date', { ascending: false });
+      if (input.month) {
+        const { startDate, endDate } = monthRange(input.month);
+        query = query.gte('date', startDate).lt('date', endDate);
+      }
       if (input.type && input.type !== 'all') query = query.eq('type', input.type);
       const { data, error } = await query;
       if (error) return { error: error.message };
-      return { month, count: data.length, entries: data };
+      return { period: input.month || 'all-time', count: data.length, entries: data };
     }
 
     case 'get_cashflow_summary': {
-      const month = input.month || currentMonth();
-      const { startDate, endDate } = monthRange(month);
-      const { data, error } = await supabase
+      let query = supabase
         .from('cashflow')
-        .select('type, inflow, outflow, running_balance, party')
-        .gte('date', startDate)
-        .lt('date', endDate);
+        .select('type, inflow, outflow, running_balance, party');
+      if (input.month) {
+        const { startDate, endDate } = monthRange(input.month);
+        query = query.gte('date', startDate).lt('date', endDate);
+      }
+      const { data, error } = await query;
       if (error) return { error: error.message };
       const totalInflow = data.reduce((s, t) => s + (parseFloat(t.inflow) || 0), 0);
       const totalOutflow = data.reduce((s, t) => s + (parseFloat(t.outflow) || 0), 0);
@@ -214,7 +211,7 @@ export async function runTool(name, input) {
         partyTotals[t.party].inflow += parseFloat(t.inflow) || 0;
         partyTotals[t.party].outflow += parseFloat(t.outflow) || 0;
       });
-      return { month, totalInflow, totalOutflow, netBalance: totalInflow - totalOutflow, runningBalance: latestBalance, transactionCount: data.length, partyBreakdown: partyTotals };
+      return { period: input.month || 'all-time', totalInflow, totalOutflow, netBalance: totalInflow - totalOutflow, runningBalance: latestBalance, transactionCount: data.length, partyBreakdown: partyTotals };
     }
 
     case 'get_materials': {
