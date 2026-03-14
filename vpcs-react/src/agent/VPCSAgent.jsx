@@ -1,18 +1,11 @@
 // src/agent/VPCSAgent.jsx
 import React, { useState, useRef, useEffect } from 'react';
 import { useAgent } from './useAgent';
+import formatCurrency from '../lib/INDcurrencyFormat';
 import './VPCSAgent.css';
-
-const formatCurrency = (num) =>
-  new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    maximumFractionDigits: 0,
-  }).format(num);
 
 function MessageBubble({ msg }) {
   const isUser = msg.role === 'user';
-  // Render newlines as line breaks
   const lines = msg.content.split('\n');
 
   return (
@@ -38,14 +31,12 @@ export default function VPCSAgent() {
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
 
-  // Scroll to bottom on new messages
   useEffect(() => {
     if (open) {
       bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages, open, loading]);
 
-  // Focus input when opened
   useEffect(() => {
     if (open) {
       setTimeout(() => inputRef.current?.focus(), 100);
@@ -74,7 +65,6 @@ export default function VPCSAgent() {
 
   return (
     <>
-      {/* Floating Button */}
       <button
         className={`vpcs-agent-fab ${open ? 'active' : ''}`}
         onClick={() => setOpen(o => !o)}
@@ -83,10 +73,8 @@ export default function VPCSAgent() {
         {open ? '✕' : '🤖'}
       </button>
 
-      {/* Chat Panel */}
       {open && (
         <div className="vpcs-agent-panel">
-          {/* Header */}
           <div className="vpcs-agent-header">
             <span>🤖 VPCS Assistant</span>
             <button className="vpcs-agent-clear" onClick={clearMessages} title="Clear chat">
@@ -94,7 +82,6 @@ export default function VPCSAgent() {
             </button>
           </div>
 
-          {/* Messages */}
           <div className="vpcs-agent-messages">
             {messages.length === 0 && (
               <div className="vpcs-agent-empty">
@@ -125,7 +112,6 @@ export default function VPCSAgent() {
             <div ref={bottomRef} />
           </div>
 
-          {/* Input */}
           <div className="vpcs-agent-input-row">
             <input
               ref={inputRef}
