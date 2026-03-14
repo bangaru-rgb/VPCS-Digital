@@ -266,6 +266,7 @@ function App() {
           </div>
         </main>
       </div>
+      {isAuthenticated && <VPCSAgent />}
     </BrowserRouter>
   );
 }
