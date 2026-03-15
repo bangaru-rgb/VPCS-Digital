@@ -20,6 +20,20 @@ export const toolDefinitions = [
     input_schema: { type: 'object', properties: {} },
   },
   {
+    name: 'calculate_material_cost',
+    description: 'Calculate material costs. Called when user provides vendor + material + weight in any format. Vendor mapping: balaji/sri balaji = Balaji, godavari = Godavari, genetique = Genetique, vishakha = Vishakha. Material mapping: etp = ETP, stripper = Stripper.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        vendor: { type: 'string', description: 'Vendor key: Genetique, Godavari, Balaji, or Vishakha' },
+        material: { type: 'string', description: 'Material: ETP, Stripper, or Other Material' },
+        weight: { type: 'number', description: 'Weight in kg' },
+        hetero_rate: { type: 'number', description: 'Override hetero rate. Optional - uses default if not provided.' },
+      },
+      required: ['vendor', 'material', 'weight'],
+    },
+  },
+  {
     name: 'get_cashflow',
     description: 'Get cash flow entries filtered by type (Inflow/Outflow). If no month is provided, returns all-time entries.',
     input_schema: {
@@ -177,6 +191,73 @@ export async function runTool(name, input) {
       return { count: data.length, roles: data };
     }
 
+    case 'calculate_material_cost': {
+      const { vendor, material, weight } = input;
+      const GST = 0.18;
+      const TCS = 0.01;
+      const CUSTOMS_TAX_RATE = 0.11;
+
+      const defaults = {
+        Genetique: {
+          ETP:             { heteroRate: 18.0, pcbCharges: 2.0, apemclCharges: 0.07 },
+          Stripper:        { heteroRate: 4.0,  pcbCharges: 1.0, apemclCharges: 0.07 },
+          'Other Material':{ heteroRate: 0,    pcbCharges: 0,   apemclCharges: 0.07 },
+        },
+        Godavari: {
+          ETP:             { heteroRate: 18.0, pcbCharges: 2.0, apemclCharges: 0 },
+          Stripper:        { heteroRate: 4.0,  pcbCharges: 1.5, apemclCharges: 0 },
+          'Other Material':{ heteroRate: 0,    pcbCharges: 0,   apemclCharges: 0 },
+        },
+        Balaji: {
+          ETP:             { heteroRate: 18.0, pcbCharges: 2.0, apemclCharges: 0 },
+          Stripper:        { heteroRate: 4.0,  pcbCharges: 1.5, apemclCharges: 0 },
+          'Other Material':{ heteroRate: 0,    pcbCharges: 0,   apemclCharges: 0 },
+        },
+        Vishakha: {
+          ETP:             { heteroRate: 18.0, pcbCharges: 1.5, apemclCharges: 0 },
+          Stripper:        { heteroRate: 4.0,  pcbCharges: 1.0, apemclCharges: 0 },
+          'Other Material':{ heteroRate: 0,    pcbCharges: 1.5, apemclCharges: 0 },
+        },
+      };
+
+      const vendorLabels = {
+        Genetique: { toHetero: 'Genetique to Hetero',  toVendor: 'VPCS to Genetique' },
+        Godavari:  { toHetero: 'Godavari to Hetero',   toVendor: 'VPCS to Godavari' },
+        Balaji:    { toHetero: 'Sri Balaji to Hetero',  toVendor: 'VPCS to Sri Balaji' },
+        Vishakha:  { toHetero: 'Vishakha to Hetero',   toVendor: 'VPCS to Vishakha' },
+      };
+
+      const d = defaults[vendor]?.[material];
+      if (!d) return { error: `Unknown vendor "${vendor}" or material "${material}"` };
+
+      const heteroRate = input.hetero_rate ?? d.heteroRate;
+      const customsTax = material === 'ETP' ? heteroRate * CUSTOMS_TAX_RATE : 0;
+      const { pcbCharges, apemclCharges } = d;
+      const labels = vendorLabels[vendor];
+
+      const materialCost = heteroRate + customsTax;
+      const materialPriceHetero = materialCost * weight;
+      const gstHetero = materialPriceHetero * GST;
+      const materialPriceGst = materialPriceHetero + gstHetero;
+      const tcs = vendor === 'Vishakha' ? 0 : materialPriceGst * TCS;
+      const toHeteroTotal = materialPriceGst + tcs;
+
+      const vendorMaterialCost = heteroRate + customsTax + pcbCharges + apemclCharges;
+      const materialPriceVendor = vendorMaterialCost * weight;
+      const gstVendor = materialPriceVendor * GST;
+      const toVendorTotal = materialPriceVendor + gstVendor;
+
+      return {
+        vendor, material, weight, heteroRate, customsTax, pcbCharges, apemclCharges,
+        [labels.toHetero]: toHeteroTotal,
+        [labels.toVendor]: toVendorTotal,
+        breakdown: {
+          materialCost, materialPriceHetero, gst: gstHetero,
+          materialPriceGst, tcs, vendorMaterialCost, materialPriceVendor, gstVendor,
+        },
+      };
+    }
+
     case 'get_cashflow': {
       let query = supabase
         .from('cashflow')
@@ -196,8 +277,8 @@ export async function runTool(name, input) {
       let query = supabase
         .from('cashflow')
         .select('type, inflow, outflow, running_balance, party')
-        .order('date', { ascending: false });  
-                if (input.month) {
+        .order('date', { ascending: false });
+      if (input.month) {
         const { startDate, endDate } = monthRange(input.month);
         query = query.gte('date', startDate).lt('date', endDate);
       }
