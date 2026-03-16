@@ -1,6 +1,6 @@
 // src/App.js - Main Application Component with Modern Navigation
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Login from './components/Login';
 import Navigation, { PageHeader } from './components/navigation';
 import MaterialCalculator from './components/MaterialCalculator';
@@ -16,75 +16,14 @@ import { signOut, getCurrentSession, hasModuleAccess, checkApprovedUser } from '
 import './App.css';
 import VPCSAgent from './agent/VPCSAgent';
 
-function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userInfo, setUserInfo] = useState(null);
-  const [loading, setLoading] = useState(true);
+// ── Inner component so useLocation works inside BrowserRouter ──
+function AppContent({ isAuthenticated, userInfo, loading, handleLogin, handleLogout }) {
+  const location = useLocation();
+  const currentModule = location.pathname.replace('/', '').split('/')[0] || 'default';
 
-  useEffect(() => {
-    checkSession();
-  }, []);
-
-  const checkSession = async () => {
-  try {
-    const session = await getCurrentSession();
-
-    if (session) {
-      // 🔥 ALWAYS fetch fresh user data - don't use cached localStorage.
-      const userConfig = await checkApprovedUser(session);
-      
-      if (userConfig && session.user.email === userConfig.email) {
-        setUserInfo(userConfig);
-        setIsAuthenticated(true);
-        // 🔥 Update localStorage with fresh data
-        localStorage.setItem('userRole', JSON.stringify(userConfig));
-      } else {
-        localStorage.removeItem('userRole');
-        setIsAuthenticated(false);
-        setUserInfo(null);
-      }
-    } else {
-      setIsAuthenticated(false);
-      setUserInfo(null);
-      localStorage.removeItem('userRole');
-    }
-  } catch (error) {
-    console.error('Session check error:', error);
-    setIsAuthenticated(false);
-    setUserInfo(null);
-    localStorage.removeItem('userRole');
-  } finally {
-    setLoading(false);
-  }
-};
-
-  const handleLogin = (userConfig) => {
-    setUserInfo(userConfig);
-    setIsAuthenticated(true);
-  };
-
-  const handleLogout = async () => {
-  try {
-    await signOut();
-    setIsAuthenticated(false);
-    setUserInfo(null);
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('lastLoginTime');
-    // Don't add window.location.href here - signOut already handles it
-  } catch (error) {
-    console.error('Logout error:', error);
-  }
-};
-
-  // Get the first available module route for the user
   const getDefaultRoute = (userInfo) => {
-    if (!userInfo || !userInfo.modules || userInfo.modules.length === 0) {
-      return '/';
-    }
-
+    if (!userInfo || !userInfo.modules || userInfo.modules.length === 0) return '/';
     const firstModule = userInfo.modules[0];
-    
-    // Map module names to routes
     const moduleRouteMap = {
       'calculator': '/calculator',
       'cashflow': '/cashflow',
@@ -96,16 +35,11 @@ function App() {
       'parties': '/parties',
       'material-management': '/material-management'
     };
-
     return moduleRouteMap[firstModule] || '/calculator';
   };
 
-  // Protected Route Component
   const ProtectedRoute = ({ children, requiredModule }) => {
-    if (!isAuthenticated) {
-      return <Navigate to="/" replace />;
-    }
-
+    if (!isAuthenticated) return <Navigate to="/" replace />;
     if (requiredModule && !hasModuleAccess(userInfo, requiredModule)) {
       return (
         <div className="access-denied">
@@ -115,7 +49,6 @@ function App() {
         </div>
       );
     }
-
     return children;
   };
 
@@ -128,145 +61,136 @@ function App() {
     );
   }
 
-  // Set basename for GitHub Pages
+  return (
+    <div className="App">
+      {isAuthenticated && <Navigation userInfo={userInfo} onLogout={handleLogout} />}
+
+      <main className="app-main">
+        {isAuthenticated && <PageHeader />}
+
+        <div className="page-content">
+          <Routes>
+            <Route
+              path="/login"
+              element={isAuthenticated ? <Navigate to={getDefaultRoute(userInfo)} replace /> : <Login onLogin={handleLogin} />}
+            />
+            <Route
+              path="/"
+              element={isAuthenticated ? <Navigate to={getDefaultRoute(userInfo)} replace /> : <Login onLogin={handleLogin} />}
+            />
+            <Route
+              path="/calculator"
+              element={<ProtectedRoute requiredModule="calculator"><MaterialCalculator userInfo={userInfo} /></ProtectedRoute>}
+            />
+            <Route
+              path="/cashflow"
+              element={<ProtectedRoute requiredModule="cashflow"><CashFlow userInfo={userInfo} /></ProtectedRoute>}
+            />
+            <Route
+              path="/cashflowentry"
+              element={<ProtectedRoute requiredModule="cashflowentry"><CashFlowEntry userInfo={userInfo} /></ProtectedRoute>}
+            />
+            <Route
+              path="/transactions"
+              element={<ProtectedRoute requiredModule="transactions"><InvoicesDashboard userInfo={userInfo} /></ProtectedRoute>}
+            />
+            <Route
+              path="/tanker-management"
+              element={<ProtectedRoute requiredModule="tanker-management"><TankerManagement userInfo={userInfo} /></ProtectedRoute>}
+            />
+            <Route
+              path="/base-company-management"
+              element={<ProtectedRoute requiredModule="base-company-management"><BaseCompanyManagement userInfo={userInfo} /></ProtectedRoute>}
+            />
+            <Route
+              path="/user-management"
+              element={<ProtectedRoute requiredModule="user-management"><UserManagement userInfo={userInfo} /></ProtectedRoute>}
+            />
+            <Route
+              path="/parties"
+              element={<ProtectedRoute requiredModule="parties"><Parties userInfo={userInfo} /></ProtectedRoute>}
+            />
+            <Route
+              path="/material-management"
+              element={<ProtectedRoute requiredModule="material-management"><MaterialManagement userInfo={userInfo} /></ProtectedRoute>}
+            />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </div>
+      </main>
+
+      {isAuthenticated && <VPCSAgent currentModule={currentModule} />}
+    </div>
+  );
+}
+
+// ── Main App component ──
+function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userInfo, setUserInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    checkSession();
+  }, []);
+
+  const checkSession = async () => {
+    try {
+      const session = await getCurrentSession();
+      if (session) {
+        const userConfig = await checkApprovedUser(session);
+        if (userConfig && session.user.email === userConfig.email) {
+          setUserInfo(userConfig);
+          setIsAuthenticated(true);
+          localStorage.setItem('userRole', JSON.stringify(userConfig));
+        } else {
+          localStorage.removeItem('userRole');
+          setIsAuthenticated(false);
+          setUserInfo(null);
+        }
+      } else {
+        setIsAuthenticated(false);
+        setUserInfo(null);
+        localStorage.removeItem('userRole');
+      }
+    } catch (error) {
+      console.error('Session check error:', error);
+      setIsAuthenticated(false);
+      setUserInfo(null);
+      localStorage.removeItem('userRole');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogin = (userConfig) => {
+    setUserInfo(userConfig);
+    setIsAuthenticated(true);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      setIsAuthenticated(false);
+      setUserInfo(null);
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('lastLoginTime');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
   const basename = window.location.hostname.includes('github.io') ? '/VPCS-Digital' : '';
 
   return (
     <BrowserRouter basename={basename}>
-      <div className="App">
-        {/* Navigation Sidebar - Only show when authenticated */}
-        {isAuthenticated && <Navigation userInfo={userInfo} onLogout={handleLogout} />}
-
-        {/* Main Content Area */}
-        <main className="app-main">
-          {/* Page Header with VPCS Branding - Only show when authenticated */}
-          {isAuthenticated && <PageHeader />}
-          
-          {/* Page Content */}
-          <div className="page-content">
-            <Routes>
-              {/* Login Route - also handles OAuth callback */}
-              <Route 
-                path="/login" 
-                element={
-                  isAuthenticated ? 
-                    <Navigate to={getDefaultRoute(userInfo)} replace /> : 
-                    <Login onLogin={handleLogin} />
-                } 
-              />
-
-              {/* Root path - Login or redirect to first module */}
-              <Route 
-                path="/" 
-                element={
-                  isAuthenticated ? 
-                    <Navigate to={getDefaultRoute(userInfo)} replace /> :
-                    <Login onLogin={handleLogin} />
-                } 
-              />
-
-              {/* Protected Routes - All Available Modules */}
-              
-              {/* Material Calculator */}
-              <Route 
-                path="/calculator" 
-                element={
-                  <ProtectedRoute requiredModule="calculator">
-                    <MaterialCalculator userInfo={userInfo} />
-                  </ProtectedRoute>
-                } 
-              />
-
-              {/* Cash Flow View */}
-              <Route 
-                path="/cashflow" 
-                element={
-                  <ProtectedRoute requiredModule="cashflow">
-                    <CashFlow userInfo={userInfo} />
-                  </ProtectedRoute>
-                } 
-              />
-
-              {/* Cash Flow Entry */}
-              <Route 
-                path="/cashflowentry" 
-                element={
-                  <ProtectedRoute requiredModule="cashflowentry">
-                    <CashFlowEntry userInfo={userInfo} />
-                  </ProtectedRoute>
-                } 
-              />
-
-              {/* Transactions Dashboard */}
-              <Route 
-                path="/transactions" 
-                element={
-                  <ProtectedRoute requiredModule="transactions">
-                    <InvoicesDashboard userInfo={userInfo} />
-                  </ProtectedRoute>
-                } 
-              />
-
-              {/* Tanker Management */}
-              <Route 
-                path="/tanker-management" 
-                element={
-                  <ProtectedRoute requiredModule="tanker-management">
-                    <TankerManagement userInfo={userInfo} />
-                  </ProtectedRoute>
-                } 
-              />
-
-              {/* Base Company Management */}
-              <Route 
-                path="/base-company-management" 
-                element={
-                  <ProtectedRoute requiredModule="base-company-management">
-                    <BaseCompanyManagement userInfo={userInfo} />
-                  </ProtectedRoute>
-                } 
-              />
-
-              {/* User Management */}
-              <Route 
-                path="/user-management" 
-                element={
-                  <ProtectedRoute requiredModule="user-management">
-                    <UserManagement userInfo={userInfo} />
-                  </ProtectedRoute>
-                }
-              />
-
-              {/* Parties */}
-              <Route
-                path="/parties"
-                element={
-                  <ProtectedRoute requiredModule="parties">
-                    <Parties userInfo={userInfo} />
-                  </ProtectedRoute>
-                }
-              />
-
-              {/* Material Management */}
-              <Route
-                path="/material-management"
-                element={
-                  <ProtectedRoute requiredModule="material-management">
-                    <MaterialManagement userInfo={userInfo} />
-                  </ProtectedRoute>
-                }
-              />
-
-              {/* Fallback Route */}
-              <Route 
-                path="*" 
-                element={<Navigate to="/" replace />} 
-              />
-            </Routes>
-          </div>
-        </main>
-      </div>
-      {isAuthenticated && <VPCSAgent />}
+      <AppContent
+        isAuthenticated={isAuthenticated}
+        userInfo={userInfo}
+        loading={loading}
+        handleLogin={handleLogin}
+        handleLogout={handleLogout}
+      />
     </BrowserRouter>
   );
 }
