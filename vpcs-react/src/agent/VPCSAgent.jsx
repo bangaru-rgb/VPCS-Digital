@@ -69,13 +69,13 @@ export default function VPCSAgent() {
         onClick={() => setOpen(o => !o)}
         title="VPCS Assistant"
       >
-        {open ? '✕' : '🤖'}
+        {open ? '✕' : <span style={{fontSize: '0.7rem', fontWeight: 800, lineHeight: 1.2, textAlign: 'center'}}>VP<br/>CS</span>}
       </button>
 
       {open && (
         <div className="vpcs-agent-panel">
           <div className="vpcs-agent-header">
-            <span>🤖 VPCS Assistant</span>
+            <span>VPCS Assistant</span>
             <button className="vpcs-agent-clear" onClick={clearMessages} title="Clear chat">
               🗑
             </button>
