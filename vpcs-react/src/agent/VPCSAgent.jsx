@@ -23,10 +23,10 @@ function MessageBubble({ msg }) {
   );
 }
 
-export default function VPCSAgent() {
+export default function VPCSAgent({ currentModule = 'default' }) {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState('');
-  const { messages, loading, sendMessage, clearMessages } = useAgent();
+  const { messages, loading, sendMessage, clearMessages } = useAgent(currentModule);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
 
