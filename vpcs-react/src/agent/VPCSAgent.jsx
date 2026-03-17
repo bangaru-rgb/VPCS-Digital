@@ -101,7 +101,7 @@ export default function VPCSAgent({ currentModule = 'default' }) {
 
             {loading && (
               <div className="vpcs-agent-bubble assistant">
-                <span className="vpcs-agent-avatar">🤖</span>
+                <span className="vpcs-agent-avatar">🤖</span><span className="vpcs-agent-avatar" style={{fontSize: '0.6rem', fontWeight: 800, lineHeight: 1.2, textAlign: 'center', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', padding: '3px 5px', borderRadius: '6px'}}>VP<br/>CS</span>
                 <div className="vpcs-agent-typing">
                   <span></span><span></span><span></span>
                 </div>
